@@ -1,0 +1,156 @@
+services:
+  # ── PostgreSQL (설정/메타데이터 DB) ────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartfarm_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: smartfarm_db
+      POSTGRES_USER: smartfarm
+      POSTGRES_PASSWORD: smartfarm123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartfarm -d smartfarm_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── InfluxDB (시계열 텔레메트리 DB) ────────────────────────────────
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: smartfarm_influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: adminpassword
+      DOCKER_INFLUXDB_INIT_ORG: smartfarm
+      DOCKER_INFLUXDB_INIT_BUCKET: greenhouse_telemetry
+      DOCKER_INFLUXDB_INIT_RETENTION: 90d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: my-super-secret-auth-token
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    ports:
+      - "8086:8086"
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (BullMQ 큐 + 세션 캐시) ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: smartfarm_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Telegraf (MQTT → InfluxDB 파이프라인) ───────────────────────────
+  telegraf:
+    image: telegraf:1.32-alpine
+    container_name: smartfarm_telegraf
+    restart: unless-stopped
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - ./docker/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      INFLUXDB_TOKEN: my-super-secret-auth-token
+      INFLUXDB_URL: http://influxdb:8086
+      MQTT_HOST: ${MQTT_HOST:-localhost}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USERNAME: ${MQTT_USERNAME:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
+
+  # ── MediaMTX (RTSP → WebRTC 카메라 변환) ───────────────────────────
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    container_name: smartfarm_mediamtx
+    restart: unless-stopped
+    ports:
+      - "8554:8554"   # RTSP
+      - "8889:8889"   # WebRTC (HTTP)
+      - "8890:8890"   # WebRTC (HTTPS)
+      - "1935:1935"   # RTMP (선택)
+    volumes:
+      - ./docker/mediamtx/mediamtx.yml:/mediamtx.yml:ro
+
+  # ── Fastify 백엔드 API 서버 ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: smartfarm_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://smartfarm:smartfarm123@postgres:5432/smartfarm_db
+      INFLUXDB_URL: http://influxdb:8086
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/backend:/app
+      - /app/node_modules
+
+  # ── React 프론트엔드 (개발 모드) ────────────────────────────────────
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile.dev
+    container_name: smartfarm_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:3000
+      VITE_WS_URL: ws://localhost:3000
+      VITE_MEDIAMTX_URL: http://localhost:8889
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/frontend:/app
+      - /app/node_modules
+
+  # ── Nginx (리버스 프록시) ───────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: smartfarm_nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+
+volumes:
+  postgres_data:
+  influxdb_data:
+  redis_data:
+
+networks:
+  default:
+    name: smartfarm_network

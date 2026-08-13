@@ -1,0 +1,178 @@
+// Prisma 스키마 - 청정원 스마트팜 관계형 DB
+// 다농가 SaaS 지원 구조
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── 농장 (다농가 SaaS 지원) ──────────────────────────────────────────
+model Farm {
+  id          String        @id @default(cuid())
+  name        String        @db.VarChar(100)
+  location    String?       @db.VarChar(200)
+  timezone    String        @default("Asia/Seoul")
+  cropTypes   Json?         // 재배 작물 목록
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  greenhouses Greenhouse[]
+  users       User[]
+  alertRules  AlertRule[]
+  essStatus   EssStatus[]
+  automations AutomationRule[]
+
+  @@map("farms")
+}
+
+// ── 비닐하우스 (동) ───────────────────────────────────────────────────
+model Greenhouse {
+  id           String   @id @default(cuid())
+  farmId       String
+  houseNumber  Int      // 1~5
+  name         String   @db.VarChar(100) // "1동 방울토마토"
+  areaSqm      Decimal? @db.Decimal(10, 2)
+  cropType     String?  @db.VarChar(100) // "cherry_tomato"
+  config       Json?    // 장치 활성화 설정 (범용화 핵심)
+  createdAt    DateTime @default(now())
+
+  farm         Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  devices      Device[]
+  alertRules   AlertRule[]
+  automations  AutomationRule[]
+  commands     CommandHistory[]
+
+  @@unique([farmId, houseNumber])
+  @@map("greenhouses")
+}
+
+// ── 장치 레지스트리 ───────────────────────────────────────────────────
+model Device {
+  id              String    @id @default(cuid())
+  farmId          String
+  greenhouseId    String?
+  deviceUuid      String    @unique @db.VarChar(36) // ESP32 칩 MAC
+  deviceType      String    @db.VarChar(50)  // controller, sensor, actuator
+  actuatorType    String?   @db.VarChar(50)  // motor_ac, pump, fan, valve
+  name            String    @db.VarChar(100)
+  firmwareVersion String?   @db.VarChar(20)
+  interlockGroup  String?   @db.VarChar(50)  // 인터락 그룹
+  hasLimitSwitch  Boolean   @default(false)
+  lastHeartbeat   DateTime?
+  isOnline        Boolean   @default(false)
+  config          Json?     // 장치별 설정 (오프셋, 범위 등)
+  createdAt       DateTime  @default(now())
+
+  greenhouse      Greenhouse? @relation(fields: [greenhouseId], references: [id])
+  commands        CommandHistory[]
+
+  @@index([farmId])
+  @@index([greenhouseId])
+  @@map("devices")
+}
+
+// ── 자동화 규칙 ───────────────────────────────────────────────────────
+model AutomationRule {
+  id            String    @id @default(cuid())
+  farmId        String
+  greenhouseId  String?   // null이면 전체 동 적용
+  name          String    @db.VarChar(100)
+  isActive      Boolean   @default(true)
+  priority      Int       @default(50)
+  trigger       Json      // { sensorType, operator, value, timeRange? }
+  conditions    Json?     // 추가 조건
+  actions       Json      // [{ deviceId, command, position?, duration? }]
+  resetTrigger  Json?     // 복귀 조건
+  resetActions  Json?     // 복귀 액션
+  cooldownSec   Int       @default(300)
+  lastTriggered DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  farm          Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  greenhouse    Greenhouse? @relation(fields: [greenhouseId], references: [id])
+
+  @@index([farmId, isActive])
+  @@map("automation_rules")
+}
+
+// ── 제어 명령 이력 ────────────────────────────────────────────────────
+model CommandHistory {
+  id           String    @id @default(cuid())
+  deviceId     String?
+  greenhouseId String?
+  command      Json      // 실행된 명령 전체 페이로드
+  triggeredBy  String    @db.VarChar(50) // user, automation, emergency
+  requestedBy  String?   @db.VarChar(100)
+  status       String    @default("pending") // pending, executed, failed, timeout
+  executedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  device       Device?     @relation(fields: [deviceId], references: [id])
+  greenhouse   Greenhouse? @relation(fields: [greenhouseId], references: [id])
+
+  @@index([greenhouseId, createdAt])
+  @@map("command_history")
+}
+
+// ── 알림 규칙 ─────────────────────────────────────────────────────────
+model AlertRule {
+  id           String    @id @default(cuid())
+  farmId       String
+  greenhouseId String?
+  name         String    @db.VarChar(100)
+  sensorType   String    @db.VarChar(50)
+  operator     String    @db.VarChar(5) // >, <, >=, <=, ==, !=
+  threshold    Decimal
+  level        String    @db.VarChar(20) // info, warning, critical
+  message      String    @db.VarChar(200)
+  channels     Json      // ['push', 'email', 'sms']
+  isActive     Boolean   @default(true)
+  autoAction   Json?     // 자동 조치 액션
+  createdAt    DateTime  @default(now())
+
+  farm         Farm       @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  greenhouse   Greenhouse? @relation(fields: [greenhouseId], references: [id])
+
+  @@map("alert_rules")
+}
+
+// ── 사용자 ────────────────────────────────────────────────────────────
+model User {
+  id           String   @id @default(cuid())
+  farmId       String?
+  username     String   @unique @db.VarChar(50)
+  email        String   @unique @db.VarChar(200)
+  passwordHash String
+  role         String   @default("operator") // admin, operator, viewer
+  fcmToken     String?  // FCM 푸시 토큰
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  farm         Farm?    @relation(fields: [farmId], references: [id])
+
+  @@map("users")
+}
+
+// ── ESS 전력 이벤트 (일별 통계) ───────────────────────────────────────
+model EssStatus {
+  id             String   @id @default(cuid())
+  farmId         String
+  date           DateTime @db.Date
+  minSoc         Decimal  @db.Decimal(5, 2)
+  maxSoc         Decimal  @db.Decimal(5, 2)
+  avgSoc         Decimal  @db.Decimal(5, 2)
+  totalSolarKwh  Decimal  @db.Decimal(10, 3)
+  totalLoadKwh   Decimal  @db.Decimal(10, 3)
+  blackoutEvents Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  farm           Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  @@unique([farmId, date])
+  @@map("ess_status_daily")
+}

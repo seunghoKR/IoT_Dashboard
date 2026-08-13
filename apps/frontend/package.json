@@ -1,0 +1,40 @@
+{
+  "name": "@smartfarm/frontend",
+  "version": "1.0.0",
+  "description": "스마트팜 대시보드 React 19 + Vite 6 프론트엔드",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.2",
+    "@stitches/react": "^1.2.8",
+    "recharts": "^2.13.3",
+    "zustand": "^5.0.1",
+    "@tanstack/react-query": "^5.59.20",
+    "socket.io-client": "^4.8.0",
+    "phosphor-react": "^1.4.1",
+    "react-hook-form": "^7.53.1",
+    "zod": "^3.23.8",
+    "@hookform/resolvers": "^3.9.1",
+    "dayjs": "^1.11.13",
+    "clsx": "^2.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.3",
+    "@typescript-eslint/eslint-plugin": "^8.8.0",
+    "@typescript-eslint/parser": "^8.8.0",
+    "eslint": "^9.11.1",
+    "eslint-plugin-react": "^7.37.1",
+    "eslint-plugin-react-hooks": "^5.1.0"
+  }
+}

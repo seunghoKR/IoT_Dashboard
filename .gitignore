@@ -1,0 +1,24 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+.DS_Store
+Thumbs.db
+
+# Docker volumes
+docker/postgres/data/
+docker/influxdb/data/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Firmware build artifacts
+apps/firmware/.pio/
+apps/firmware/build/
+
+# Generated
+apps/backend/prisma/migrations/dev.db
+apps/frontend/dist/
+apps/backend/dist/
