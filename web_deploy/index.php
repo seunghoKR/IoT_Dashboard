@@ -66,6 +66,107 @@ require_once __DIR__ . '/config.php';
       background: radial-gradient(circle at 50% 10%, #1A2E3B 0%, #060F17 100%);
     }
 
+    /* 📱 100% 무스크롤 태블릿 핏 모드 (Tablet Zero-Scroll Mode) */
+    body.tablet-fit-mode {
+      height: 100vh;
+      max-height: 100vh;
+      overflow: hidden !important;
+    }
+    body.tablet-fit-mode header {
+      padding: 8px 16px;
+      min-height: 48px;
+    }
+    body.tablet-fit-mode .brand-logo { font-size: 22px; }
+    body.tablet-fit-mode .brand-name { font-size: 16px; }
+    body.tablet-fit-mode .brand-sub { display: none; }
+    body.tablet-fit-mode main {
+      padding: 10px 16px;
+      gap: 10px;
+      height: calc(100vh - 48px);
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+    }
+    body.tablet-fit-mode .dashboard-split-layout {
+      flex: 1;
+      height: calc(100% - 50px);
+      gap: 14px;
+      grid-template-columns: 1.65fr 1fr;
+      overflow: hidden;
+    }
+    body.tablet-fit-mode .visual-twin-pane {
+      height: 100%;
+      gap: 8px;
+      overflow: hidden;
+    }
+    body.tablet-fit-mode .twin-stage-card {
+      height: 100%;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+    }
+    body.tablet-fit-mode .twin-env-bar {
+      margin-bottom: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    body.tablet-fit-mode .greenhouse-svg-wrapper {
+      flex: 1;
+      min-height: 0;
+      height: 100%;
+      padding: 4px;
+    }
+    body.tablet-fit-mode .greenhouse-svg-wrapper svg {
+      height: 100%;
+      max-height: 100%;
+    }
+    body.tablet-fit-mode .curtain-indicator-box {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+    body.tablet-fit-mode .control-deck-pane {
+      height: 100%;
+      gap: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    body.tablet-fit-mode .deck-section-card {
+      padding: 10px 12px;
+      gap: 8px;
+      border-radius: 12px;
+    }
+    body.tablet-fit-mode .deck-card-header { padding-bottom: 4px; }
+    body.tablet-fit-mode .deck-card-title { font-size: 13px; }
+    body.tablet-fit-mode .motor-control-group {
+      padding: 8px 10px;
+      gap: 6px;
+      border-radius: 10px;
+    }
+    body.tablet-fit-mode .motor-name { font-size: 13px; }
+    body.tablet-fit-mode .btn-actuator {
+      padding: 6px 4px;
+      font-size: 13px;
+      gap: 2px;
+    }
+    body.tablet-fit-mode .btn-pump-unit {
+      padding: 8px 6px;
+      gap: 4px;
+      border-radius: 10px;
+    }
+    body.tablet-fit-mode .pump-icon { font-size: 20px; }
+    body.tablet-fit-mode .pump-name { font-size: 13px; }
+    body.tablet-fit-mode .pump-state-badge { font-size: 11px; padding: 2px 8px; }
+    body.tablet-fit-mode .physical-dock {
+      padding: 6px 14px;
+      border-radius: 10px;
+      margin-top: 0;
+    }
+    body.tablet-fit-mode .plug-mini-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
     /* 📱 상단 글로벌 헤더 */
     header {
       background: rgba(15, 25, 45, 0.9);
@@ -110,6 +211,26 @@ require_once __DIR__ . '/config.php';
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+    .btn-tablet-mode {
+      background: #1E2D4A;
+      border: 1px solid var(--border-bright);
+      color: #FFFFFF;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-tablet-mode.active {
+      background: #0891B2;
+      border-color: #22D3EE;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
     }
     .btn-action-header {
       background: #10B981;
@@ -335,7 +456,7 @@ require_once __DIR__ . '/config.php';
       animation: fanRotate 0.9s infinite linear;
     }
 
-    /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 (글씨 시인성 200% 극대화) */
+    /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 */
     .control-deck-pane {
       display: flex;
       flex-direction: column;
@@ -385,7 +506,6 @@ require_once __DIR__ . '/config.php';
     }
     .motor-name { font-size: 15px; font-weight: 800; color: #FFFFFF; }
     
-    /* 선명한 고대비 상태 태그 */
     .motor-status-tag {
       font-size: 12px;
       font-weight: 800;
@@ -402,7 +522,7 @@ require_once __DIR__ . '/config.php';
       box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
     }
 
-    /* 모터 열기/닫기 2버튼 그리드 (선명한 텍스트 및 터치감) */
+    /* 모터 열기/닫기 2버튼 그리드 */
     .motor-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 0.8fr;
@@ -463,7 +583,7 @@ require_once __DIR__ . '/config.php';
       text-align: right;
     }
 
-    /* 양수기/양액기 펌프 원터치 버튼 (글씨 완전 선명화!) */
+    /* 양수기/양액기 펌프 원터치 버튼 */
     .pump-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -494,7 +614,7 @@ require_once __DIR__ . '/config.php';
     .pump-name {
       font-size: 15px;
       font-weight: 800;
-      color: #FFFFFF; /* 완전 밝은 흰색 */
+      color: #FFFFFF;
       letter-spacing: -0.3px;
     }
     .pump-state-badge {
@@ -503,7 +623,7 @@ require_once __DIR__ . '/config.php';
       padding: 4px 12px;
       border-radius: 12px;
       background: #334155;
-      color: #F1F5F9; /* 완전 선명한 밝은 회색 */
+      color: #F1F5F9;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .btn-pump-unit.active .pump-state-badge {
@@ -672,6 +792,10 @@ require_once __DIR__ . '/config.php';
         <span style="width:8px; height:8px; background:#10B981; border-radius:50%; box-shadow:0 0 6px #10B981;"></span>
         <span id="active-summary">장치 동기화 중...</span>
       </div>
+      <!-- 📱 태블릿 한화면 무스크롤 모드 토글 버튼 -->
+      <button class="btn-tablet-mode" id="btn-tablet-toggle" onclick="toggleTabletFitMode()" title="태블릿 화면 꽉 채움 무스크롤 모드">
+        <span>📱</span><span id="txt-tablet-toggle">태블릿 핏 모드: OFF</span>
+      </button>
       <button class="btn-action-header" style="background:#0891B2;" onclick="openInterlockModal()">
         <span>🔒</span><span>인터락 설정</span>
       </button>
@@ -690,6 +814,7 @@ require_once __DIR__ . '/config.php';
     </div>
     <ul class="nav-list">
       <li class="nav-item active" onclick="toggleSidebar(false)">📊 실시간 디지털 트윈 뷰</li>
+      <li class="nav-item" onclick="toggleTabletFitMode(); toggleSidebar(false);">📱 태블릿 핏 모드 (무스크롤) 전환</li>
       <li class="nav-item" onclick="openRegionModal(); toggleSidebar(false);">📍 농가 지역 날씨 설정</li>
       <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 추가/관리</li>
       <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 장비 등록</li>
@@ -697,7 +822,7 @@ require_once __DIR__ . '/config.php';
       <li class="nav-item" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿PC 앱 바로가기</li>
     </ul>
     <div style="margin-top:auto; font-size:11px; color:var(--text-muted); line-height:1.5;">
-      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.2
+      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.3
     </div>
   </aside>
 
@@ -756,7 +881,7 @@ require_once __DIR__ . '/config.php';
             </div>
 
             <!-- 정밀 SVG 비닐하우스 단면 그래픽 -->
-            <svg viewBox="0 0 800 460" width="100%" height="100%" style="max-height: 420px;" preserveAspectRatio="xMidYMid meet">
+            <svg viewBox="0 0 800 460" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
               <defs>
                 <!-- 하늘 그라데이션 (밤/낮 실시간 변경) -->
                 <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -885,7 +1010,7 @@ require_once __DIR__ . '/config.php';
         </div>
       </div>
 
-      <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 (Tactile Control Deck - 고대비 선명) -->
+      <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 -->
       <div class="control-deck-pane">
         
         <!-- 1. 개폐기 모터 제어반 (모터 2조 인터락 연동) -->
@@ -894,7 +1019,7 @@ require_once __DIR__ . '/config.php';
             <div class="deck-card-title">
               <span>🎛️</span><span>온실 개폐기 모터 제어반</span>
             </div>
-            <span class="btn-edit-sm" onclick="openInterlockModal()">🔒 인터락 설정</span>
+            <span class="btn-edit-sm" onclick="openInterlockModal()">🔒 인터락</span>
           </div>
 
           <!-- 모터 1조 (측창 비닐막) -->
@@ -944,13 +1069,13 @@ require_once __DIR__ . '/config.php';
           </div>
         </div>
 
-        <!-- 2. 스마트 관수 & 양액 펌프 제어반 (글씨 선명화 완료!) -->
+        <!-- 2. 스마트 관수 & 양액 펌프 제어반 -->
         <div class="deck-section-card">
           <div class="deck-card-header">
             <div class="deck-card-title">
               <span>💧</span><span>관수 및 양액 공급 시스템</span>
             </div>
-            <span style="font-size:12px; font-weight:700; color:#38BDF8;">원터치 펌프 토글</span>
+            <span style="font-size:12px; font-weight:700; color:#38BDF8;">원터치 펌프</span>
           </div>
 
           <div class="pump-btn-grid">
@@ -1210,6 +1335,34 @@ require_once __DIR__ . '/config.php';
     let farmHouses = {};
     let currentHouseId = 1;
 
+    // 📱 태블릿 무스크롤 모드 설정
+    let isTabletFitMode = localStorage.getItem('nurio_tablet_fit_mode') === 'true';
+
+    function initTabletFitMode() {
+      applyTabletFitMode(isTabletFitMode);
+    }
+
+    function toggleTabletFitMode() {
+      isTabletFitMode = !isTabletFitMode;
+      localStorage.setItem('nurio_tablet_fit_mode', isTabletFitMode);
+      applyTabletFitMode(isTabletFitMode);
+      showToast(isTabletFitMode ? '📱 [태블릿 한화면 무스크롤 모드]가 켜졌습니다!' : '💻 [일반 스크롤 모드]로 전환되었습니다.', 'success');
+    }
+
+    function applyTabletFitMode(enable) {
+      const btn = document.getElementById('btn-tablet-toggle');
+      const txt = document.getElementById('txt-tablet-toggle');
+      if (enable) {
+        document.body.classList.add('tablet-fit-mode');
+        if (btn) btn.classList.add('active');
+        if (txt) txt.innerText = '태블릿 핏: ON';
+      } else {
+        document.body.classList.remove('tablet-fit-mode');
+        if (btn) btn.classList.remove('active');
+        if (txt) txt.innerText = '태블릿 핏: OFF';
+      }
+    }
+
     // 지역 좌표 프리셋
     const REGION_MAP = {
       'nonsan': { name: '충남 논산', lat: 36.19, lon: 127.09 },
@@ -1312,6 +1465,7 @@ require_once __DIR__ . '/config.php';
           }
 
           document.body.className = bgClass;
+          if (isTabletFitMode) document.body.classList.add('tablet-fit-mode');
 
           const weatherIconEl = document.getElementById('weather-icon-live');
           const weatherTextEl = document.getElementById('weather-text-live');
@@ -1838,10 +1992,11 @@ require_once __DIR__ . '/config.php';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      initTabletFitMode();
       fetchLiveFarmWeather();
       syncStatusFromDb();
       updateDigitalTwinVisuals();
-      setInterval(fetchLiveFarmWeather, 60000); // 1분마다 실시간 기상 갱신
+      setInterval(fetchLiveFarmWeather, 60000);
     });
     setInterval(syncStatusFromDb, 3000);
   </script>
