@@ -77,8 +77,16 @@ try {
     $sqlLogs = "CREATE TABLE IF NOT EXISTS `{$prefix}logs` (
         `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
         `log_level` VARCHAR(20) DEFAULT 'INFO',
-        `message` TEXT NOT NULL,
-        `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
+    // 7. 실시간 커튼/비닐막/차광막 개폐율 및 모터 상태 동기화 테이블 (iot_dash_curtains)
+    $sqlCurtains = "CREATE TABLE IF NOT EXISTS `{$prefix}curtains` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `house_id` INT NOT NULL DEFAULT 1,
+        `motor_no` INT NOT NULL DEFAULT 1,
+        `curtain_name` VARCHAR(100) DEFAULT '측창 비닐막',
+        `position_pct` FLOAT NOT NULL DEFAULT 0.0,
+        `direction` INT NOT NULL DEFAULT 0, -- -1: 닫힘중, 0: 정지, 1: 열림중
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY `uk_house_motor` (`house_id`, `motor_no`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
     $pdo->exec($sqlDevices);
@@ -87,6 +95,12 @@ try {
     $pdo->exec($sqlHouseDevices);
     $pdo->exec($sqlTelemetry);
     $pdo->exec($sqlLogs);
+    $pdo->exec($sqlCurtains);
+
+    $pdo->exec("INSERT INTO `{$prefix}curtains` (`house_id`, `motor_no`, `curtain_name`, `position_pct`, `direction`) VALUES
+        (1, 1, '1호 모터 (측창 비닐막)', 0.0, 0),
+        (1, 2, '2호 모터 (상부 차광막)', 0.0, 0)
+        ON DUPLICATE KEY UPDATE `updated_at` = CURRENT_TIMESTAMP;");
 
     // 실제 설치된 투야 하드웨어 시드 (스마트플러그 2종 + 4채널 멀티 스위치)
     $pdo->exec("INSERT INTO `{$prefix}devices` (`id`, `device_name`, `device_type`, `local_ip`, `mac_address`, `is_active`, `power_watt`) VALUES

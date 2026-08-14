@@ -479,15 +479,41 @@ try {
                     ];
                 }
             }
-        } catch (Exception $e) {
-            // 테이블이 아직 없는 경우 무시
-        }
+        // 실시간 커튼 및 모터 개폐율 상태 로드
+        $curtains = [
+            1 => ['motorNo' => 1, 'name' => '1호 모터 (측창 비닐막)', 'position' => 0.0, 'direction' => 0],
+            2 => ['motorNo' => 2, 'name' => '2호 모터 (상부 차광막)', 'position' => 0.0, 'direction' => 0]
+        ];
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `{$prefix}curtains` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `house_id` INT NOT NULL DEFAULT 1,
+                `motor_no` INT NOT NULL DEFAULT 1,
+                `curtain_name` VARCHAR(100) DEFAULT '측창 비닐막',
+                `position_pct` FLOAT NOT NULL DEFAULT 0.0,
+                `direction` INT NOT NULL DEFAULT 0,
+                `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY `uk_house_motor` (`house_id`, `motor_no`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+
+            $stmtC = $pdo->query("SELECT * FROM `{$prefix}curtains` WHERE `house_id` = 1 ORDER BY `motor_no` ASC");
+            while ($cRow = $stmtC->fetch()) {
+                $mNo = (int)$cRow['motor_no'];
+                $curtains[$mNo] = [
+                    'motorNo' => $mNo,
+                    'name' => $cRow['curtain_name'],
+                    'position' => (float)$cRow['position_pct'],
+                    'direction' => (int)$cRow['direction']
+                ];
+            }
+        } catch (Exception $e) {}
 
         echo json_encode([
             'success' => true,
             'farmName' => '누리오 스마트팜 (Nurio Smart Farm)',
             'devices' => $devices,
             'houses' => $houses,
+            'curtains' => $curtains,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
         exit;
@@ -847,6 +873,28 @@ try {
                 'deviceId' => $devId,
                 'position' => $targetPosition
             ]);
+            exit;
+        }
+    }
+
+    if ($action === 'set_curtain') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $houseId = (int)($input['house_id'] ?? 1);
+        $motorNo = (int)($input['motor_no'] ?? 1);
+        $position = isset($input['position']) ? (float)$input['position'] : 0.0;
+        $direction = isset($input['direction']) ? (int)$input['direction'] : 0;
+        $name = ($motorNo === 1) ? '1호 모터 (측창 비닐막)' : '2호 모터 (상부 차광막)';
+
+        try {
+            $stmtCurtain = $pdo->prepare("INSERT INTO `{$prefix}curtains` (`house_id`, `motor_no`, `curtain_name`, `position_pct`, `direction`) 
+                VALUES (?, ?, ?, ?, ?) 
+                ON DUPLICATE KEY UPDATE `position_pct` = VALUES(`position_pct`), `direction` = VALUES(`direction`)");
+            $stmtCurtain->execute([$houseId, $motorNo, $name, $position, $direction]);
+
+            echo json_encode(['success' => true, 'motorNo' => $motorNo, 'position' => $position, 'direction' => $direction]);
+            exit;
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
             exit;
         }
     }

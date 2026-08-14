@@ -1849,19 +1849,56 @@ require_once __DIR__ . '/config.php';
       renderHouseSensorTelemetry();
     }
 
-    // 런타임 타이머 적분 엔진
+    // 런타임 타이머 적분 엔진 및 클라우드 동기화
+    let lastMotorUserAction = { 1: 0, 2: 0 };
+    let curtainSyncDebounceTimer = { 1: null, 2: null };
+    let motorIntegratorTickCount = 0;
+
+    function saveCurtainPositionToServer(m, pos, dir) {
+      clearTimeout(curtainSyncDebounceTimer[m]);
+      curtainSyncDebounceTimer[m] = setTimeout(async () => {
+        try {
+          await fetch('api.php?action=set_curtain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              house_id: currentHouseId || 1,
+              motor_no: m,
+              position: Math.round(pos * 10) / 10,
+              direction: dir
+            })
+          });
+        } catch(e) {}
+      }, 250);
+    }
+
     setInterval(() => {
+      motorIntegratorTickCount++;
+      let hasMovement = false;
+
       for (let m = 1; m <= 2; m++) {
         if (motorDirections[m] === 1) {
           motorPositions[m] = Math.min(100, motorPositions[m] + 3.5);
           updateSliderUI(m, motorPositions[m]);
+          hasMovement = true;
           if (motorPositions[m] >= 100) triggerMotorStop(m);
         } else if (motorDirections[m] === -1) {
           motorPositions[m] = Math.max(0, motorPositions[m] - 3.5);
           updateSliderUI(m, motorPositions[m]);
+          hasMovement = true;
           if (motorPositions[m] <= 0) triggerMotorStop(m);
         }
       }
+
+      // 모터 작동 중 2초마다 다른 기기들을 위해 클라우드에 현재 위치 갱신 전송
+      if (hasMovement && (motorIntegratorTickCount % 4 === 0)) {
+        for (let m = 1; m <= 2; m++) {
+          if (motorDirections[m] !== 0) {
+            saveCurtainPositionToServer(m, motorPositions[m], motorDirections[m]);
+          }
+        }
+      }
+
       updateDigitalTwinVisuals();
     }, 500);
 
@@ -1875,34 +1912,42 @@ require_once __DIR__ . '/config.php';
         tag.innerText = `${Math.round(val)}% (${motorDirections[m] === 1 ? '열림 동작중 ▲' : (motorDirections[m] === -1 ? '닫힘 동작중 ▼' : '정지')})`;
         if (motorDirections[m] !== 0) tag.classList.add('active'); else tag.classList.remove('active');
       }
+
+      const btnOpen = document.getElementById(`btn-m${m}-open`);
+      const btnClose = document.getElementById(`btn-m${m}-close`);
+      if (btnOpen && btnClose) {
+        if (motorDirections[m] === 1) {
+          btnOpen.classList.add('active');
+          btnClose.classList.remove('active');
+        } else if (motorDirections[m] === -1) {
+          btnClose.classList.add('active');
+          btnOpen.classList.remove('active');
+        } else {
+          btnOpen.classList.remove('active');
+          btnClose.classList.remove('active');
+        }
+      }
     }
 
     function handleSliderChange(m, val) {
-      motorPositions[m] = parseInt(val);
+      lastMotorUserAction[m] = Date.now();
+      motorPositions[m] = parseFloat(val);
       updateSliderUI(m, val);
       updateDigitalTwinVisuals();
+      saveCurtainPositionToServer(m, motorPositions[m], motorDirections[m]);
     }
 
     // --- 🎛️ 모터 및 액추에이터 제어 ---
     async function triggerMotorStep(motorNo, action) {
+      lastMotorUserAction[motorNo] = Date.now();
       const chOpen = (motorNo === 1) ? 1 : 3;
       const chClose = (motorNo === 1) ? 2 : 4;
       const targetChannel = (action === 'OPEN') ? chOpen : chClose;
 
       motorDirections[motorNo] = (action === 'OPEN') ? 1 : -1;
       updateSliderUI(motorNo, motorPositions[motorNo]);
-
-      const btnOpen = document.getElementById(`btn-m${motorNo}-open`);
-      const btnClose = document.getElementById(`btn-m${motorNo}-close`);
-      if (action === 'OPEN') {
-        if (btnOpen) btnOpen.classList.add('active');
-        if (btnClose) btnClose.classList.remove('active');
-      } else {
-        if (btnClose) btnClose.classList.add('active');
-        if (btnOpen) btnOpen.classList.remove('active');
-      }
-
-      showToast(`🎛️ ${motorNo}호 모터 [${action === 'OPEN' ? '열림' : '닫힘'}] 가동 시작!`, 'success');
+      updateDigitalTwinVisuals();
+      saveCurtainPositionToServer(motorNo, motorPositions[motorNo], motorDirections[motorNo]);
 
       try {
         await fetch('api.php?action=toggle_plug', {
@@ -1914,15 +1959,11 @@ require_once __DIR__ . '/config.php';
     }
 
     async function triggerMotorStop(motorNo) {
+      lastMotorUserAction[motorNo] = Date.now();
       motorDirections[motorNo] = 0;
       updateSliderUI(motorNo, motorPositions[motorNo]);
-
-      const btnOpen = document.getElementById(`btn-m${motorNo}-open`);
-      const btnClose = document.getElementById(`btn-m${motorNo}-close`);
-      if (btnOpen) btnOpen.classList.remove('active');
-      if (btnClose) btnClose.classList.remove('active');
-
-      showToast(`⏸️ ${motorNo}호 모터가 정지되었습니다.`, 'success');
+      updateDigitalTwinVisuals();
+      saveCurtainPositionToServer(motorNo, motorPositions[motorNo], 0);
 
       const chOpen = (motorNo === 1) ? 1 : 3;
       const chClose = (motorNo === 1) ? 2 : 4;
@@ -2087,20 +2128,36 @@ require_once __DIR__ . '/config.php';
             }
           }
 
-          // 3. 4채널 스위치
+          // 3. 4채널 스위치 및 실시간 비닐막/차광막 커튼 클라우드 동기화
+          if (data.curtains) {
+            for (let m = 1; m <= 2; m++) {
+              if (data.curtains[m] && (now - lastMotorUserAction[m] > 3000)) {
+                const remotePos = parseFloat(data.curtains[m].position);
+                const remoteDir = parseInt(data.curtains[m].direction);
+                motorPositions[m] = remotePos;
+                motorDirections[m] = remoteDir;
+                updateSliderUI(m, remotePos);
+              }
+            }
+          }
+
           if (data.devices[DEVICE_ID_4CH]) {
             const d4 = data.devices[DEVICE_ID_4CH];
             if (d4.channels) {
               for (let c = 1; c <= 4; c++) {
                 if (d4.channels[c]) states4ch[c] = d4.channels[c].state;
               }
-              if (states4ch[1]) motorDirections[1] = 1;
-              else if (states4ch[2]) motorDirections[1] = -1;
-              else if (motorDirections[1] !== 0 && !states4ch[1] && !states4ch[2]) motorDirections[1] = 0;
+              if (now - lastMotorUserAction[1] > 3000) {
+                if (states4ch[1]) motorDirections[1] = 1;
+                else if (states4ch[2]) motorDirections[1] = -1;
+                else if (!states4ch[1] && !states4ch[2] && motorDirections[1] !== 0) motorDirections[1] = 0;
+              }
 
-              if (states4ch[3]) motorDirections[2] = 1;
-              else if (states4ch[4]) motorDirections[2] = -1;
-              else if (motorDirections[2] !== 0 && !states4ch[3] && !states4ch[4]) motorDirections[2] = 0;
+              if (now - lastMotorUserAction[2] > 3000) {
+                if (states4ch[3]) motorDirections[2] = 1;
+                else if (states4ch[4]) motorDirections[2] = -1;
+                else if (!states4ch[3] && !states4ch[4] && motorDirections[2] !== 0) motorDirections[2] = 0;
+              }
             }
           }
 
