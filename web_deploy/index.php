@@ -1894,36 +1894,88 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    // --- 💧 펌프 및 보조 장치 토글 ---
-    function togglePumpDevice(type) {
-      if (type === 'WATER') {
-        isWaterPumpActive = !isWaterPumpActive;
-        const btn = document.getElementById('pump-unit-water');
-        const badge = document.getElementById('badge-pump-water');
-        if (isWaterPumpActive) {
-          if (btn) btn.classList.add('active');
-          if (badge) badge.innerText = '가동 중 (ON)';
-          showToast('💧 주 양수기 2.0HP 가동 시작!', 'success');
-        } else {
-          if (btn) btn.classList.remove('active');
-          if (badge) badge.innerText = '정지 (OFF)';
-          showToast('💧 주 양수기가 정지되었습니다.', 'success');
-        }
+    // --- 💧 펌프 및 보조 장치 토글 (실물 투야 플러그와 100% 통합 연동) ---
+    const lastActionTimestamp = { 1: 0, 2: 0 };
+    const plugAbortControllers = { 1: null, 2: null };
+
+    async function togglePlug(id, num) {
+      lastActionTimestamp[num] = Date.now();
+      const currState = (num === 1) ? state1 : state2;
+      const targetState = !currState;
+
+      if (num === 1) {
+        state1 = targetState;
+        isWaterPumpActive = targetState;
       } else {
-        isNutrientActive = !isNutrientActive;
-        const btn = document.getElementById('pump-unit-nutrient');
-        const badge = document.getElementById('badge-pump-nutrient');
-        if (isNutrientActive) {
-          if (btn) btn.classList.add('active');
-          if (badge) badge.innerText = '공급 중 (ON)';
-          showToast('🧪 스마트 양액기 자동 조제 공급 시작!', 'success');
-        } else {
-          if (btn) btn.classList.remove('active');
-          if (badge) badge.innerText = '대기 (OFF)';
-          showToast('🧪 양액기 공급이 중단되었습니다.', 'success');
+        state2 = targetState;
+        isNutrientActive = targetState;
+      }
+
+      // 즉각적인 UI 반영 (Optimistic UI)
+      updatePlugUI(1, state1);
+      updatePlugUI(2, state2);
+      updateDigitalTwinVisuals();
+
+      if (plugAbortControllers[num]) {
+        plugAbortControllers[num].abort();
+      }
+      plugAbortControllers[num] = new AbortController();
+
+      try {
+        await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, state: targetState }),
+          signal: plugAbortControllers[num].signal
+        });
+      } catch(e) {
+        if (e.name !== 'AbortError') {
+          // 네트워크 에러 시 롤백 방지는 sync에 위임
         }
       }
-      updateDigitalTwinVisuals();
+    }
+
+    function togglePumpDevice(type) {
+      if (type === 'WATER') {
+        togglePlug('ebb219afdebea03ba3shlz', 1);
+      } else {
+        togglePlug('42362638a4e57cb3cd0b', 2);
+      }
+    }
+
+    function updatePlugUI(num, isActive) {
+      const btnBottom = document.getElementById(`plug-btn-${num}`);
+      const tagBottom = document.getElementById(`plug-state-${num}`);
+
+      if (num === 1) {
+        const btnTop = document.getElementById('pump-unit-water');
+        const badgeTop = document.getElementById('badge-pump-water');
+        if (isActive) {
+          if (btnTop) btnTop.classList.add('active');
+          if (badgeTop) badgeTop.innerText = '가동 중 (ON)';
+          if (btnBottom) btnBottom.classList.add('active');
+          if (tagBottom) tagBottom.innerText = 'ON';
+        } else {
+          if (btnTop) btnTop.classList.remove('active');
+          if (badgeTop) badgeTop.innerText = '정지 (OFF)';
+          if (btnBottom) btnBottom.classList.remove('active');
+          if (tagBottom) tagBottom.innerText = 'OFF';
+        }
+      } else {
+        const btnTop = document.getElementById('pump-unit-nutrient');
+        const badgeTop = document.getElementById('badge-pump-nutrient');
+        if (isActive) {
+          if (btnTop) btnTop.classList.add('active');
+          if (badgeTop) badgeTop.innerText = '공급 중 (ON)';
+          if (btnBottom) btnBottom.classList.add('active');
+          if (tagBottom) tagBottom.innerText = 'ON';
+        } else {
+          if (btnTop) btnTop.classList.remove('active');
+          if (badgeTop) badgeTop.innerText = '대기 (OFF)';
+          if (btnBottom) btnBottom.classList.remove('active');
+          if (tagBottom) tagBottom.innerText = 'OFF';
+        }
+      }
     }
 
     function toggleAuxDevice(type) {
@@ -1934,7 +1986,6 @@ require_once __DIR__ . '/config.php';
         if (isVentFanActive) {
           if (btn) btn.classList.add('active');
           if (badge) badge.innerText = '회전 중 (ON)';
-          showToast('💨 환풍 유동팬 가동 시작!', 'success');
         } else {
           if (btn) btn.classList.remove('active');
           if (badge) badge.innerText = '정지 (OFF)';
@@ -1946,42 +1997,12 @@ require_once __DIR__ . '/config.php';
         if (isGrowLightActive) {
           if (btn) btn.classList.add('active');
           if (badge) badge.innerText = '점등 중 (ON)';
-          showToast('💡 LED 보광등 점등!', 'success');
         } else {
           if (btn) btn.classList.remove('active');
           if (badge) badge.innerText = '소등 (OFF)';
         }
       }
       updateDigitalTwinVisuals();
-    }
-
-    // --- 🔌 실물 스마트 플러그 제어 ---
-    async function togglePlug(id, num) {
-      const currState = (num === 1) ? state1 : state2;
-      const targetState = !currState;
-      if (num === 1) state1 = targetState; else state2 = targetState;
-
-      const btn = document.getElementById(`plug-btn-${num}`);
-      const tag = document.getElementById(`plug-state-${num}`);
-      if (targetState) {
-        if (btn) btn.classList.add('active');
-        if (tag) tag.innerText = 'ON';
-      } else {
-        if (btn) btn.classList.remove('active');
-        if (tag) tag.innerText = 'OFF';
-      }
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id, state: targetState })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`🔌 플러그 #${num} -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
-        }
-      } catch(e) {}
     }
 
     // --- 📡 백엔드 상태 및 투야 온습도 센서 동기화 ---
@@ -1993,31 +2014,29 @@ require_once __DIR__ . '/config.php';
           farmHouses = data.houses || {};
           renderHouseTabs();
 
-          // 1. 스마트 플러그 1
+          const now = Date.now();
+
+          // 1. 스마트 플러그 1 (양수기) - 사용자 조작 4초 이내에는 폴링 덮어쓰기 방지
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
-            state1 = d1.state;
-            const btn = document.getElementById('plug-btn-1');
-            const tag = document.getElementById('plug-state-1');
             const nameEl = document.getElementById('plug-name-1');
             if (nameEl) nameEl.innerText = d1.name;
-            if (btn && tag) {
-              if (state1) { btn.classList.add('active'); tag.innerText = 'ON'; }
-              else { btn.classList.remove('active'); tag.innerText = 'OFF'; }
+            if (now - lastActionTimestamp[1] > 4000) {
+              state1 = d1.state;
+              isWaterPumpActive = state1;
+              updatePlugUI(1, state1);
             }
           }
 
-          // 2. 스마트 플러그 2
+          // 2. 스마트 플러그 2 (양액기) - 사용자 조작 4초 이내에는 폴링 덮어쓰기 방지
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
-            state2 = d2.state;
-            const btn = document.getElementById('plug-btn-2');
-            const tag = document.getElementById('plug-state-2');
             const nameEl = document.getElementById('plug-name-2');
             if (nameEl) nameEl.innerText = d2.name;
-            if (btn && tag) {
-              if (state2) { btn.classList.add('active'); tag.innerText = 'ON'; }
-              else { btn.classList.remove('active'); tag.innerText = 'OFF'; }
+            if (now - lastActionTimestamp[2] > 4000) {
+              state2 = d2.state;
+              isNutrientActive = state2;
+              updatePlugUI(2, state2);
             }
           }
 
@@ -2207,16 +2226,8 @@ require_once __DIR__ . '/config.php';
     }
 
     function showToast(message, type = 'success') {
-      const container = document.getElementById('toast-container');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.innerHTML = `<span>🍓</span><span>${message}</span>`;
-      container.appendChild(toast);
-      setTimeout(() => toast.classList.add('show'), 10);
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, 2500);
+      // 📱 태블릿 버튼 가림 방지를 위해 토스트 팝업 완전 비활성화 (버튼 자체 즉시 반응)
+      console.log(`[Nurio Smart Farm] ${message}`);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
