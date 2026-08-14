@@ -746,7 +746,7 @@ require_once __DIR__ . '/config.php';
       // ⚡ 즉시 UI 반영
       update4ChUI(channelNo, targetState);
 
-      // 전체 활성 개수 배지 즉시 업데이트
+      // 전체 활성 개수 배지 가반영
       let count = 0;
       for (let i = 1; i <= 4; i++) if (states4ch[i]) count++;
       document.getElementById('active-ch-count-badge').innerText = `⚡ ${count} / 4 채널 ON`;
@@ -765,6 +765,18 @@ require_once __DIR__ . '/config.php';
         });
         const data = await res.json();
         if (data.success) {
+          // 🔄 인터락 및 실시간 채널 상태 전체 즉시 동기화
+          if (data.channels) {
+            let realCount = 0;
+            for (let c = 1; c <= 4; c++) {
+              if (data.channels[c]) {
+                states4ch[c] = data.channels[c].state;
+                update4ChUI(c, data.channels[c].state);
+                if (data.channels[c].state) realCount++;
+              }
+            }
+            document.getElementById('active-ch-count-badge').innerText = `⚡ ${realCount} / 4 채널 ON`;
+          }
           showToast(`🎛️ 4채널 스위치 [${channelNo}번 채널] -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
         }
       } catch(e) {
@@ -772,7 +784,7 @@ require_once __DIR__ . '/config.php';
       } finally {
         isPending4ch[channelNo] = false;
         btnContainer.classList.remove('pending');
-        subMsg.innerText = targetState ? '가동 중' : '터치 제어';
+        subMsg.innerText = states4ch[channelNo] ? '가동 중' : '터치 제어';
       }
     }
 
@@ -801,6 +813,17 @@ require_once __DIR__ . '/config.php';
         });
         const data = await res.json();
         if (data.success) {
+          if (data.channels) {
+            let realCount = 0;
+            for (let c = 1; c <= 4; c++) {
+              if (data.channels[c]) {
+                states4ch[c] = data.channels[c].state;
+                update4ChUI(c, data.channels[c].state);
+                if (data.channels[c].state) realCount++;
+              }
+            }
+            document.getElementById('active-ch-count-badge').innerText = `⚡ ${realCount} / 4 채널 ON`;
+          }
           showToast(`🎛️ 4채널 스위치 전체가 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다!`, 'success');
         }
       } catch(e) {
@@ -809,7 +832,7 @@ require_once __DIR__ . '/config.php';
         isPending4ch['all'] = false;
         for (let i = 1; i <= 4; i++) {
           const sub = document.getElementById(`ch-sub-${i}`);
-          if (sub) sub.innerText = targetState ? '가동 중' : '터치 제어';
+          if (sub) sub.innerText = states4ch[i] ? '가동 중' : '터치 제어';
         }
       }
     }

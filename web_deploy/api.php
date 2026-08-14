@@ -180,15 +180,107 @@ function renameTuyaDevice($deviceId, $newName) {
     return isset($data['success']) && $data['success'];
 }
 
+function fetchTuyaMultipleDevicesParallel($deviceIds) {
+    $token = getTuyaAccessToken();
+    if (!$token || empty($deviceIds)) return [];
+
+    $mh = curl_multi_init();
+    $curlHandles = [];
+
+    foreach ($deviceIds as $id) {
+        $t = (string)round(microtime(true) * 1000);
+        $url = "/v1.0/devices/{$id}";
+        $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'GET', $url);
+
+        $ch = curl_init(TUYA_ENDPOINT . $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'client_id: ' . TUYA_CLIENT_ID,
+            'access_token: ' . $token,
+            'sign: ' . $sign,
+            't: ' . $t,
+            'sign_method: HMAC-SHA256'
+        ]);
+        curl_multi_add_handle($mh, $ch);
+        $curlHandles[$id] = $ch;
+    }
+
+    $running = null;
+    do {
+        $status = curl_multi_exec($mh, $running);
+        if ($running > 0) {
+            curl_multi_select($mh, 0.2);
+        }
+    } while ($running > 0 && $status === CURLM_OK);
+
+    $results = [];
+    foreach ($curlHandles as $id => $ch) {
+        $content = curl_multi_getcontent($ch);
+        curl_multi_remove_handle($mh, $ch);
+        curl_close($ch);
+
+        $data = json_decode($content, true);
+        if (isset($data['success']) && $data['success'] && is_array($data['result'])) {
+            $resObj = $data['result'];
+            $name = $resObj['name'] ?? null;
+            $channels = [];
+            $state = false;
+            if (isset($resObj['status']) && is_array($resObj['status'])) {
+                foreach ($resObj['status'] as $item) {
+                    if ($item['code'] === 'switch_1' || $item['code'] === 'switch') {
+                        $state = (bool)$item['value'];
+                        $channels[1] = (bool)$item['value'];
+                    } elseif (preg_match('/^switch_(\d+)$/', $item['code'], $m)) {
+                        $cNum = (int)$m[1];
+                        $channels[$cNum] = (bool)$item['value'];
+                        if ((bool)$item['value']) $state = true;
+                    }
+                }
+            }
+            $results[$id] = ['name' => $name, 'state' => $state, 'channels' => $channels];
+        }
+    }
+    curl_multi_close($mh);
+    return $results;
+}
+
+function syncTuyaDevicesToDb($tuyaLiveMap, $pdo, $prefix) {
+    foreach ($tuyaLiveMap as $deviceId => $info) {
+        $name = $info['name'];
+        $state = $info['state'];
+        $channels = $info['channels'];
+
+        if (!empty($channels)) {
+            $activeCount = 0;
+            foreach ($channels as $cNo => $cState) {
+                $stmtUp = $pdo->prepare("UPDATE `{$prefix}channels` SET `is_active` = ? WHERE `device_id` = ? AND `channel_no` = ?");
+                $stmtUp->execute([$cState ? 1 : 0, $deviceId, $cNo]);
+                if ($cState) $activeCount++;
+            }
+            $powerWatts = $activeCount * 15.60;
+            $devActive = ($activeCount > 0);
+            $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+            $stmtUpDev->execute([$devActive ? 1 : 0, $powerWatts, $deviceId]);
+        } else {
+            $powerWatts = $state ? ($deviceId === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
+            $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+            $stmtUpDev->execute([$state ? 1 : 0, $powerWatts, $deviceId]);
+        }
+    }
+}
+
 $action = $_GET['action'] ?? $_POST['action'] ?? 'get_status';
 
 try {
     if ($action === 'get_status') {
         $stmtDev = $pdo->query("SELECT * FROM `{$prefix}devices`");
         $devices = [];
+        $tuyaDeviceIds = [];
 
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
+            $tuyaDeviceIds[] = $id;
             $dbName = $row['device_name'];
             $dbState = (bool)$row['is_active'];
 
@@ -205,8 +297,20 @@ try {
             $devices[$id] = $devData;
         }
 
+        // 실시간 Tuya 클라우드 상태 병렬 동기화
+        if (!empty($tuyaDeviceIds)) {
+            $liveTuya = fetchTuyaMultipleDevicesParallel($tuyaDeviceIds);
+            if (!empty($liveTuya)) {
+                syncTuyaDevicesToDb($liveTuya, $pdo, $prefix);
+                foreach ($liveTuya as $id => $info) {
+                    if (isset($devices[$id])) {
+                        $devices[$id]['state'] = $info['state'];
+                    }
+                }
+            }
+        }
+
         // 채널 정보 로드
-        $hasChannelsTable = false;
         try {
             $stmtCh = $pdo->query("SELECT * FROM `{$prefix}channels` ORDER BY `device_id`, `channel_no` ASC");
             while ($cRow = $stmtCh->fetch()) {
@@ -222,7 +326,7 @@ try {
                 }
             }
         } catch (Exception $e) {
-            // 채널 테이블이 없는 경우 자동 무시
+            // 채널 테이블 무시
         }
 
         $stmtBlind = $pdo->query("SELECT * FROM `{$prefix}blinds` ORDER BY `blind_id` ASC");
@@ -265,27 +369,40 @@ try {
                     $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$prefix}channels` WHERE `device_id` = ? AND `is_active` = 1");
                     $stmt->execute([$id]);
                     $activeCount = (int)$stmt->fetchColumn();
-                    $state = ($activeCount === 0); // 전부 꺼져있으면 켬, 하나라도 켜져있으면 끔
+                    $state = ($activeCount === 0);
                 }
-
-                $stmtUpCh = $pdo->prepare("UPDATE `{$prefix}channels` SET `is_active` = ? WHERE `device_id` = ?");
-                $stmtUpCh->execute([$state ? 1 : 0, $id]);
-
-                $powerWatts = $state ? 62.40 : 0.00;
-                $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-                $stmtUpDev->execute([$state ? 1 : 0, $powerWatts, $id]);
 
                 $tuyaSuccess = sendTuyaCommand($id, $state, 'all');
 
+                // 하드웨어 및 클라우드 상태 안정화 대기 후 실시간 상태 수신
+                usleep(300000);
+                $liveTuya = fetchTuyaMultipleDevicesParallel([$id]);
+                if (!empty($liveTuya)) {
+                    syncTuyaDevicesToDb($liveTuya, $pdo, $prefix);
+                }
+
                 $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
                 $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] 전체 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+
+                // 최신 채널 상태 취득
+                $stmtCh = $pdo->prepare("SELECT * FROM `{$prefix}channels` WHERE `device_id` = ? ORDER BY `channel_no` ASC");
+                $stmtCh->execute([$id]);
+                $updatedChannels = [];
+                while ($c = $stmtCh->fetch()) {
+                    $updatedChannels[(int)$c['channel_no']] = [
+                        'no' => (int)$c['channel_no'],
+                        'code' => $c['channel_code'],
+                        'name' => $c['channel_name'],
+                        'state' => (bool)$c['is_active']
+                    ];
+                }
 
                 echo json_encode([
                     'success' => true,
                     'deviceId' => $id,
                     'channel' => 'all',
                     'targetState' => $state,
-                    'powerWatt' => $powerWatts,
+                    'channels' => $updatedChannels,
                     'tuyaDispatched' => $tuyaSuccess
                 ]);
                 exit;
@@ -298,31 +415,37 @@ try {
                     $state = !((bool)$curr);
                 }
 
-                $stmtUpCh = $pdo->prepare("UPDATE `{$prefix}channels` SET `is_active` = ? WHERE `device_id` = ? AND `channel_no` = ?");
-                $stmtUpCh->execute([$state ? 1 : 0, $id, $cNo]);
-
-                // 전체 활성 채널 수 조회하여 디바이스 총 전력 및 is_active 갱신
-                $stmtCnt = $pdo->prepare("SELECT COUNT(*) FROM `{$prefix}channels` WHERE `device_id` = ? AND `is_active` = 1");
-                $stmtCnt->execute([$id]);
-                $activeCount = (int)$stmtCnt->fetchColumn();
-                $devActive = ($activeCount > 0);
-                $powerWatts = $activeCount * 15.60;
-
-                $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-                $stmtUpDev->execute([$devActive ? 1 : 0, $powerWatts, $id]);
-
                 $tuyaSuccess = sendTuyaCommand($id, $state, $cNo);
+
+                // 인터락 및 기기 상태 동기화 (Tuya 클라우드에서 모든 채널 실시간 상태 즉시 조회)
+                usleep(300000);
+                $liveTuya = fetchTuyaMultipleDevicesParallel([$id]);
+                if (!empty($liveTuya)) {
+                    syncTuyaDevicesToDb($liveTuya, $pdo, $prefix);
+                }
 
                 $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
                 $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] {$cNo}번 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+
+                // 최신 채널 상태 취득 (인터락으로 꺼진 다른 채널 포함)
+                $stmtCh = $pdo->prepare("SELECT * FROM `{$prefix}channels` WHERE `device_id` = ? ORDER BY `channel_no` ASC");
+                $stmtCh->execute([$id]);
+                $updatedChannels = [];
+                while ($c = $stmtCh->fetch()) {
+                    $updatedChannels[(int)$c['channel_no']] = [
+                        'no' => (int)$c['channel_no'],
+                        'code' => $c['channel_code'],
+                        'name' => $c['channel_name'],
+                        'state' => (bool)$c['is_active']
+                    ];
+                }
 
                 echo json_encode([
                     'success' => true,
                     'deviceId' => $id,
                     'channel' => $cNo,
                     'targetState' => $state,
-                    'activeChannels' => $activeCount,
-                    'powerWatt' => $powerWatts,
+                    'channels' => $updatedChannels,
                     'tuyaDispatched' => $tuyaSuccess
                 ]);
                 exit;
