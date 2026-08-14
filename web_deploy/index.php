@@ -1311,10 +1311,10 @@ require_once __DIR__ . '/config.php';
 
       <div class="dock-plugs-group">
         <button class="plug-mini-btn" id="plug-btn-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
-          <span>💡</span><span id="plug-name-1">책상등</span>: <span id="plug-state-1">OFF</span>
+          <span>💧</span><span id="plug-name-1">주 양수기</span>: <span id="plug-state-1">OFF</span>
         </button>
         <button class="plug-mini-btn" id="plug-btn-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
-          <span>🖨️</span><span id="plug-name-2">3D프린터</span>: <span id="plug-state-2">OFF</span>
+          <span>💨</span><span id="plug-name-2">천정 송풍기</span>: <span id="plug-state-2">OFF</span>
         </button>
         <button class="btn-edit-sm" onclick="openDeviceModal()">➕ 장비 등록</button>
       </div>
@@ -1982,7 +1982,7 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    // --- 💧 펌프 및 보조 장치 토글 (실물 투야 플러그와 100% 통합 연동) ---
+    // --- 💧 펌프 및 보조 장치 토글 (실물 투야 플러그 1: 양수기 / 2: 천정 송풍기 100% 통합) ---
     const lastActionTimestamp = { 1: 0, 2: 0 };
     const plugAbortControllers = { 1: null, 2: null };
 
@@ -1996,7 +1996,7 @@ require_once __DIR__ . '/config.php';
         isWaterPumpActive = targetState;
       } else {
         state2 = targetState;
-        isNutrientActive = targetState;
+        isVentFanActive = targetState;
       }
 
       // 즉각적인 UI 반영 (Optimistic UI)
@@ -2027,7 +2027,35 @@ require_once __DIR__ . '/config.php';
       if (type === 'WATER') {
         togglePlug('ebb219afdebea03ba3shlz', 1);
       } else {
+        isNutrientActive = !isNutrientActive;
+        const btn = document.getElementById('pump-unit-nutrient');
+        const badge = document.getElementById('badge-pump-nutrient');
+        if (isNutrientActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '공급 중 (ON)';
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '대기 (OFF)';
+        }
+        updateDigitalTwinVisuals();
+      }
+    }
+
+    function toggleAuxDevice(type) {
+      if (type === 'FAN') {
         togglePlug('42362638a4e57cb3cd0b', 2);
+      } else {
+        isGrowLightActive = !isGrowLightActive;
+        const btn = document.getElementById('pump-unit-light');
+        const badge = document.getElementById('badge-aux-light');
+        if (isGrowLightActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '점등 중 (ON)';
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '소등 (OFF)';
+        }
+        updateDigitalTwinVisuals();
       }
     }
 
@@ -2050,47 +2078,20 @@ require_once __DIR__ . '/config.php';
           if (tagBottom) tagBottom.innerText = 'OFF';
         }
       } else {
-        const btnTop = document.getElementById('pump-unit-nutrient');
-        const badgeTop = document.getElementById('badge-pump-nutrient');
+        const btnTop = document.getElementById('pump-unit-fan');
+        const badgeTop = document.getElementById('badge-aux-fan');
         if (isActive) {
           if (btnTop) btnTop.classList.add('active');
-          if (badgeTop) badgeTop.innerText = '공급 중 (ON)';
+          if (badgeTop) badgeTop.innerText = '회전 중 (ON)';
           if (btnBottom) btnBottom.classList.add('active');
           if (tagBottom) tagBottom.innerText = 'ON';
         } else {
           if (btnTop) btnTop.classList.remove('active');
-          if (badgeTop) badgeTop.innerText = '대기 (OFF)';
+          if (badgeTop) badgeTop.innerText = '정지 (OFF)';
           if (btnBottom) btnBottom.classList.remove('active');
           if (tagBottom) tagBottom.innerText = 'OFF';
         }
       }
-    }
-
-    function toggleAuxDevice(type) {
-      if (type === 'FAN') {
-        isVentFanActive = !isVentFanActive;
-        const btn = document.getElementById('pump-unit-fan');
-        const badge = document.getElementById('badge-aux-fan');
-        if (isVentFanActive) {
-          if (btn) btn.classList.add('active');
-          if (badge) badge.innerText = '회전 중 (ON)';
-        } else {
-          if (btn) btn.classList.remove('active');
-          if (badge) badge.innerText = '정지 (OFF)';
-        }
-      } else {
-        isGrowLightActive = !isGrowLightActive;
-        const btn = document.getElementById('pump-unit-light');
-        const badge = document.getElementById('badge-aux-light');
-        if (isGrowLightActive) {
-          if (btn) btn.classList.add('active');
-          if (badge) badge.innerText = '점등 중 (ON)';
-        } else {
-          if (btn) btn.classList.remove('active');
-          if (badge) badge.innerText = '소등 (OFF)';
-        }
-      }
-      updateDigitalTwinVisuals();
     }
 
     // --- 📡 백엔드 상태 및 투야 온습도 센서 동기화 ---

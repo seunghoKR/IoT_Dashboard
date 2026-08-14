@@ -379,10 +379,20 @@ try {
         $devices = [];
         $tuyaDeviceIds = [];
 
+        $farmAliases = [
+            'ebb219afdebea03ba3shlz' => '💧 주 양수기',
+            '42362638a4e57cb3cd0b' => '💨 천정 송풍기',
+            'eb654aa2437462ea40dfjw' => '🎛️ 4채널 모터 스위치'
+        ];
+
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
             $tuyaDeviceIds[] = $id;
             $dbName = $row['device_name'];
+            if (empty($dbName) || $dbName === '책상등' || $dbName === '3D프린터' || $dbName === '4채널 멀티 스위치') {
+                $dbName = $farmAliases[$id] ?? $dbName;
+                $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ? WHERE `id` = ?")->execute([$dbName, $id]);
+            }
             $dbState = (bool)$row['is_active'];
 
             $devData = [
