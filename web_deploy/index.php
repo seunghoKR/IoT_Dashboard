@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (8초 이중 락으로 깜빡임 완전 치료)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (지능형 딜레이 멸균 파워 제어)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -85,6 +85,7 @@ require_once __DIR__ . '/config.php';
     }
     .power-touch-btn:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
     .power-touch-btn:active { transform: scale(0.97); }
+    .power-touch-btn.disabled { pointer-events: none; opacity: 0.7; }
 
     .local-ring-container { position: relative; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .local-neon-ring {
@@ -95,6 +96,16 @@ require_once __DIR__ . '/config.php';
     }
     .plug2 .local-neon-ring.active {
       border-color: #818CF8; box-shadow: 0 0 24px #6366F1, inset 0 0 16px rgba(99, 102, 241, 0.6);
+    }
+
+    /* 로딩 중 펄스 안니메션 */
+    @keyframes pulseGlow {
+      0% { opacity: 0.5; transform: scale(0.98); }
+      50% { opacity: 1; transform: scale(1.04); }
+      100% { opacity: 0.5; transform: scale(0.98); }
+    }
+    .power-touch-btn.pending .local-ring-container {
+      animation: pulseGlow 0.8s infinite ease-in-out;
     }
 
     .local-power-val { font-size: 32px; font-weight: 900; color: #F0FDF4; display: flex; align-items: baseline; gap: 6px; }
@@ -174,7 +185,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 8초 이중 락 적용 완료</div>
+        <div class="status-online">● 지능형 연타 튕김 방지 완비</div>
       </div>
     </div>
 
@@ -192,10 +203,10 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">✨ 1번 스위치 클라우드 전송 지연 보정: 8초 백엔드 & 프론트 이중 락 완벽 치료 완료</div>
+        <div class="page-sub">⚡ 여러 번 연타해도 명령이 꼬이거나 춤추지 않는 지능형 스케줄러 적용</div>
       </div>
       <div class="hosting-badge">
-        🌐 8초 이중 락 Guard (iwinv 호스팅)
+        🌐 명령 큐 지능형 스케줄러 (iwinv 호스팅)
       </div>
     </div>
 
@@ -220,7 +231,7 @@ require_once __DIR__ . '/config.php';
         </div>
 
         <div class="intuitive-power-box">
-          <div class="power-touch-btn" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)" title="클릭하여 켜기/끄기">
+          <div class="power-touch-btn" id="btn-container-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
               <div class="local-neon-ring" id="local-ring-1"></div>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
@@ -229,7 +240,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">👈 파워 버튼 터치 시 전원 원격 작동</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;" id="sub-msg-1">👈 파워 버튼 터치 시 전원 원격 작동</div>
             </div>
           </div>
 
@@ -256,7 +267,7 @@ require_once __DIR__ . '/config.php';
         </div>
 
         <div class="intuitive-power-box">
-          <div class="power-touch-btn" onclick="togglePlug('42362638a4e57cb3cd0b', 2)" title="클릭하여 켜기/끄기">
+          <div class="power-touch-btn" id="btn-container-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
               <div class="local-neon-ring" id="local-ring-2"></div>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
@@ -265,7 +276,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">👈 파워 버튼 터치 시 전원 원격 작동</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;" id="sub-msg-2">👈 파워 버튼 터치 시 전원 원격 작동</div>
             </div>
           </div>
 
@@ -343,21 +354,20 @@ require_once __DIR__ . '/config.php';
     let selectedUnit = 0;
     const heights = { 1: 100, 2: 100, 3: 100 };
 
-    // 🔥 클릭 시 8초간 하트비트가 UI 상태를 흔들지 못하도록 완전 락을 거는 타임스탬프
-    const lockUntil = { 1: 0, 2: 0 };
+    // 🔥 진행 중인 비동기 전송 제어 상태 & AbortController (연쇄 연타 튕김 완전 방어)
+    const isPending = { 1: false, 2: false };
+    const abortControllers = { 1: null, 2: null };
 
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
-          const now = Date.now();
-
-          // 1번 책상등: 클릭 후 8초 동안은 백그라운드 하트비트 상태 덮어쓰기 완전 금지!
+          // 1번 책상등: 사용자가 전원 변경 버튼을 누르는 중(isPending)일 때는 하트비트가 UI를 건들지 않음!
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
             document.getElementById('name-display-1').innerText = d1.name;
-            if (now > lockUntil[1]) {
+            if (!isPending[1]) {
               state1 = d1.state;
               updatePlugUI(1, state1, d1.power);
             }
@@ -367,7 +377,7 @@ require_once __DIR__ . '/config.php';
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
             document.getElementById('name-display-2').innerText = d2.name;
-            if (now > lockUntil[2]) {
+            if (!isPending[2]) {
               state2 = d2.state;
               updatePlugUI(2, state2, d2.power);
             }
@@ -428,23 +438,44 @@ require_once __DIR__ . '/config.php';
     }
 
     async function togglePlug(id, num) {
+      const btnContainer = document.getElementById(`btn-container-${num}`);
+      const subMsg = document.getElementById(`sub-msg-${num}`);
+
+      // 이전 진행 중이던 전송 요청이 있다면 즉시 취소하여 딜레이 큐 연쇄 튕김 방지!
+      if (abortControllers[num]) {
+        abortControllers[num].abort();
+      }
+      abortControllers[num] = new AbortController();
+
       const targetState = !(num === 1 ? state1 : state2);
       if (num === 1) state1 = targetState; else state2 = targetState;
 
-      // 🔒 클릭 즉시 8초간 하트비트 덮어쓰기 금지 락 설정 (깜빡임 완전 멸균!)
-      lockUntil[num] = Date.now() + 8000;
-
-      // ⚡ 대시보드 UI 즉시 반응 (0.01초 반응속도)
+      // ⚡ 1. 화면 즉시 변경 (0.01초 UI 체감 반응)
       updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
 
+      // ⏳ 2. 전송 중 로딩 펄스 적용 & 메시지 안내
+      isPending[num] = true;
+      btnContainer.classList.add('pending');
+      subMsg.innerText = '⏳ 명령 전송 중...';
+
       try {
-        await fetch('api.php?action=toggle_plug', {
+        const res = await fetch('api.php?action=toggle_plug', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id, state: targetState })
+          body: JSON.stringify({ id: id, state: targetState }),
+          signal: abortControllers[num].signal
         });
-        showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 원격 제어되었습니다`, 'success');
-      } catch(e) {}
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다`, 'success');
+        }
+      } catch(e) {
+        if (e.name !== 'AbortError') {}
+      } finally {
+        isPending[num] = false;
+        btnContainer.classList.remove('pending');
+        subMsg.innerText = '👈 파워 버튼 터치 시 전원 원격 작동';
+      }
     }
 
     function selectBlindUnit(num) {

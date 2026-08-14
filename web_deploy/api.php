@@ -1,6 +1,6 @@
 <?php
 /**
- * IoT Dashboard REST API (PHP 8.4 + MariaDB + 완전 양방향 장치 이름 및 전원 동기화 + 8초 전원 락)
+ * IoT Dashboard REST API (PHP 8.4 + MariaDB + 명령 큐 연쇄 튕김 방지 지능형 제어)
  */
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -22,12 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/config.php';
 $pdo = getDbConnection();
 $prefix = DB_PREFIX;
-
-// 최근 제어 시간 메모리 락 (8초)
-session_start();
-if (!isset($_SESSION['last_control'])) {
-    $_SESSION['last_control'] = [];
-}
 
 // Tuya Cloud Credentials
 define('TUYA_CLIENT_ID', 'qsdjvehhx7n8ptuth45v');
@@ -51,6 +45,7 @@ function getTuyaAccessToken() {
 
     $ch = curl_init(TUYA_ENDPOINT . $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'client_id: ' . TUYA_CLIENT_ID,
         'sign: ' . $sign,
@@ -78,6 +73,7 @@ function fetchTuyaRealDeviceInfo($deviceId) {
 
     $ch = curl_init(TUYA_ENDPOINT . $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'client_id: ' . TUYA_CLIENT_ID,
         'access_token: ' . $token,
@@ -119,6 +115,7 @@ function sendTuyaCommand($deviceId, $state) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyStr);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'client_id: ' . TUYA_CLIENT_ID,
         'access_token: ' . $token,
@@ -148,6 +145,7 @@ function renameTuyaDevice($deviceId, $newName) {
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
     curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyStr);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'client_id: ' . TUYA_CLIENT_ID,
         'access_token: ' . $token,
@@ -169,36 +167,11 @@ try {
     if ($action === 'get_status') {
         $stmtDev = $pdo->query("SELECT * FROM `{$prefix}devices`");
         $devices = [];
-        $nowTime = time();
 
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
             $dbName = $row['device_name'];
             $dbState = (bool)$row['is_active'];
-
-            // 🛡️ 최근 8초 이내에 대시보드에서 전원을 조작했다면, Tuya Cloud 지연 수신값으로 DB를 덮어쓰지 않고 대시보드 상태를 유지!
-            $lastCtrl = $_SESSION['last_control'][$id] ?? 0;
-            $isLocked = ($nowTime - $lastCtrl) < 8;
-
-            if (!$isLocked) {
-                $realInfo = fetchTuyaRealDeviceInfo($id);
-                if ($realInfo !== null) {
-                    $needsUpdate = false;
-                    if ($realInfo['name'] !== null && $realInfo['name'] !== '' && $realInfo['name'] !== $dbName) {
-                        $dbName = $realInfo['name'];
-                        $needsUpdate = true;
-                    }
-                    if ($realInfo['state'] !== null && $realInfo['state'] !== $dbState) {
-                        $dbState = $realInfo['state'];
-                        $needsUpdate = true;
-                    }
-                    if ($needsUpdate) {
-                        $powerWatt = $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
-                        $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ?, `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-                        $stmtUp->execute([$dbName, $dbState ? 1 : 0, $powerWatt, $id]);
-                    }
-                }
-            }
 
             $devices[$id] = [
                 'name' => $dbName,
@@ -248,9 +221,6 @@ try {
             $curr = $stmt->fetchColumn();
             $state = !((bool)$curr);
         }
-
-        // 🔒 대시보드 조작 시 8초간 backend 덮어쓰기 락 세팅!
-        $_SESSION['last_control'][$id] = time();
 
         $powerWatts = $state ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
         $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
