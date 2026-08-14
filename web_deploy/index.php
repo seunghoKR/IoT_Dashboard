@@ -7,6 +7,16 @@ require_once __DIR__ . '/config.php';
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🍓 누리오 스마트팜 (Nurio Smart Farm) - 통합 IoT 관제 시스템</title>
+  
+  <!-- 📱 PWA & 태블릿 앱 바로가기 메타태그 및 매니페스트 -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1E293B">
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -386,6 +396,9 @@ require_once __DIR__ . '/config.php';
       <div class="status-pill">
         <span>⚡</span><span id="active-summary">0개 장치 가동 중</span>
       </div>
+      <button class="btn-action-header" style="background:#0891B2;" onclick="openPwaGuideModal()">
+        <span>📲</span><span>앱 설치 / 바로가기</span>
+      </button>
       <button class="btn-action-header" onclick="openHouseModal()">
         <span>➕</span><span>하우스 추가</span>
       </button>
@@ -407,6 +420,7 @@ require_once __DIR__ . '/config.php';
       <li class="nav-item active" onclick="toggleSidebar(false)">🏠 스마트팜 메인 관제</li>
       <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 관리/추가</li>
       <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 농가 장비 설정</li>
+      <li class="nav-item" style="color:#22D3EE; font-weight:800;" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿/폰 홈화면 앱 설치</li>
       <li class="nav-item" onclick="showToast('📹 CCTV 실시간 연동 준비 완료', 'success'); toggleSidebar(false);">📹 하우스 CCTV 스트림</li>
       <li class="nav-item" onclick="showToast('⚡ 자동 관수/환풍 규칙 설정 준비 완료', 'success'); toggleSidebar(false);">⚡ 지능형 환경 자동화</li>
     </ul>
@@ -1270,6 +1284,78 @@ require_once __DIR__ . '/config.php';
             showToast(`🎛️ ${channelNo}번 채널 이름이 [${newName.trim()}] (으)로 변경되었습니다!`, 'success');
           }
         } catch(e) {}
+      }
+    }
+
+  <!-- 📲 3. 태블릿 & 스마트폰 홈 화면 앱 설치 가이드 모달 -->
+  <div class="modal-overlay" id="pwa-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">📲 태블릿PC에 전용 앱으로 설치하기</div>
+        <button class="btn-edit-sm" onclick="closeModal('pwa-modal')">✕</button>
+      </div>
+
+      <div style="text-align:center; padding:10px 0;">
+        <img src="icon.svg" style="width:72px; height:72px; border-radius:18px; box-shadow:0 6px 15px rgba(0,0,0,0.4);" alt="App Icon">
+        <div style="font-size:16px; font-weight:800; margin-top:8px;">누리오 스마트팜</div>
+        <div style="font-size:12px; color:var(--primary); font-weight:700;">주소창 없는 100% 전체화면 독립 앱</div>
+      </div>
+
+      <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:13px; line-height:1.5;">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#10B981; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">1</span>
+          <div>
+            <strong>크롬 / 삼성 인터넷 브라우저</strong> 우측 상단의 <strong>더보기 (⋮ 또는 ☰)</strong> 메뉴를 누르세요.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#0891B2; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">2</span>
+          <div>
+            메뉴에서 <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하세요.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#6366F1; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">3</span>
+          <div>
+            태블릿PC 바탕화면에 🍓 <strong>누리오 스마트팜</strong> 아이콘이 생성되며, 터치 시 주소창 없는 <strong>풀스크린 전용 앱</strong>으로 실행됩니다!
+          </div>
+        </div>
+      </div>
+
+      <div id="native-install-box" style="display:none; text-align:center;">
+        <button class="btn-modal-save" style="width:100%; padding:12px; font-size:14px;" onclick="triggerNativeInstall()">
+          ⚡ 원클릭 즉시 앱 설치하기
+        </button>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('pwa-modal')">확인 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const box = document.getElementById('native-install-box');
+      if (box) box.style.display = 'block';
+    });
+
+    function openPwaGuideModal() {
+      document.getElementById('pwa-modal').classList.add('active');
+    }
+
+    async function triggerNativeInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast('🎉 누리오 스마트팜 앱이 태블릿에 설치되었습니다!', 'success');
+          closeModal('pwa-modal');
+        }
+        deferredPrompt = null;
       }
     }
 

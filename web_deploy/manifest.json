@@ -1,0 +1,19 @@
+{
+  "name": "누리오 스마트팜",
+  "short_name": "누리오팜",
+  "description": "누리오 스마트팜 통합 IoT 관제 시스템",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0F172A",
+  "theme_color": "#1E293B",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
