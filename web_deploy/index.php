@@ -15,27 +15,29 @@ require_once __DIR__ . '/config.php';
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0F172A">
+  <meta name="theme-color" content="#070B19">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
-      --bg-base: #090E1A;
-      --bg-card: #131E32;
-      --bg-card-sub: #0F172A;
+      --bg-base: #070B19;
+      --bg-card: #152238;
+      --bg-card-sub: #1E2D4A;
+      --bg-btn: #1D2D49;
       --primary: #10B981;
-      --primary-light: rgba(16, 185, 129, 0.15);
+      --primary-light: rgba(16, 185, 129, 0.2);
       --primary-border: #059669;
       --cyan: #06B6D4;
       --indigo: #6366F1;
       --amber: #F59E0B;
       --rose: #F43F5E;
       --sky: #38BDF8;
-      --text-primary: #F8FAFC;
-      --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      --border: rgba(255, 255, 255, 0.08);
-      --border-glow: rgba(16, 185, 129, 0.4);
+      --text-primary: #FFFFFF;
+      --text-secondary: #E2E8F0;
+      --text-muted: #94A3B8;
+      --border: rgba(255, 255, 255, 0.16);
+      --border-bright: rgba(255, 255, 255, 0.3);
+      --border-glow: rgba(16, 185, 129, 0.5);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,11 +49,26 @@ require_once __DIR__ . '/config.php';
       flex-direction: column;
       min-height: 100vh;
       overflow-x: hidden;
+      transition: background 0.8s ease;
+    }
+
+    /* 🌦️ 실시간 날씨별 동적 전역 배경 */
+    body.weather-night {
+      background: radial-gradient(circle at 50% 10%, #131E3A 0%, #070B19 100%);
+    }
+    body.weather-day-clear {
+      background: radial-gradient(circle at 50% 10%, #1D4E89 0%, #09152A 100%);
+    }
+    body.weather-day-cloudy {
+      background: radial-gradient(circle at 50% 10%, #2B3A4F 0%, #0C1322 100%);
+    }
+    body.weather-rain {
+      background: radial-gradient(circle at 50% 10%, #1A2E3B 0%, #060F17 100%);
     }
 
     /* 📱 상단 글로벌 헤더 */
     header {
-      background: rgba(19, 30, 50, 0.85);
+      background: rgba(15, 25, 45, 0.9);
       border-bottom: 1px solid var(--border);
       padding: 12px 20px;
       display: flex;
@@ -60,13 +77,13 @@ require_once __DIR__ . '/config.php';
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
     }
-    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left { display: flex; align-items: center; gap: 14px; }
     .btn-hamburger {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      color: white;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--border-bright);
+      color: #FFFFFF;
       border-radius: 8px;
       padding: 8px 12px;
       cursor: pointer;
@@ -75,20 +92,20 @@ require_once __DIR__ . '/config.php';
       font-size: 18px;
       transition: background 0.2s;
     }
-    .btn-hamburger:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-hamburger:hover { background: rgba(255, 255, 255, 0.2); }
     .brand-title-box { display: flex; align-items: center; gap: 10px; }
-    .brand-logo { font-size: 26px; }
-    .brand-name { font-size: 18px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px; }
-    .brand-sub { font-size: 11px; color: var(--primary); font-weight: 700; }
+    .brand-logo { font-size: 28px; }
+    .brand-name { font-size: 19px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 11px; color: #34D399; font-weight: 700; }
 
     .header-right { display: flex; align-items: center; gap: 10px; }
     .status-pill {
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.25);
       border: 1px solid #10B981;
       color: #6EE7B7;
       font-size: 12px;
-      font-weight: 700;
-      padding: 6px 12px;
+      font-weight: 800;
+      padding: 6px 14px;
       border-radius: 20px;
       display: flex;
       align-items: center;
@@ -97,9 +114,9 @@ require_once __DIR__ . '/config.php';
     .btn-action-header {
       background: #10B981;
       border: none;
-      color: white;
+      color: #FFFFFF;
       border-radius: 8px;
-      padding: 7px 13px;
+      padding: 8px 14px;
       font-size: 12px;
       font-weight: 800;
       cursor: pointer;
@@ -111,11 +128,11 @@ require_once __DIR__ . '/config.php';
     .btn-action-header:hover { background: #059669; }
     .btn-action-header:active { transform: scale(0.97); }
 
-    /* 📂 서랍형 오버레이 사이드바 */
+    /* 📂 서랍형 사이드바 */
     .sidebar-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(4px);
       z-index: 200;
       opacity: 0;
@@ -130,8 +147,8 @@ require_once __DIR__ . '/config.php';
       left: 0;
       bottom: 0;
       width: 280px;
-      background: #10192A;
-      border-right: 1px solid var(--border);
+      background: #111C30;
+      border-right: 1px solid var(--border-bright);
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
@@ -147,9 +164,9 @@ require_once __DIR__ . '/config.php';
     .nav-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .nav-item {
       display: flex; align-items: center; gap: 12px; padding: 12px 16px;
-      border-radius: 10px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px;
+      border-radius: 10px; color: var(--text-secondary); font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 14px;
     }
-    .nav-item.active, .nav-item:hover { background: rgba(16, 185, 129, 0.15); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .nav-item.active, .nav-item:hover { background: rgba(16, 185, 129, 0.2); color: #FFFFFF; border: 1px solid #10B981; }
 
     /* 🌾 2:1 대시보드 스플릿 컨테이너 */
     main {
@@ -187,18 +204,18 @@ require_once __DIR__ . '/config.php';
     .house-tabs-bar {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       overflow-x: auto;
       padding-bottom: 4px;
     }
     .house-tab-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      padding: 8px 16px;
+      background: #18263E;
+      border: 1px solid var(--border-bright);
+      color: #FFFFFF;
+      padding: 9px 18px;
       border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
       transition: all 0.2s;
@@ -207,88 +224,107 @@ require_once __DIR__ . '/config.php';
       gap: 6px;
     }
     .house-tab-btn.active {
-      background: rgba(16, 185, 129, 0.18);
+      background: rgba(16, 185, 129, 0.25);
       border-color: #10B981;
       color: #6EE7B7;
-      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.3);
     }
     .house-tab-btn:hover:not(.active) {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.12);
     }
 
     /* 비주얼 트윈 하우스 메인 카드 */
     .twin-stage-card {
-      background: linear-gradient(180deg, #16243D 0%, #0F192C 100%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #111C30;
+      border: 1px solid var(--border-bright);
       border-radius: 20px;
       padding: 20px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
-    /* 상단 온실 환경 상태 바 */
+    /* 🌦️ 상단 실시간 날씨 및 온실 환경 상태 바 */
     .twin-env-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 10px 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 12px 18px;
       margin-bottom: 16px;
     }
     .env-item {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
+      color: #FFFFFF;
     }
     .env-val { color: #38BDF8; font-weight: 800; }
+    .region-select-badge {
+      background: rgba(56, 189, 248, 0.18);
+      border: 1px solid #38BDF8;
+      color: #BAE6FD;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.2s;
+    }
+    .region-select-badge:hover { background: rgba(56, 189, 248, 0.35); }
 
     /* 🏠 비닐하우스 단면 SVG 인터랙티브 스테이지 */
     .greenhouse-svg-wrapper {
       width: 100%;
-      min-height: 380px;
+      min-height: 400px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.08) 0%, rgba(15, 25, 44, 0.8) 75%);
+      background: radial-gradient(circle at 50% 25%, rgba(56, 189, 248, 0.12) 0%, rgba(10, 18, 33, 0.9) 75%);
       border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 10px;
     }
 
-    /* 차광막, 비닐막 롤업 시각 효과 */
+    /* 개폐막 포지션 인디케이터 배지 (고대비 선명화) */
     .curtain-indicator-box {
       position: absolute;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(6px);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
-      padding: 6px 10px;
-      font-size: 11px;
+      background: rgba(10, 18, 33, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
       font-weight: 800;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       z-index: 10;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
-    .curtain-pos-left { top: 35%; left: 6%; }
-    .curtain-pos-right { top: 35%; right: 6%; }
-    .curtain-pos-top { top: 12%; left: 50%; transform: translateX(-50%); }
+    .curtain-pos-left { top: 32%; left: 5%; }
+    .curtain-pos-right { top: 32%; right: 5%; }
+    .curtain-pos-top { top: 10%; left: 50%; transform: translateX(-50%); }
 
     /* 실시간 물방울 / 양액 파티클 애니메이션 */
     @keyframes dripFlow {
-      0% { transform: translateY(0); opacity: 0.8; }
+      0% { transform: translateY(0); opacity: 0.9; }
       50% { opacity: 1; }
-      100% { transform: translateY(12px); opacity: 0; }
+      100% { transform: translateY(14px); opacity: 0; }
     }
     .water-drop {
-      animation: dripFlow 1.2s infinite linear;
+      animation: dripFlow 1.1s infinite linear;
     }
     @keyframes fanRotate {
       from { transform: rotate(0deg); }
@@ -296,10 +332,10 @@ require_once __DIR__ . '/config.php';
     }
     .fan-spinning {
       transform-origin: center;
-      animation: fanRotate 1s infinite linear;
+      animation: fanRotate 0.9s infinite linear;
     }
 
-    /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 */
+    /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 (글씨 시인성 200% 극대화) */
     .control-deck-pane {
       display: flex;
       flex-direction: column;
@@ -307,74 +343,78 @@ require_once __DIR__ . '/config.php';
     }
 
     .deck-section-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
+      background: #142036;
+      border: 1px solid var(--border-bright);
+      border-radius: 18px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
     }
     .deck-card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     .deck-card-title {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 800;
-      color: #F8FAFC;
+      color: #FFFFFF;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     /* 2채널 모터 인터락 제어 유닛 */
     .motor-control-group {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 12px;
+      background: #1B2B47;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
     .motor-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .motor-name { font-size: 13px; font-weight: 800; color: #E2E8F0; }
+    .motor-name { font-size: 15px; font-weight: 800; color: #FFFFFF; }
+    
+    /* 선명한 고대비 상태 태그 */
     .motor-status-tag {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-secondary);
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: #334155;
+      color: #F1F5F9;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .motor-status-tag.active {
-      background: rgba(16, 185, 129, 0.2);
-      color: #6EE7B7;
-      border: 1px solid #10B981;
+      background: #059669;
+      color: #FFFFFF;
+      border-color: #10B981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
     }
 
-    /* 모터 열기/닫기 2버튼 그리드 */
+    /* 모터 열기/닫기 2버튼 그리드 (선명한 텍스트 및 터치감) */
     .motor-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr 0.8fr;
       gap: 8px;
     }
     .btn-actuator {
-      background: #1E293B;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      color: white;
-      border-radius: 8px;
-      padding: 10px 6px;
-      font-size: 13px;
+      background: #243553;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #FFFFFF;
+      border-radius: 10px;
+      padding: 12px 8px;
+      font-size: 15px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
@@ -386,82 +426,96 @@ require_once __DIR__ . '/config.php';
     .btn-actuator.open:hover, .btn-actuator.open.active {
       background: #0891B2;
       border-color: #22D3EE;
-      box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+      box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
     }
     .btn-actuator.close:hover, .btn-actuator.close.active {
       background: #4F46E5;
       border-color: #818CF8;
-      box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.5);
+    }
+    .btn-actuator.stop {
+      background: #334155;
     }
     .btn-actuator.stop:hover {
       background: #E11D48;
       border-color: #FB7185;
     }
 
-    /* 개폐율 슬라이더 & 프리셋 */
+    /* 개폐율 슬라이더 */
     .slider-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
     .position-slider {
       flex: 1;
       accent-color: #10B981;
-      height: 6px;
+      height: 8px;
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.2);
       cursor: pointer;
     }
     .pos-val-text {
-      font-size: 12px;
+      font-size: 14px;
       font-weight: 800;
-      color: #22D3EE;
-      min-width: 40px;
+      color: #38BDF8;
+      min-width: 46px;
       text-align: right;
     }
 
-    /* 양수기/양액기 펌프 원터치 버튼 */
+    /* 양수기/양액기 펌프 원터치 버튼 (글씨 완전 선명화!) */
     .pump-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
     }
     .btn-pump-unit {
-      background: #162032;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 14px 10px;
+      background: #1B2B47;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 14px;
+      padding: 16px 12px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
       transition: all 0.2s;
     }
-    .btn-pump-unit.active {
-      background: rgba(16, 185, 129, 0.2);
-      border-color: #10B981;
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+    .btn-pump-unit:hover {
+      background: #23375B;
+      border-color: rgba(255, 255, 255, 0.35);
     }
-    .pump-icon { font-size: 24px; }
-    .pump-name { font-size: 13px; font-weight: 800; }
-    .pump-state-badge {
-      font-size: 10px;
+    .btn-pump-unit.active {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #10B981;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+    }
+    .pump-icon { font-size: 28px; }
+    .pump-name {
+      font-size: 15px;
       font-weight: 800;
-      padding: 2px 8px;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-muted);
+      color: #FFFFFF; /* 완전 밝은 흰색 */
+      letter-spacing: -0.3px;
+    }
+    .pump-state-badge {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: #334155;
+      color: #F1F5F9; /* 완전 선명한 밝은 회색 */
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     .btn-pump-unit.active .pump-state-badge {
       background: #10B981;
-      color: white;
+      color: #FFFFFF;
+      border-color: #34D399;
     }
 
     /* 하단 실물 스마트 플러그 및 하드웨어 연동 바 */
     .physical-dock {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
+      background: #142036;
+      border: 1px solid var(--border-bright);
       border-radius: 16px;
       padding: 14px 18px;
       display: flex;
@@ -476,13 +530,13 @@ require_once __DIR__ . '/config.php';
       gap: 10px;
     }
     .plug-mini-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border);
-      color: var(--text-primary);
+      background: #1E2D4A;
+      border: 1px solid var(--border-bright);
+      color: #FFFFFF;
       border-radius: 8px;
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 700;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -490,7 +544,7 @@ require_once __DIR__ . '/config.php';
       transition: all 0.2s;
     }
     .plug-mini-btn.active {
-      background: rgba(16, 185, 129, 0.2);
+      background: rgba(16, 185, 129, 0.25);
       border-color: #10B981;
       color: #6EE7B7;
     }
@@ -499,7 +553,7 @@ require_once __DIR__ . '/config.php';
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.75);
       backdrop-filter: blur(6px);
       z-index: 300;
       display: flex;
@@ -512,9 +566,9 @@ require_once __DIR__ . '/config.php';
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-content {
-      background: #162032;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
+      background: #152238;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 18px;
       width: 100%;
       max-width: 480px;
       padding: 24px;
@@ -527,33 +581,35 @@ require_once __DIR__ . '/config.php';
     }
     .modal-overlay.active .modal-content { transform: scale(1); }
     .modal-header { display: flex; justify-content: space-between; align-items: center; }
-    .modal-title { font-size: 16px; font-weight: 800; color: #F8FAFC; }
+    .modal-title { font-size: 17px; font-weight: 800; color: #FFFFFF; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+    .form-label { font-size: 13px; font-weight: 700; color: #E2E8F0; }
     .form-input, .form-select {
       background: #090E1A;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-bright);
       border-radius: 8px;
       padding: 10px 14px;
-      color: white;
-      font-size: 13px;
+      color: #FFFFFF;
+      font-size: 14px;
+      font-weight: 600;
       outline: none;
     }
     .form-input:focus, .form-select:focus { border-color: #10B981; }
     .modal-btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
     .btn-modal-cancel {
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
+      border: 1px solid var(--border-bright);
+      color: #E2E8F0;
       border-radius: 8px;
       padding: 8px 16px;
       font-size: 13px;
+      font-weight: 700;
       cursor: pointer;
     }
     .btn-modal-save {
       background: #10B981;
       border: none;
-      color: white;
+      color: #FFFFFF;
       border-radius: 8px;
       padding: 8px 18px;
       font-size: 13px;
@@ -565,14 +621,14 @@ require_once __DIR__ . '/config.php';
     #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
     .toast {
       background: rgba(19, 30, 50, 0.95);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      color: white;
+      border: 1px solid rgba(16, 185, 129, 0.6);
+      color: #FFFFFF;
       padding: 12px 18px;
       border-radius: 10px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.5);
       backdrop-filter: blur(8px);
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -583,20 +639,20 @@ require_once __DIR__ . '/config.php';
     .toast.show { transform: translateY(0); opacity: 1; }
 
     .btn-edit-sm {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border-bright);
+      color: #FFFFFF;
       border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 11px;
-      font-weight: 700;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 800;
       cursor: pointer;
       transition: background 0.2s;
     }
-    .btn-edit-sm:hover { background: rgba(255, 255, 255, 0.16); color: white; }
+    .btn-edit-sm:hover { background: rgba(255, 255, 255, 0.25); color: #FFFFFF; }
   </style>
 </head>
-<body>
+<body class="weather-night">
 
   <!-- 📱 상단 글로벌 내비게이션 바 -->
   <header>
@@ -629,18 +685,19 @@ require_once __DIR__ . '/config.php';
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
   <aside id="sidebar-drawer">
     <div class="sidebar-header">
-      <div style="font-weight: 800; font-size: 16px; color:#F8FAFC;">🍓 누리오 관리 메뉴</div>
+      <div style="font-weight: 800; font-size: 16px; color:#FFFFFF;">🍓 누리오 관리 메뉴</div>
       <button class="btn-edit-sm" onclick="toggleSidebar(false)">✕</button>
     </div>
     <ul class="nav-list">
       <li class="nav-item active" onclick="toggleSidebar(false)">📊 실시간 디지털 트윈 뷰</li>
+      <li class="nav-item" onclick="openRegionModal(); toggleSidebar(false);">📍 농가 지역 날씨 설정</li>
       <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 추가/관리</li>
       <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 장비 등록</li>
       <li class="nav-item" onclick="openInterlockModal(); toggleSidebar(false);">🔒 4채널 하드웨어 인터락</li>
       <li class="nav-item" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿PC 앱 바로가기</li>
     </ul>
     <div style="margin-top:auto; font-size:11px; color:var(--text-muted); line-height:1.5;">
-      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.0
+      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.2
     </div>
   </aside>
 
@@ -657,19 +714,25 @@ require_once __DIR__ . '/config.php';
       <div class="visual-twin-pane">
         <div class="twin-stage-card">
           
-          <!-- 상단 환경 관제 바 -->
+          <!-- 🌦️ 상단 실시간 지역 날씨 & 온실 환경 관제 바 -->
           <div class="twin-env-bar">
             <div class="env-item">
               <span>🏠</span>
-              <span id="twin-house-title" style="font-weight:800; color:#F8FAFC;">1동 하우스</span>
-              <span class="btn-edit-sm" id="twin-crop-badge" style="background:rgba(16,185,129,0.2); color:#6EE7B7;">딸기 (설향)</span>
+              <span id="twin-house-title" style="font-weight:800; color:#FFFFFF;">1동 하우스</span>
+              <span class="btn-edit-sm" id="twin-crop-badge" style="background:rgba(16,185,129,0.3); color:#6EE7B7; border-color:#10B981;">딸기 (설향)</span>
             </div>
+
+            <!-- 실시간 지역 날씨 배지 -->
             <div class="env-item">
-              <span>☀️ 맑음</span>
+              <span id="weather-icon-live">🌙</span>
+              <span id="weather-text-live">충남 논산 · 맑은 밤 24.6°C / 95%</span>
+              <button class="region-select-badge" onclick="openRegionModal()" title="농가 지역 변경">
+                <span>📍</span><span id="region-current-name">충남 논산</span>
+              </button>
+            </div>
+
+            <div class="env-item">
               <span>온실 내부: <span class="env-val">24.5°C</span> / <span class="env-val">62%</span></span>
-            </div>
-            <div class="env-item">
-              <span>일사량: <span class="env-val">780 W/㎡</span></span>
             </div>
           </div>
 
@@ -695,21 +758,21 @@ require_once __DIR__ . '/config.php';
             <!-- 정밀 SVG 비닐하우스 단면 그래픽 -->
             <svg viewBox="0 0 800 460" width="100%" height="100%" style="max-height: 420px;" preserveAspectRatio="xMidYMid meet">
               <defs>
-                <!-- 하늘 그라데이션 -->
+                <!-- 하늘 그라데이션 (밤/낮 실시간 변경) -->
                 <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stop-color="#1E3A5F" stop-opacity="0.6"/>
-                  <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9"/>
+                  <stop id="skyStop1" offset="0%" stop-color="#142646" stop-opacity="0.8"/>
+                  <stop id="skyStop2" offset="100%" stop-color="#080F1E" stop-opacity="0.95"/>
                 </linearGradient>
                 <!-- 비닐막 투명 반사 그라데이션 -->
                 <linearGradient id="vinylGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.4"/>
-                  <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.15"/>
-                  <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.4"/>
+                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.5"/>
+                  <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.5"/>
                 </linearGradient>
                 <!-- 차광막 메쉬 패턴 -->
                 <pattern id="shadePattern" width="8" height="8" patternUnits="userSpaceOnUse">
-                  <path d="M0 0h8v8H0z" fill="#0B132B" fill-opacity="0.8"/>
-                  <path d="M0 0l8 8M8 0l-8 8" stroke="#334155" stroke-width="1.2"/>
+                  <path d="M0 0h8v8H0z" fill="#0B132B" fill-opacity="0.85"/>
+                  <path d="M0 0l8 8M8 0l-8 8" stroke="#475569" stroke-width="1.2"/>
                 </pattern>
                 <!-- 지면 그라데이션 -->
                 <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -720,6 +783,22 @@ require_once __DIR__ . '/config.php';
 
               <!-- 배경 하늘 & 온실 바닥 지면 -->
               <rect x="20" y="20" width="760" height="420" rx="16" fill="url(#skyGrad)"/>
+              
+              <!-- 밤하늘 별 & 달 (밤 시간 활성화) -->
+              <g id="svg-sky-night" opacity="0.8">
+                <circle cx="700" cy="70" r="18" fill="#FEF08A" filter="drop-shadow(0 0 8px #FDE047)"/>
+                <circle cx="692" cy="65" r="16" fill="#142646"/>
+                <circle cx="150" cy="80" r="1.5" fill="#FFFFFF"/>
+                <circle cx="280" cy="60" r="2" fill="#FFFFFF"/>
+                <circle cx="450" cy="85" r="1.5" fill="#FFFFFF"/>
+                <circle cx="600" cy="95" r="2" fill="#FFFFFF"/>
+              </g>
+
+              <!-- 낮 태양 (낮 시간 활성화) -->
+              <g id="svg-sky-day" opacity="0" style="display:none;">
+                <circle cx="680" cy="75" r="24" fill="#F59E0B" filter="drop-shadow(0 0 14px #FBBF24)"/>
+              </g>
+
               <path d="M 40 380 L 760 380 L 760 430 L 40 430 Z" fill="url(#groundGrad)"/>
               
               <!-- 🏗️ 비닐하우스 외부 아치 철골 트러스 프레임 -->
@@ -761,7 +840,7 @@ require_once __DIR__ . '/config.php';
                 <circle cx="0" cy="0" r="6" fill="#10B981"/>
               </g>
 
-              <!-- 🍓 4. 고설 딸기 재배 베드 & 관수 라인 (Hydroponic Strawberry Troughs) -->
+              <!-- 🍓 4. 고설 딸기 재배 베드 & 관수 라인 -->
               <!-- 베드 지지 프레임 -->
               <line x1="220" y1="380" x2="220" y2="300" stroke="#64748B" stroke-width="5"/>
               <line x1="340" y1="380" x2="340" y2="300" stroke="#64748B" stroke-width="5"/>
@@ -773,7 +852,7 @@ require_once __DIR__ . '/config.php';
               <!-- 점적 관수 공급 튜브 -->
               <line x1="180" y1="295" x2="620" y2="295" stroke="#06B6D4" stroke-width="4" id="svg-drip-pipe"/>
 
-              <!-- 💧 실시간 물방울 파티클 (양수기 가동 시 점적 분사) -->
+              <!-- 💧 실시간 물방울 파티클 -->
               <g id="svg-water-drops" style="display:none;">
                 <circle class="water-drop" cx="240" cy="305" r="3.5" fill="#38BDF8"/>
                 <circle class="water-drop" cx="300" cy="305" r="3.5" fill="#38BDF8"/>
@@ -786,7 +865,6 @@ require_once __DIR__ . '/config.php';
 
               <!-- 딸기 잎 & 열매 일러스트 -->
               <g transform="translate(200, 245)">
-                <!-- 포기 1 -->
                 <text x="30" y="35" font-size="28">🍓</text>
                 <text x="80" y="35" font-size="28">🌱</text>
                 <text x="130" y="35" font-size="28">🍓</text>
@@ -796,8 +874,8 @@ require_once __DIR__ . '/config.php';
                 <text x="330" y="35" font-size="28">🍓</text>
               </g>
 
-              <!-- 💡 5. LED 보광등 조명 빔 (가동 시 빛 방출) -->
-              <g id="svg-grow-lights" style="display:none;" opacity="0.35">
+              <!-- 💡 5. LED 보광등 조명 빔 -->
+              <g id="svg-grow-lights" style="display:none;" opacity="0.4">
                 <polygon points="260,160 200,285 320,285" fill="#EC4899"/>
                 <polygon points="400,160 340,285 460,285" fill="#A855F7"/>
                 <polygon points="540,160 480,285 600,285" fill="#EC4899"/>
@@ -807,7 +885,7 @@ require_once __DIR__ . '/config.php';
         </div>
       </div>
 
-      <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 (Tactile Control Deck) -->
+      <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 (Tactile Control Deck - 고대비 선명) -->
       <div class="control-deck-pane">
         
         <!-- 1. 개폐기 모터 제어반 (모터 2조 인터락 연동) -->
@@ -866,13 +944,13 @@ require_once __DIR__ . '/config.php';
           </div>
         </div>
 
-        <!-- 2. 스마트 관수 & 양액 펌프 제어반 -->
+        <!-- 2. 스마트 관수 & 양액 펌프 제어반 (글씨 선명화 완료!) -->
         <div class="deck-section-card">
           <div class="deck-card-header">
             <div class="deck-card-title">
               <span>💧</span><span>관수 및 양액 공급 시스템</span>
             </div>
-            <span style="font-size:11px; color:var(--text-muted);">원터치 펌프 토글</span>
+            <span style="font-size:12px; font-weight:700; color:#38BDF8;">원터치 펌프 토글</span>
           </div>
 
           <div class="pump-btn-grid">
@@ -921,10 +999,10 @@ require_once __DIR__ . '/config.php';
     <!-- 🔌 하단 실물 하드웨어 빠른 관리 바 -->
     <div class="physical-dock">
       <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:16px;">🔌</span>
+        <span style="font-size:18px;">🔌</span>
         <div>
-          <div style="font-size:13px; font-weight:800; color:#F8FAFC;">실물 투야 하드웨어 연동 상태</div>
-          <div style="font-size:11px; color:var(--text-muted);" id="hardware-quick-status">4채널 스위치 (ID: eb654aa2...) · 릴레이 정상 연결됨</div>
+          <div style="font-size:14px; font-weight:800; color:#FFFFFF;">실물 투야 하드웨어 연동 상태</div>
+          <div style="font-size:12px; font-weight:600; color:#94A3B8;" id="hardware-quick-status">4채널 스위치 (ID: eb654aa2...) · 릴레이 정상 연결됨</div>
         </div>
       </div>
 
@@ -940,6 +1018,40 @@ require_once __DIR__ . '/config.php';
     </div>
 
   </main>
+
+  <!-- 📍 0. 농가 지역 날씨 설정 모달 -->
+  <div class="modal-overlay" id="region-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">📍 농가 지역 날씨 실시간 연동 설정</div>
+        <button class="btn-edit-sm" onclick="closeModal('region-modal')">✕</button>
+      </div>
+
+      <div style="background:rgba(56, 189, 248, 0.15); border:1px solid rgba(56, 189, 248, 0.4); border-radius:12px; padding:12px; font-size:13px; color:#BAE6FD; line-height:1.5;">
+        🌦️ <strong>선택하신 지역의 기상청/글로벌 실시간 기상 데이터(기온, 습도, 풍속, 낮/밤, 강수)</strong>가 대시보드 배경과 환경 바에 즉시 반영됩니다!
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">딸기 주산지 및 농가 지역 선택</label>
+        <select class="form-select" id="sel-region-preset" onchange="applyRegionPreset(this.value)">
+          <option value="nonsan">🍓 충남 논산시 (36.19°N, 127.09°E) - 대표 주산지</option>
+          <option value="miryang">🍓 경남 밀양시 (35.50°N, 128.75°E)</option>
+          <option value="damyang">🍓 전남 담양군 (35.32°N, 126.98°E)</option>
+          <option value="jinju">🍓 경남 진주시 (35.18°N, 128.10°E)</option>
+          <option value="goryeong">🍓 경북 고령군 (35.72°N, 128.26°E)</option>
+          <option value="buyeo">🍓 충남 부여군 (36.27°N, 126.92°E)</option>
+          <option value="wanju">🍓 전북 완주군 (35.90°N, 127.16°E)</option>
+          <option value="yangpyeong">🍓 경기 양평군 (37.49°N, 127.49°E)</option>
+          <option value="seoul">🏙️ 서울 / 수도권 (37.56°N, 126.97°E)</option>
+        </select>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('region-modal')">닫기</button>
+        <button class="btn-modal-save" onclick="saveRegionSubmit()">적용 및 실시간 반영</button>
+      </div>
+    </div>
+  </div>
 
   <!-- 🏗️ 1. 하우스 추가/편집 모달 -->
   <div class="modal-overlay" id="house-modal">
@@ -1020,7 +1132,7 @@ require_once __DIR__ . '/config.php';
         <button class="btn-edit-sm" onclick="closeModal('interlock-modal')">✕</button>
       </div>
 
-      <div style="background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.3); border-radius:12px; padding:12px; font-size:12px; color:#CFFAFE; line-height:1.5;">
+      <div style="background:rgba(6, 182, 212, 0.15); border:1px solid rgba(6, 182, 212, 0.4); border-radius:12px; padding:12px; font-size:13px; color:#CFFAFE; line-height:1.5;">
         📱 <strong>스마트폰 Smart Life 앱 및 투야 하드웨어와 실시간 100% 양방향 동기화됩니다.</strong><br>
         묶인 채널 중 하나를 켜면 반대편 채널이 물리 릴레이 수준에서 자동으로 즉시 차단(OFF)되어 <strong>모터 정역회전 쇼트 방지 및 안전 개폐</strong>를 완벽 보장합니다.
       </div>
@@ -1028,19 +1140,19 @@ require_once __DIR__ . '/config.php';
       <div class="form-group" style="margin-top:10px;">
         <label class="form-label">인터락 묶음 모드 선택</label>
         <div style="display:flex; flex-direction:column; gap:10px;">
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.15);">
             <input type="radio" name="interlock_preset" value="2x2" checked style="margin-top:3px;">
             <div>
-              <div style="font-size:13px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 1호 / 2호 정역회전 방지)</div>
+              <div style="font-size:14px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 1호 / 2호 정역회전 방지)</div>
             </div>
           </label>
 
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.15);">
             <input type="radio" name="interlock_preset" value="none" style="margin-top:3px;">
             <div>
-              <div style="font-size:13px; font-weight:800; color:#F43F5E;">⛔ 인터락 완전 해제 (4채널 개별 독립 스위치)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">상호 잠금 없이 4개 채널을 모두 자유롭게 켜고 끕니다.</div>
+              <div style="font-size:14px; font-weight:800; color:#F43F5E;">⛔ 인터락 완전 해제 (4채널 개별 독립 스위치)</div>
+              <div style="font-size:12px; color:var(--text-secondary); margin-top:2px;">상호 잠금 없이 4개 채널을 모두 자유롭게 켜고 끕니다.</div>
             </div>
           </label>
         </div>
@@ -1063,7 +1175,7 @@ require_once __DIR__ . '/config.php';
 
       <div style="text-align:center; padding:10px 0;">
         <img src="icon.svg" style="width:72px; height:72px; border-radius:18px; box-shadow:0 6px 15px rgba(0,0,0,0.4);" alt="App Icon">
-        <div style="font-size:16px; font-weight:800; margin-top:8px;">누리오 스마트팜</div>
+        <div style="font-size:16px; font-weight:800; margin-top:8px; color:#FFFFFF;">누리오 스마트팜</div>
         <div style="font-size:12px; color:var(--primary); font-weight:700;">주소창 없는 100% 전체화면 독립 앱</div>
       </div>
 
@@ -1098,6 +1210,20 @@ require_once __DIR__ . '/config.php';
     let farmHouses = {};
     let currentHouseId = 1;
 
+    // 지역 좌표 프리셋
+    const REGION_MAP = {
+      'nonsan': { name: '충남 논산', lat: 36.19, lon: 127.09 },
+      'miryang': { name: '경남 밀양', lat: 35.50, lon: 128.75 },
+      'damyang': { name: '전남 담양', lat: 35.32, lon: 126.98 },
+      'jinju': { name: '경남 진주', lat: 35.18, lon: 128.10 },
+      'goryeong': { name: '경북 고령', lat: 35.72, lon: 128.26 },
+      'buyeo': { name: '충남 부여', lat: 36.27, lon: 126.92 },
+      'wanju': { name: '전북 완주', lat: 35.90, lon: 127.16 },
+      'yangpyeong': { name: '경기 양평', lat: 37.49, lon: 127.49 },
+      'seoul': { name: '서울/수도권', lat: 37.56, lon: 126.97 }
+    };
+    let currentRegionKey = localStorage.getItem('nurio_farm_region') || 'nonsan';
+
     // 모터 가상 포지션 (0 ~ 100%)
     let motorPositions = { 1: 0, 2: 0 };
     let motorDirections = { 1: 0, 2: 0 }; // 1: OPENING, -1: CLOSING, 0: STOPPED
@@ -1106,11 +1232,6 @@ require_once __DIR__ . '/config.php';
     let isNutrientActive = false;
     let isVentFanActive = false;
     let isGrowLightActive = false;
-
-    const isPending = { 1: false, 2: false };
-    const abortControllers = { 1: null, 2: null };
-    const isPending4ch = { 1: false, 2: false, 3: false, 4: false, 'all': false };
-    const abortControllers4ch = { 1: null, 2: null, 3: null, 4: null, 'all': null };
 
     let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -1155,6 +1276,90 @@ require_once __DIR__ . '/config.php';
       document.getElementById(modalId).classList.remove('active');
     }
 
+    // --- 🌦️ 실시간 지역 날씨 API 연동 및 배경 전환 ---
+    async function fetchLiveFarmWeather() {
+      const reg = REGION_MAP[currentRegionKey] || REGION_MAP['nonsan'];
+      const regNameEl = document.getElementById('region-current-name');
+      if (regNameEl) regNameEl.innerText = reg.name;
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${reg.lat}&longitude=${reg.lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m&timezone=Asia%2FSeoul`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data && data.current) {
+          const c = data.current;
+          const isDay = c.is_day === 1;
+          const temp = Math.round(c.temperature_2m * 10) / 10;
+          const hum = c.relative_humidity_2m;
+          const wind = Math.round(c.wind_speed_10m * 10) / 10;
+          const code = c.weather_code;
+
+          let weatherDesc = isDay ? '맑음 ☀️' : '맑은 밤 🌙';
+          let weatherIcon = isDay ? '☀️' : '🌙';
+          let bgClass = isDay ? 'weather-day-clear' : 'weather-night';
+
+          if (code >= 1 && code <= 3) {
+            weatherDesc = isDay ? '구름 조금 ⛅' : '구름 밤 ☁️';
+            weatherIcon = isDay ? '⛅' : '☁️';
+            bgClass = isDay ? 'weather-day-cloudy' : 'weather-night';
+          } else if (code >= 51 && code <= 67 || code >= 80) {
+            weatherDesc = '비 내림 🌧️';
+            weatherIcon = '🌧️';
+            bgClass = 'weather-rain';
+          } else if (code >= 71 && code <= 77) {
+            weatherDesc = '눈 내림 ❄️';
+            weatherIcon = '❄️';
+          }
+
+          document.body.className = bgClass;
+
+          const weatherIconEl = document.getElementById('weather-icon-live');
+          const weatherTextEl = document.getElementById('weather-text-live');
+          if (weatherIconEl) weatherIconEl.innerText = weatherIcon;
+          if (weatherTextEl) {
+            weatherTextEl.innerHTML = `${reg.name} · ${weatherDesc} <span class="env-val">${temp}°C</span> / <span class="env-val">${hum}%</span> (풍속 ${wind}km/h)`;
+          }
+
+          // SVG 캔버스 하늘 낮/밤 전환
+          const skyNight = document.getElementById('svg-sky-night');
+          const skyDay = document.getElementById('svg-sky-day');
+          const skyStop1 = document.getElementById('skyStop1');
+          const skyStop2 = document.getElementById('skyStop2');
+
+          if (isDay) {
+            if (skyNight) skyNight.style.display = 'none';
+            if (skyDay) { skyDay.style.display = 'block'; skyDay.setAttribute('opacity', '1'); }
+            if (skyStop1) skyStop1.setAttribute('stop-color', '#1E4E7A');
+            if (skyStop2) skyStop2.setAttribute('stop-color', '#0C203E');
+          } else {
+            if (skyNight) { skyNight.style.display = 'block'; skyNight.setAttribute('opacity', '0.8'); }
+            if (skyDay) skyDay.style.display = 'none';
+            if (skyStop1) skyStop1.setAttribute('stop-color', '#131E3A');
+            if (skyStop2) skyStop2.setAttribute('stop-color', '#070B19');
+          }
+        }
+      } catch(e) {}
+    }
+
+    function openRegionModal() {
+      const sel = document.getElementById('sel-region-preset');
+      if (sel) sel.value = currentRegionKey;
+      document.getElementById('region-modal').classList.add('active');
+    }
+
+    function applyRegionPreset(val) {
+      currentRegionKey = val;
+    }
+
+    function saveRegionSubmit() {
+      const sel = document.getElementById('sel-region-preset');
+      currentRegionKey = sel.value;
+      localStorage.setItem('nurio_farm_region', currentRegionKey);
+      closeModal('region-modal');
+      fetchLiveFarmWeather();
+      showToast(`📍 [${REGION_MAP[currentRegionKey].name}] 기상 데이터로 실시간 변경되었습니다!`, 'success');
+    }
+
     // --- 🍓 실시간 비주얼 렌더링 & 시뮬레이션 엔진 ---
     function updateDigitalTwinVisuals() {
       // 1. 좌측/우측 측창 비닐막 롤업 (Motor 1)
@@ -1166,7 +1371,6 @@ require_once __DIR__ . '/config.php';
       const lblLeft = document.getElementById('lbl-left-curtain');
       const gearLeft = document.getElementById('gear-left');
 
-      // 바닥 Y=380 에서 상단 Y=180 까지 롤업
       const rollerY = 380 - (pos1 / 100) * 200;
       if (leftRoller) leftRoller.setAttribute('cy', rollerY);
       if (rightRoller) rightRoller.setAttribute('cy', rollerY);
@@ -1211,18 +1415,15 @@ require_once __DIR__ . '/config.php';
       } else {
         if (drops) drops.style.display = 'none';
         if (dripPipe) dripPipe.setAttribute('stroke', '#475569');
-        if (pumpBadge) pumpBadge.style.borderColor = 'rgba(255,255,255,0.15)';
+        if (pumpBadge) pumpBadge.style.borderColor = 'rgba(255,255,255,0.25)';
         if (lblPump) lblPump.innerText = '양수기/양액기: 대기 중';
       }
 
       // 4. 환풍팬 회전 애니메이션
       const fanGroup = document.getElementById('svg-fan-blades');
       if (fanGroup) {
-        if (isVentFanActive) {
-          fanGroup.classList.add('fan-spinning');
-        } else {
-          fanGroup.classList.remove('fan-spinning');
-        }
+        if (isVentFanActive) fanGroup.classList.add('fan-spinning');
+        else fanGroup.classList.remove('fan-spinning');
       }
 
       // 5. LED 보광등 빔
@@ -1232,7 +1433,7 @@ require_once __DIR__ . '/config.php';
       }
     }
 
-    // 런타임 타이머 적분 엔진 (초당 위치 가감)
+    // 런타임 타이머 적분 엔진
     setInterval(() => {
       for (let m = 1; m <= 2; m++) {
         if (motorDirections[m] === 1) {
@@ -1287,7 +1488,6 @@ require_once __DIR__ . '/config.php';
 
       showToast(`🎛️ ${motorNo}호 모터 [${action === 'OPEN' ? '열림' : '닫힘'}] 가동 시작!`, 'success');
 
-      // 투야 릴레이 채널 전송
       try {
         await fetch('api.php?action=toggle_plug', {
           method: 'POST',
@@ -1459,19 +1659,16 @@ require_once __DIR__ . '/config.php';
               for (let c = 1; c <= 4; c++) {
                 if (d4.channels[c]) states4ch[c] = d4.channels[c].state;
               }
-              // 1번 모터 동작 반영
               if (states4ch[1]) motorDirections[1] = 1;
               else if (states4ch[2]) motorDirections[1] = -1;
               else if (motorDirections[1] !== 0 && !states4ch[1] && !states4ch[2]) motorDirections[1] = 0;
 
-              // 2번 모터 동작 반영
               if (states4ch[3]) motorDirections[2] = 1;
               else if (states4ch[4]) motorDirections[2] = -1;
               else if (motorDirections[2] !== 0 && !states4ch[3] && !states4ch[4]) motorDirections[2] = 0;
             }
           }
 
-          // 상단 상태
           const activeCount = (state1?1:0) + (state2?1:0) + Object.values(states4ch).filter(Boolean).length;
           document.getElementById('active-summary').innerText = `${activeCount}개 장비 정상 가동 중`;
           updateDigitalTwinVisuals();
@@ -1641,8 +1838,10 @@ require_once __DIR__ . '/config.php';
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      fetchLiveFarmWeather();
       syncStatusFromDb();
       updateDigitalTwinVisuals();
+      setInterval(fetchLiveFarmWeather, 60000); // 1분마다 실시간 기상 갱신
     });
     setInterval(syncStatusFromDb, 3000);
   </script>
