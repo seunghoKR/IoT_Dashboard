@@ -479,6 +479,10 @@ try {
                     ];
                 }
             }
+        } catch (Exception $e) {
+            // 테이블이 아직 없는 경우 무시
+        }
+
         // 실시간 커튼 및 모터 개폐율 상태 로드
         $curtains = [
             1 => ['motorNo' => 1, 'name' => '1호 모터 (측창 비닐막)', 'position' => 0.0, 'direction' => 0],
