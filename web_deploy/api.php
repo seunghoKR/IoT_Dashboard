@@ -307,6 +307,9 @@ function fetchTuyaMultipleDevicesParallel($deviceIds) {
             $channels = [];
             $state = false;
             $interlockGroups = [];
+            $temperature = null;
+            $humidity = null;
+            $battery = null;
             if (isset($resObj['status']) && is_array($resObj['status'])) {
                 foreach ($resObj['status'] as $item) {
                     if ($item['code'] === 'switch_1' || $item['code'] === 'switch') {
@@ -318,10 +321,25 @@ function fetchTuyaMultipleDevicesParallel($deviceIds) {
                         if ((bool)$item['value']) $state = true;
                     } elseif ($item['code'] === 'switch_interlock') {
                         $interlockGroups = decodeTuyaInterlock($item['value']);
+                    } elseif ($item['code'] === 'va_temperature' || $item['code'] === 'temp_current') {
+                        $val = (float)$item['value'];
+                        $temperature = ($val > 100) ? ($val / 10.0) : $val;
+                    } elseif ($item['code'] === 'va_humidity' || $item['code'] === 'humidity_value') {
+                        $humidity = (float)$item['value'];
+                    } elseif ($item['code'] === 'battery_percentage' || $item['code'] === 'battery_state') {
+                        $battery = (int)$item['value'];
                     }
                 }
             }
-            $results[$id] = ['name' => $name, 'state' => $state, 'channels' => $channels, 'interlockGroups' => $interlockGroups];
+            $results[$id] = [
+                'name' => $name,
+                'state' => $state,
+                'channels' => $channels,
+                'interlockGroups' => $interlockGroups,
+                'temperature' => $temperature,
+                'humidity' => $humidity,
+                'battery' => $battery
+            ];
         }
     }
     curl_multi_close($mh);

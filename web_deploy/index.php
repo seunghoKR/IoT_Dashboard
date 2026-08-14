@@ -80,16 +80,16 @@ require_once __DIR__ . '/config.php';
     body.tablet-fit-mode .brand-name { font-size: 16px; }
     body.tablet-fit-mode .brand-sub { display: none; }
     body.tablet-fit-mode main {
-      padding: 10px 16px;
-      gap: 10px;
+      padding: 8px 16px;
+      gap: 8px;
       height: calc(100vh - 48px);
       max-height: calc(100vh - 48px);
       overflow: hidden;
     }
     body.tablet-fit-mode .dashboard-split-layout {
       flex: 1;
-      height: calc(100% - 50px);
-      gap: 14px;
+      height: calc(100% - 46px);
+      gap: 12px;
       grid-template-columns: 1.65fr 1fr;
       overflow: hidden;
     }
@@ -100,12 +100,12 @@ require_once __DIR__ . '/config.php';
     }
     body.tablet-fit-mode .twin-stage-card {
       height: 100%;
-      padding: 12px 14px;
+      padding: 10px 14px;
       display: flex;
       flex-direction: column;
     }
     body.tablet-fit-mode .twin-env-bar {
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       padding: 6px 12px;
       font-size: 12px;
     }
@@ -120,51 +120,51 @@ require_once __DIR__ . '/config.php';
       max-height: 100%;
     }
     body.tablet-fit-mode .curtain-indicator-box {
-      padding: 5px 10px;
+      padding: 4px 8px;
       font-size: 11px;
     }
     body.tablet-fit-mode .control-deck-pane {
       height: 100%;
-      gap: 8px;
+      gap: 6px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      overflow: hidden;
+      overflow-y: auto;
     }
     body.tablet-fit-mode .deck-section-card {
-      padding: 10px 12px;
-      gap: 8px;
+      padding: 8px 12px;
+      gap: 6px;
       border-radius: 12px;
     }
     body.tablet-fit-mode .deck-card-header { padding-bottom: 4px; }
     body.tablet-fit-mode .deck-card-title { font-size: 13px; }
     body.tablet-fit-mode .motor-control-group {
-      padding: 8px 10px;
-      gap: 6px;
-      border-radius: 10px;
+      padding: 6px 8px;
+      gap: 4px;
+      border-radius: 8px;
     }
-    body.tablet-fit-mode .motor-name { font-size: 13px; }
+    body.tablet-fit-mode .motor-name { font-size: 12px; }
     body.tablet-fit-mode .btn-actuator {
-      padding: 6px 4px;
-      font-size: 13px;
+      padding: 5px 4px;
+      font-size: 12px;
       gap: 2px;
     }
     body.tablet-fit-mode .btn-pump-unit {
-      padding: 8px 6px;
-      gap: 4px;
-      border-radius: 10px;
+      padding: 6px 6px;
+      gap: 3px;
+      border-radius: 8px;
     }
-    body.tablet-fit-mode .pump-icon { font-size: 20px; }
-    body.tablet-fit-mode .pump-name { font-size: 13px; }
-    body.tablet-fit-mode .pump-state-badge { font-size: 11px; padding: 2px 8px; }
+    body.tablet-fit-mode .pump-icon { font-size: 18px; }
+    body.tablet-fit-mode .pump-name { font-size: 12px; }
+    body.tablet-fit-mode .pump-state-badge { font-size: 10px; padding: 2px 6px; }
     body.tablet-fit-mode .physical-dock {
-      padding: 6px 14px;
-      border-radius: 10px;
+      padding: 5px 12px;
+      border-radius: 8px;
       margin-top: 0;
     }
     body.tablet-fit-mode .plug-mini-btn {
-      padding: 5px 10px;
-      font-size: 12px;
+      padding: 4px 8px;
+      font-size: 11px;
     }
 
     /* 📱 상단 글로벌 헤더 */
@@ -417,6 +417,60 @@ require_once __DIR__ . '/config.php';
       padding: 10px;
     }
 
+    /* 🌡️ 온실 내부 투야 스마트 온·습도 센서 실시간 HUD 위젯 */
+    .sensor-hud-center {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 18, 33, 0.92);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(56, 189, 248, 0.5);
+      border-radius: 14px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 15;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .hud-stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .hud-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94A3B8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hud-value-temp {
+      font-size: 22px;
+      font-weight: 900;
+      color: #34D399; /* 적온 초록 */
+      letter-spacing: -0.5px;
+    }
+    .hud-value-hum {
+      font-size: 22px;
+      font-weight: 900;
+      color: #38BDF8; /* 습도 하늘색 */
+      letter-spacing: -0.5px;
+    }
+    .hud-comfort-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(16, 185, 129, 0.2);
+      color: #6EE7B7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      white-space: nowrap;
+    }
+
     /* 개폐막 포지션 인디케이터 배지 (고대비 선명화) */
     .curtain-indicator-box {
       position: absolute;
@@ -434,9 +488,9 @@ require_once __DIR__ . '/config.php';
       z-index: 10;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
-    .curtain-pos-left { top: 32%; left: 5%; }
-    .curtain-pos-right { top: 32%; right: 5%; }
-    .curtain-pos-top { top: 10%; left: 50%; transform: translateX(-50%); }
+    .curtain-pos-left { top: 38%; left: 5%; }
+    .curtain-pos-right { top: 38%; right: 5%; }
+    .curtain-pos-top { top: 6%; right: 6%; }
 
     /* 실시간 물방울 / 양액 파티클 애니메이션 */
     @keyframes dripFlow {
@@ -487,6 +541,43 @@ require_once __DIR__ . '/config.php';
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    /* 🌡️ 동별 온·습도 실시간 정밀 모니터링 카드 */
+    .sensor-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: #1B2B47;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .sensor-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .sensor-bar-track {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .sensor-bar-fill-temp {
+      height: 100%;
+      background: linear-gradient(90deg, #38BDF8 0%, #10B981 50%, #F59E0B 80%, #EF4444 100%);
+      border-radius: 4px;
+      width: 60%;
+      transition: width 0.5s ease;
+    }
+    .sensor-bar-fill-hum {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B 0%, #10B981 60%, #38BDF8 100%);
+      border-radius: 4px;
+      width: 65%;
+      transition: width 0.5s ease;
     }
 
     /* 2채널 모터 인터락 제어 유닛 */
@@ -822,7 +913,7 @@ require_once __DIR__ . '/config.php';
       <li class="nav-item" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿PC 앱 바로가기</li>
     </ul>
     <div style="margin-top:auto; font-size:11px; color:var(--text-muted); line-height:1.5;">
-      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.3
+      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.4
     </div>
   </aside>
 
@@ -857,13 +948,31 @@ require_once __DIR__ . '/config.php';
             </div>
 
             <div class="env-item">
-              <span>온실 내부: <span class="env-val">24.5°C</span> / <span class="env-val">62%</span></span>
+              <span>📡 투야 온습도 센서: <span class="env-val" id="env-sensor-status">정상 수신 중</span></span>
             </div>
           </div>
 
           <!-- 🏠 인터랙티브 비닐하우스 단면 SVG 캔버스 -->
           <div class="greenhouse-svg-wrapper" id="greenhouse-stage">
             
+            <!-- 🌡️ 온실 중앙 실시간 스마트 온·습도 HUD 위젯 -->
+            <div class="sensor-hud-center" id="sensor-hud-widget">
+              <div class="hud-stat-box">
+                <span class="hud-label">🌡️ 하우스 실내온도</span>
+                <span class="hud-value-temp" id="val-twin-temp">24.5°C</span>
+              </div>
+              <div style="width:1px; height:32px; background:rgba(255,255,255,0.2);"></div>
+              <div class="hud-stat-box">
+                <span class="hud-label">💧 실내습도</span>
+                <span class="hud-value-hum" id="val-twin-hum">62%</span>
+              </div>
+              <div style="width:1px; height:32px; background:rgba(255,255,255,0.2);"></div>
+              <div class="hud-stat-box">
+                <span class="hud-label">🍓 생육 쾌적도</span>
+                <span class="hud-comfort-pill" id="val-twin-comfort">😊 쾌적 (최적 생육)</span>
+              </div>
+            </div>
+
             <!-- 개폐막 포지션 인디케이터 배지 -->
             <div class="curtain-indicator-box curtain-pos-left" id="badge-left-curtain">
               <span id="gear-left" style="display:inline-block;">⚙️</span>
@@ -872,7 +981,7 @@ require_once __DIR__ . '/config.php';
 
             <div class="curtain-indicator-box curtain-pos-top" id="badge-top-curtain">
               <span>☀️</span>
-              <span id="lbl-top-curtain">상부 차광막: 0% (차광 해제)</span>
+              <span id="lbl-top-curtain">차광막: 0% (해제)</span>
             </div>
 
             <div class="curtain-indicator-box curtain-pos-right" id="badge-pump-status">
@@ -883,33 +992,28 @@ require_once __DIR__ . '/config.php';
             <!-- 정밀 SVG 비닐하우스 단면 그래픽 -->
             <svg viewBox="0 0 800 460" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
               <defs>
-                <!-- 하늘 그라데이션 (밤/낮 실시간 변경) -->
                 <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop id="skyStop1" offset="0%" stop-color="#142646" stop-opacity="0.8"/>
                   <stop id="skyStop2" offset="100%" stop-color="#080F1E" stop-opacity="0.95"/>
                 </linearGradient>
-                <!-- 비닐막 투명 반사 그라데이션 -->
                 <linearGradient id="vinylGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.5"/>
                   <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.25"/>
                   <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.5"/>
                 </linearGradient>
-                <!-- 차광막 메쉬 패턴 -->
                 <pattern id="shadePattern" width="8" height="8" patternUnits="userSpaceOnUse">
                   <path d="M0 0h8v8H0z" fill="#0B132B" fill-opacity="0.85"/>
                   <path d="M0 0l8 8M8 0l-8 8" stroke="#475569" stroke-width="1.2"/>
                 </pattern>
-                <!-- 지면 그라데이션 -->
                 <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                   <stop offset="0%" stop-color="#334155"/>
                   <stop offset="100%" stop-color="#0F172A"/>
                 </linearGradient>
               </defs>
 
-              <!-- 배경 하늘 & 온실 바닥 지면 -->
               <rect x="20" y="20" width="760" height="420" rx="16" fill="url(#skyGrad)"/>
               
-              <!-- 밤하늘 별 & 달 (밤 시간 활성화) -->
+              <!-- 밤하늘 별 & 달 -->
               <g id="svg-sky-night" opacity="0.8">
                 <circle cx="700" cy="70" r="18" fill="#FEF08A" filter="drop-shadow(0 0 8px #FDE047)"/>
                 <circle cx="692" cy="65" r="16" fill="#142646"/>
@@ -919,7 +1023,7 @@ require_once __DIR__ . '/config.php';
                 <circle cx="600" cy="95" r="2" fill="#FFFFFF"/>
               </g>
 
-              <!-- 낮 태양 (낮 시간 활성화) -->
+              <!-- 낮 태양 -->
               <g id="svg-sky-day" opacity="0" style="display:none;">
                 <circle cx="680" cy="75" r="24" fill="#F59E0B" filter="drop-shadow(0 0 14px #FBBF24)"/>
               </g>
@@ -938,43 +1042,49 @@ require_once __DIR__ . '/config.php';
               <line x1="280" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
               <line x1="520" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
 
-              <!-- ☀️ 1. 상부 차광막/보온스크린 레이어 (가변 수축/전개) -->
+              <!-- 📡 트러스 상단에 매달린 스마트 온·습도 센서 노드 일러스트 -->
+              <g transform="translate(400, 160)">
+                <line x1="0" y1="0" x2="0" y2="28" stroke="#94A3B8" stroke-width="2"/>
+                <rect x="-14" y="28" width="28" height="42" rx="6" fill="#F8FAFC" stroke="#06B6D4" stroke-width="2"/>
+                <!-- 센서 환기 슬릿 및 LED -->
+                <circle cx="0" cy="40" r="3" fill="#10B981"/>
+                <line x1="-8" y1="52" x2="8" y2="52" stroke="#64748B" stroke-width="2"/>
+                <line x1="-8" y1="58" x2="8" y2="58" stroke="#64748B" stroke-width="2"/>
+                <!-- RF 전파 링 -->
+                <circle cx="0" cy="40" r="16" fill="none" stroke="#38BDF8" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
+              </g>
+
+              <!-- ☀️ 1. 상부 차광막/보온스크린 레이어 -->
               <path id="svg-shade-screen" d="M 130 160 L 670 160" 
                     stroke="url(#shadePattern)" stroke-width="28" stroke-linecap="round" opacity="0.1"/>
 
-              <!-- 🏠 2. 측창/천창 롤업 비닐막 (좌측 & 우측 실시간 롤업 애니메이션) -->
-              <!-- 좌측 비닐막 (바닥에서 위로 롤업) -->
+              <!-- 🏠 2. 측창/천창 롤업 비닐막 -->
               <path id="svg-left-vinyl" d="M 100 380 L 100 240 Q 100 130, 260 110" 
                     fill="none" stroke="url(#vinylGrad)" stroke-width="12" stroke-linecap="round"/>
-              <!-- 좌측 롤업 파이프 바 -->
               <circle id="svg-left-roller" cx="100" cy="380" r="10" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2.5"/>
 
-              <!-- 우측 비닐막 -->
               <path id="svg-right-vinyl" d="M 700 380 L 700 240 Q 700 130, 540 110" 
                     fill="none" stroke="url(#vinylGrad)" stroke-width="12" stroke-linecap="round"/>
               <circle id="svg-right-roller" cx="700" cy="380" r="10" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2.5"/>
 
               <!-- 💨 3. 상부 환풍 유동팬 -->
-              <g id="svg-fan-group" transform="translate(400, 130)">
-                <circle cx="0" cy="0" r="22" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
+              <g id="svg-fan-group" transform="translate(300, 130)">
+                <circle cx="0" cy="0" r="20" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
                 <g id="svg-fan-blades">
-                  <path d="M 0 0 L -12 -12 Q 0 -18 12 -12 Z" fill="#94A3B8"/>
-                  <path d="M 0 0 L 12 12 Q 18 0 12 -12 Z" fill="#94A3B8"/>
-                  <path d="M 0 0 L -12 12 Q 0 18 12 12 Z" fill="#94A3B8"/>
+                  <path d="M 0 0 L -10 -10 Q 0 -15 10 -10 Z" fill="#94A3B8"/>
+                  <path d="M 0 0 L 10 10 Q 15 0 10 -10 Z" fill="#94A3B8"/>
+                  <path d="M 0 0 L -10 10 Q 0 15 10 10 Z" fill="#94A3B8"/>
                 </g>
-                <circle cx="0" cy="0" r="6" fill="#10B981"/>
+                <circle cx="0" cy="0" r="5" fill="#10B981"/>
               </g>
 
               <!-- 🍓 4. 고설 딸기 재배 베드 & 관수 라인 -->
-              <!-- 베드 지지 프레임 -->
               <line x1="220" y1="380" x2="220" y2="300" stroke="#64748B" stroke-width="5"/>
               <line x1="340" y1="380" x2="340" y2="300" stroke="#64748B" stroke-width="5"/>
               <line x1="460" y1="380" x2="460" y2="300" stroke="#64748B" stroke-width="5"/>
               <line x1="580" y1="380" x2="580" y2="300" stroke="#64748B" stroke-width="5"/>
 
-              <!-- 상단 재배 베드 트러프 -->
               <rect x="180" y="285" width="440" height="20" rx="6" fill="#1E293B" stroke="#059669" stroke-width="2"/>
-              <!-- 점적 관수 공급 튜브 -->
               <line x1="180" y1="295" x2="620" y2="295" stroke="#06B6D4" stroke-width="4" id="svg-drip-pipe"/>
 
               <!-- 💧 실시간 물방울 파티클 -->
@@ -1013,6 +1123,38 @@ require_once __DIR__ . '/config.php';
       <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 -->
       <div class="control-deck-pane">
         
+        <!-- 0. 🌡️ 투야 온·습도 센서 실시간 환경 모니터링 카드 -->
+        <div class="deck-section-card">
+          <div class="deck-card-header">
+            <div class="deck-card-title">
+              <span>🌡️</span><span id="deck-sensor-title">1동 온·습도 스마트 센서</span>
+            </div>
+            <span class="btn-edit-sm" style="background:rgba(56,189,248,0.2); border-color:#38BDF8; color:#BAE6FD;" id="deck-sensor-battery">🔋 98%</span>
+          </div>
+
+          <div class="sensor-detail-grid">
+            <div class="sensor-box">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:#94A3B8;">온도 (적온 18~25°C)</span>
+                <span style="font-size:16px; font-weight:900; color:#34D399;" id="deck-val-temp">24.5°C</span>
+              </div>
+              <div class="sensor-bar-track">
+                <div class="sensor-bar-fill-temp" id="bar-temp" style="width: 61%;"></div>
+              </div>
+            </div>
+
+            <div class="sensor-box">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:700; color:#94A3B8;">습도 (적정 60~70%)</span>
+                <span style="font-size:16px; font-weight:900; color:#38BDF8;" id="deck-val-hum">62%</span>
+              </div>
+              <div class="sensor-bar-track">
+                <div class="sensor-bar-fill-hum" id="bar-hum" style="width: 62%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 1. 개폐기 모터 제어반 (모터 2조 인터락 연동) -->
         <div class="deck-section-card">
           <div class="deck-card-header">
@@ -1079,14 +1221,12 @@ require_once __DIR__ . '/config.php';
           </div>
 
           <div class="pump-btn-grid">
-            <!-- 주 양수기 -->
             <button class="btn-pump-unit" id="pump-unit-water" onclick="togglePumpDevice('WATER')">
               <span class="pump-icon">💧</span>
               <span class="pump-name">주 양수기 (2.0HP)</span>
               <span class="pump-state-badge" id="badge-pump-water">정지 (OFF)</span>
             </button>
 
-            <!-- 스마트 양액기 -->
             <button class="btn-pump-unit" id="pump-unit-nutrient" onclick="togglePumpDevice('NUTRIENT')">
               <span class="pump-icon">🧪</span>
               <span class="pump-name">스마트 양액기</span>
@@ -1127,7 +1267,7 @@ require_once __DIR__ . '/config.php';
         <span style="font-size:18px;">🔌</span>
         <div>
           <div style="font-size:14px; font-weight:800; color:#FFFFFF;">실물 투야 하드웨어 연동 상태</div>
-          <div style="font-size:12px; font-weight:600; color:#94A3B8;" id="hardware-quick-status">4채널 스위치 (ID: eb654aa2...) · 릴레이 정상 연결됨</div>
+          <div style="font-size:12px; font-weight:600; color:#94A3B8;" id="hardware-quick-status">4채널 스위치 & 투야 온습도 센서 정상 수신 중</div>
         </div>
       </div>
 
@@ -1220,20 +1360,21 @@ require_once __DIR__ . '/config.php';
       <div class="form-group">
         <label class="form-label">장치 종류 (카테고리)</label>
         <select class="form-select" id="d-form-category">
-          <option value="WATER_PUMP">💧 양수기 / 관수 펌프</option>
-          <option value="NUTRIENT_FEEDER">🧪 양액기 / 양액 공급기</option>
+          <option value="TEMP_HUMID_SENSOR">🌡️ 투야 스마트 온·습도 센서</option>
           <option value="CURTAIN">☀️ 차광막 / 보온스크린</option>
           <option value="VINYL">🏠 측창·천창 비닐막 개폐기</option>
+          <option value="WATER_PUMP">💧 양수기 / 관수 펌프</option>
+          <option value="NUTRIENT_FEEDER">🧪 양액기 / 양액 공급기</option>
           <option value="VENT_FAN">💨 환풍기 / 유동팬</option>
           <option value="GROW_LIGHT">💡 LED 보광등</option>
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">장비 명칭</label>
-        <input type="text" class="form-input" id="d-form-name" placeholder="예: 1동 측창 비닐 개폐기 1호">
+        <input type="text" class="form-input" id="d-form-name" placeholder="예: 1동 투야 온·습도 센서 1호">
       </div>
       <div class="form-group">
-        <label class="form-label">실물 투야 릴레이 연동 (선택)</label>
+        <label class="form-label">실물 투야 릴레이/센서 연동 (선택)</label>
         <select class="form-select" id="d-form-binding">
           <option value="">연동 안 함 (독립 관제)</option>
           <option value="eb654aa2437462ea40dfjw:1">🎛️ 4채널 스위치 - 1번 채널 (1호 열기)</option>
@@ -1335,6 +1476,13 @@ require_once __DIR__ . '/config.php';
     let farmHouses = {};
     let currentHouseId = 1;
 
+    // 동별 온·습도 실측 데이터 (기본값 / 센서 연동값)
+    let houseSensorData = {
+      1: { temp: 24.5, hum: 62.0, battery: 98, status: '정상' },
+      2: { temp: 23.8, hum: 65.0, battery: 95, status: '정상' },
+      3: { temp: 25.1, hum: 59.0, battery: 100, status: '정상' }
+    };
+
     // 📱 태블릿 무스크롤 모드 설정
     let isTabletFitMode = localStorage.getItem('nurio_tablet_fit_mode') === 'true';
 
@@ -1379,7 +1527,7 @@ require_once __DIR__ . '/config.php';
 
     // 모터 가상 포지션 (0 ~ 100%)
     let motorPositions = { 1: 0, 2: 0 };
-    let motorDirections = { 1: 0, 2: 0 }; // 1: OPENING, -1: CLOSING, 0: STOPPED
+    let motorDirections = { 1: 0, 2: 0 };
 
     let isWaterPumpActive = false;
     let isNutrientActive = false;
@@ -1514,6 +1662,71 @@ require_once __DIR__ . '/config.php';
       showToast(`📍 [${REGION_MAP[currentRegionKey].name}] 기상 데이터로 실시간 변경되었습니다!`, 'success');
     }
 
+    // --- 🌡️ 동별 온·습도 HUD 및 모니터링 렌더링 ---
+    function renderHouseSensorTelemetry() {
+      const curData = houseSensorData[currentHouseId] || { temp: 24.5, hum: 62.0, battery: 98, status: '정상' };
+      const tempVal = curData.temp;
+      const humVal = curData.hum;
+
+      // 1. 좌측 캔버스 HUD 위젯
+      const valTwinTemp = document.getElementById('val-twin-temp');
+      const valTwinHum = document.getElementById('val-twin-hum');
+      const valTwinComfort = document.getElementById('val-twin-comfort');
+
+      if (valTwinTemp) {
+        valTwinTemp.innerText = `${tempVal.toFixed(1)}°C`;
+        // 색상 판정
+        if (tempVal >= 18 && tempVal <= 25) valTwinTemp.style.color = '#34D399'; // 적온
+        else if (tempVal > 25 && tempVal <= 28) valTwinTemp.style.color = '#FBBF24'; // 약간 높음
+        else if (tempVal > 28) valTwinTemp.style.color = '#F87171'; // 고온 경고
+        else valTwinTemp.style.color = '#60A5FA'; // 저온
+      }
+
+      if (valTwinHum) {
+        valTwinHum.innerText = `${Math.round(humVal)}%`;
+      }
+
+      if (valTwinComfort) {
+        if (tempVal >= 18 && tempVal <= 25 && humVal >= 60 && humVal <= 75) {
+          valTwinComfort.innerText = '😊 쾌적 (딸기 최적 생육)';
+          valTwinComfort.style.background = 'rgba(16, 185, 129, 0.2)';
+          valTwinComfort.style.color = '#6EE7B7';
+        } else if (tempVal > 28) {
+          valTwinComfort.innerText = '⚠️ 고온 주의 (차광/환기 권장)';
+          valTwinComfort.style.background = 'rgba(239, 68, 68, 0.2)';
+          valTwinComfort.style.color = '#FCA5A5';
+        } else {
+          valTwinComfort.innerText = '🌱 안정 생육 유지 중';
+          valTwinComfort.style.background = 'rgba(56, 189, 248, 0.2)';
+          valTwinComfort.style.color = '#7DD3FC';
+        }
+      }
+
+      // 2. 우측 제어반 센서 카드
+      const deckValTemp = document.getElementById('deck-val-temp');
+      const deckValHum = document.getElementById('deck-val-hum');
+      const barTemp = document.getElementById('bar-temp');
+      const barHum = document.getElementById('bar-hum');
+      const deckBattery = document.getElementById('deck-sensor-battery');
+      const deckTitle = document.getElementById('deck-sensor-title');
+
+      if (deckTitle && farmHouses[currentHouseId]) {
+        deckTitle.innerText = `${farmHouses[currentHouseId].name} 온·습도 센서`;
+      }
+      if (deckValTemp) deckValTemp.innerText = `${tempVal.toFixed(1)}°C`;
+      if (deckValHum) deckValHum.innerText = `${Math.round(humVal)}%`;
+      if (deckBattery) deckBattery.innerText = `🔋 ${curData.battery}%`;
+
+      if (barTemp) {
+        const pct = Math.min(100, Math.max(0, (tempVal / 40.0) * 100));
+        barTemp.style.width = `${pct}%`;
+      }
+      if (barHum) {
+        const pct = Math.min(100, Math.max(0, humVal));
+        barHum.style.width = `${pct}%`;
+      }
+    }
+
     // --- 🍓 실시간 비주얼 렌더링 & 시뮬레이션 엔진 ---
     function updateDigitalTwinVisuals() {
       // 1. 좌측/우측 측창 비닐막 롤업 (Motor 1)
@@ -1552,7 +1765,7 @@ require_once __DIR__ . '/config.php';
         shadeScreen.setAttribute('stroke-width', 8 + (pos2 / 100) * 32);
       }
       if (lblTop) {
-        lblTop.innerText = pos2 === 0 ? '상부 차광막: 0% (해제)' : `상부 차광막: ${Math.round(pos2)}% 차광 중`;
+        lblTop.innerText = pos2 === 0 ? '차광막: 0% (해제)' : `차광막: ${Math.round(pos2)}% 차광`;
       }
 
       // 3. 관수 라인 물방울 & 양액기 파티클
@@ -1565,12 +1778,12 @@ require_once __DIR__ . '/config.php';
         if (drops) drops.style.display = 'block';
         if (dripPipe) dripPipe.setAttribute('stroke', isNutrientActive ? '#A855F7' : '#06B6D4');
         if (pumpBadge) pumpBadge.style.borderColor = '#10B981';
-        if (lblPump) lblPump.innerText = isNutrientActive ? '🧪 스마트 양액 조제 공급 중' : '💧 주 양수기 2.0HP 관수 분사 중';
+        if (lblPump) lblPump.innerText = isNutrientActive ? '🧪 양액 공급 중' : '💧 관수 분사 중';
       } else {
         if (drops) drops.style.display = 'none';
         if (dripPipe) dripPipe.setAttribute('stroke', '#475569');
         if (pumpBadge) pumpBadge.style.borderColor = 'rgba(255,255,255,0.25)';
-        if (lblPump) lblPump.innerText = '양수기/양액기: 대기 중';
+        if (lblPump) lblPump.innerText = '양수기: 대기 중';
       }
 
       // 4. 환풍팬 회전 애니메이션
@@ -1585,6 +1798,8 @@ require_once __DIR__ . '/config.php';
       if (growLights) {
         growLights.style.display = isGrowLightActive ? 'block' : 'none';
       }
+
+      renderHouseSensorTelemetry();
     }
 
     // 런타임 타이머 적분 엔진
@@ -1769,7 +1984,7 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    // --- 📡 백엔드 상태 동기화 ---
+    // --- 📡 백엔드 상태 및 투야 온습도 센서 동기화 ---
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
@@ -1823,6 +2038,16 @@ require_once __DIR__ . '/config.php';
             }
           }
 
+          // 4. 투야 온·습도 센서 실시간 바인딩
+          Object.keys(data.devices || {}).forEach(dId => {
+            const dev = data.devices[dId];
+            if (dev.temperature !== undefined && dev.temperature !== null) {
+              houseSensorData[1].temp = dev.temperature;
+              if (dev.humidity !== undefined && dev.humidity !== null) houseSensorData[1].hum = dev.humidity;
+              if (dev.battery !== undefined && dev.battery !== null) houseSensorData[1].battery = dev.battery;
+            }
+          });
+
           const activeCount = (state1?1:0) + (state2?1:0) + Object.values(states4ch).filter(Boolean).length;
           document.getElementById('active-summary').innerText = `${activeCount}개 장비 정상 가동 중`;
           updateDigitalTwinVisuals();
@@ -1837,7 +2062,7 @@ require_once __DIR__ . '/config.php';
       const keys = Object.keys(farmHouses);
       if (keys.length === 0) {
         container.innerHTML = `
-          <button class="house-tab-btn active">🍓 1동 설향 딸기 재배동</button>
+          <button class="house-tab-btn active">🍓 1동 설향 딸기 (24.5°C / 62%)</button>
           <button class="house-tab-btn" onclick="openHouseModal()">➕ 하우스 추가</button>
         `;
         return;
@@ -1847,9 +2072,11 @@ require_once __DIR__ . '/config.php';
       keys.forEach(hId => {
         const h = farmHouses[hId];
         const isActive = (parseInt(currentHouseId) === parseInt(h.id));
+        const sData = houseSensorData[h.id] || { temp: 24.5, hum: 62 };
         html += `
           <button class="house-tab-btn ${isActive ? 'active' : ''}" onclick="selectHouseTab(${h.id})">
             <span>🍓</span><span>${h.name}</span>
+            <span style="font-size:11px; color:#38BDF8; font-weight:800;">(${sData.temp.toFixed(1)}°C / ${Math.round(sData.hum)}%)</span>
           </button>
         `;
       });
@@ -1864,7 +2091,8 @@ require_once __DIR__ . '/config.php';
         const h = farmHouses[houseId];
         document.getElementById('twin-house-title').innerText = h.name;
         document.getElementById('twin-crop-badge').innerText = h.crop || '작물 미지정';
-        showToast(`📍 '${h.name}' 디지털 트윈 뷰로 전환되었습니다.`, 'success');
+        renderHouseSensorTelemetry();
+        showToast(`📍 '${h.name}' 온·습도 및 디지털 트윈 뷰로 전환되었습니다.`, 'success');
       }
     }
 
