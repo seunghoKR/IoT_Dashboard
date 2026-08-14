@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🍓 누리오 스마트팜 (Nurio Smart Farm) - 통합 IoT 관제 시스템</title>
+  <title>🍓 누리오 스마트팜 (Nurio Smart Farm) - 비주얼 디지털 트윈 관제</title>
   
   <!-- 📱 PWA & 태블릿 앱 바로가기 메타태그 및 매니페스트 -->
   <link rel="manifest" href="manifest.json">
@@ -15,14 +15,14 @@ require_once __DIR__ . '/config.php';
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1E293B">
+  <meta name="theme-color" content="#0F172A">
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
-      --bg-base: #0F172A;
-      --bg-card: #1E293B;
-      --bg-card-sub: #162032;
+      --bg-base: #090E1A;
+      --bg-card: #131E32;
+      --bg-card-sub: #0F172A;
       --primary: #10B981;
       --primary-light: rgba(16, 185, 129, 0.15);
       --primary-border: #059669;
@@ -30,11 +30,12 @@ require_once __DIR__ . '/config.php';
       --indigo: #6366F1;
       --amber: #F59E0B;
       --rose: #F43F5E;
+      --sky: #38BDF8;
       --text-primary: #F8FAFC;
       --text-secondary: #94A3B8;
       --text-muted: #64748B;
-      --border: rgba(255, 255, 255, 0.1);
-      --border-focus: rgba(16, 185, 129, 0.5);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(16, 185, 129, 0.4);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,22 +49,22 @@ require_once __DIR__ . '/config.php';
       overflow-x: hidden;
     }
 
-    /* 📱 상단 글로벌 내비게이션 바 (태블릿/모바일 최적화) */
+    /* 📱 상단 글로벌 헤더 */
     header {
-      background: #1E293B;
+      background: rgba(19, 30, 50, 0.85);
       border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
+      padding: 12px 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: sticky;
       top: 0;
       z-index: 100;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
     }
-    .header-left { display: flex; align-items: center; gap: 14px; }
+    .header-left { display: flex; align-items: center; gap: 12px; }
     .btn-hamburger {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       border: 1px solid var(--border);
       color: white;
       border-radius: 8px;
@@ -71,11 +72,10 @@ require_once __DIR__ . '/config.php';
       cursor: pointer;
       display: flex;
       align-items: center;
-      justify-content: center;
       font-size: 18px;
       transition: background 0.2s;
     }
-    .btn-hamburger:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-hamburger:hover { background: rgba(255, 255, 255, 0.12); }
     .brand-title-box { display: flex; align-items: center; gap: 10px; }
     .brand-logo { font-size: 26px; }
     .brand-name { font-size: 18px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px; }
@@ -88,7 +88,7 @@ require_once __DIR__ . '/config.php';
       color: #6EE7B7;
       font-size: 12px;
       font-weight: 700;
-      padding: 6px 14px;
+      padding: 6px 12px;
       border-radius: 20px;
       display: flex;
       align-items: center;
@@ -99,8 +99,8 @@ require_once __DIR__ . '/config.php';
       border: none;
       color: white;
       border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 13px;
+      padding: 7px 13px;
+      font-size: 12px;
       font-weight: 800;
       cursor: pointer;
       display: flex;
@@ -111,11 +111,11 @@ require_once __DIR__ . '/config.php';
     .btn-action-header:hover { background: #059669; }
     .btn-action-header:active { transform: scale(0.97); }
 
-    /* 📂 서랍형 오버레이 사이드바 (태블릿에서는 닫혀있다가 열림) */
+    /* 📂 서랍형 오버레이 사이드바 */
     .sidebar-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.65);
       backdrop-filter: blur(4px);
       z-index: 200;
       opacity: 0;
@@ -130,12 +130,12 @@ require_once __DIR__ . '/config.php';
       left: 0;
       bottom: 0;
       width: 280px;
-      background: #162032;
+      background: #10192A;
       border-right: 1px solid var(--border);
       padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 20px;
       z-index: 210;
       transform: translateX(-100%);
       transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -149,563 +149,794 @@ require_once __DIR__ . '/config.php';
       display: flex; align-items: center; gap: 12px; padding: 12px 16px;
       border-radius: 10px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px;
     }
-    .nav-item:hover { background: rgba(255, 255, 255, 0.06); color: white; }
-    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 800; border: 1px solid var(--primary-border); }
+    .nav-item.active, .nav-item:hover { background: rgba(16, 185, 129, 0.15); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* 📊 메인 풀스크린 대시보드 뷰 (태블릿PC 100% 장치 집중) */
+    /* 🌾 2:1 대시보드 스플릿 컨테이너 */
     main {
       flex: 1;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-      max-width: 1600px;
+      padding: 16px 20px;
+      max-width: 1720px;
       margin: 0 auto;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .section-title-bar {
+    .dashboard-split-layout {
+      display: grid;
+      grid-template-columns: 1.85fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-split-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 🍓 좌측 2/3: 비주얼 디지털 트윈 영역 */
+    .visual-twin-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* 하우스 선택 탭바 */
+    .house-tabs-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .house-tab-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .house-tab-btn.active {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: #10B981;
+      color: #6EE7B7;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+    }
+    .house-tab-btn:hover:not(.active) {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+    }
+
+    /* 비주얼 트윈 하우스 메인 카드 */
+    .twin-stage-card {
+      background: linear-gradient(180deg, #16243D 0%, #0F192C 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 상단 온실 환경 상태 바 */
+    .twin-env-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
     }
-    .section-title { font-size: 18px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px; }
-    .section-sub { font-size: 12px; color: var(--text-secondary); }
+    .env-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .env-val { color: #38BDF8; font-weight: 800; }
 
-    /* 🎛️ 실물 투야 하드웨어 그리드 */
-    .physical-devices-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    @media (max-width: 1024px) {
-      .physical-devices-grid { grid-template-columns: 1fr; }
-    }
-
-    .hardware-card {
-      background: var(--bg-card);
-      border: 1.5px solid var(--border);
+    /* 🏠 비닐하우스 단면 SVG 인터랙티브 스테이지 */
+    .greenhouse-svg-wrapper {
+      width: 100%;
+      min-height: 380px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 30%, rgba(56, 189, 248, 0.08) 0%, rgba(15, 25, 44, 0.8) 75%);
       border-radius: 16px;
-      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 10px;
+    }
+
+    /* 차광막, 비닐막 롤업 시각 효과 */
+    .curtain-indicator-box {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 10;
+    }
+    .curtain-pos-left { top: 35%; left: 6%; }
+    .curtain-pos-right { top: 35%; right: 6%; }
+    .curtain-pos-top { top: 12%; left: 50%; transform: translateX(-50%); }
+
+    /* 실시간 물방울 / 양액 파티클 애니메이션 */
+    @keyframes dripFlow {
+      0% { transform: translateY(0); opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { transform: translateY(12px); opacity: 0; }
+    }
+    .water-drop {
+      animation: dripFlow 1.2s infinite linear;
+    }
+    @keyframes fanRotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .fan-spinning {
+      transform-origin: center;
+      animation: fanRotate 1s infinite linear;
+    }
+
+    /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 */
+    .control-deck-pane {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    .hardware-card.switch4ch {
-      grid-column: 1 / -1;
-      border-color: rgba(6, 182, 212, 0.4);
-      background: linear-gradient(135deg, #162032 0%, #0F172A 100%);
     }
 
-    .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
-    .device-title-box { display: flex; align-items: center; gap: 12px; }
-    .device-icon { font-size: 28px; }
-    .device-name-text { font-size: 17px; font-weight: 800; color: #F8FAFC; }
-    .device-id-text { font-size: 11px; color: var(--text-muted); }
-
-    .btn-edit-sm {
-      background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); color: white;
-      border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer;
+    .deck-section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
     }
-    .btn-edit-sm:hover { background: rgba(255, 255, 255, 0.2); }
-
-    /* 4채널 멀티 릴레이 컨트롤 박스 */
-    .multi-ch-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
+    .deck-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     }
-    @media (max-width: 800px) {
-      .multi-ch-grid { grid-template-columns: repeat(2, 1fr); }
+    .deck-card-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #F8FAFC;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
-    /* 🔒 인터락 그룹핑 시각화 */
-    .interlock-badge-btn {
-      background: rgba(8, 145, 178, 0.18);
-      border: 1px solid #22D3EE;
-      color: #22D3EE;
+    /* 2채널 모터 인터락 제어 유닛 */
+    .motor-control-group {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .motor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .motor-name { font-size: 13px; font-weight: 800; color: #E2E8F0; }
+    .motor-status-tag {
       font-size: 11px;
       font-weight: 800;
-      padding: 4px 10px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-secondary);
+    }
+    .motor-status-tag.active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6EE7B7;
+      border: 1px solid #10B981;
+    }
+
+    /* 모터 열기/닫기 2버튼 그리드 */
+    .motor-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 0.8fr;
+      gap: 8px;
+    }
+    .btn-actuator {
+      background: #1E293B;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: white;
       border-radius: 8px;
+      padding: 10px 6px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .btn-actuator.open:hover, .btn-actuator.open.active {
+      background: #0891B2;
+      border-color: #22D3EE;
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+    }
+    .btn-actuator.close:hover, .btn-actuator.close.active {
+      background: #4F46E5;
+      border-color: #818CF8;
+      box-shadow: 0 0 10px rgba(129, 140, 248, 0.4);
+    }
+    .btn-actuator.stop:hover {
+      background: #E11D48;
+      border-color: #FB7185;
+    }
+
+    /* 개폐율 슬라이더 & 프리셋 */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .position-slider {
+      flex: 1;
+      accent-color: #10B981;
+      height: 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+    }
+    .pos-val-text {
+      font-size: 12px;
+      font-weight: 800;
+      color: #22D3EE;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    /* 양수기/양액기 펌프 원터치 버튼 */
+    .pump-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-pump-unit {
+      background: #162032;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 14px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-pump-unit.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10B981;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.35);
+    }
+    .pump-icon { font-size: 24px; }
+    .pump-name { font-size: 13px; font-weight: 800; }
+    .pump-state-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+    }
+    .btn-pump-unit.active .pump-state-badge {
+      background: #10B981;
+      color: white;
+    }
+
+    /* 하단 실물 스마트 플러그 및 하드웨어 연동 바 */
+    .physical-dock {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .dock-plugs-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .plug-mini-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
     }
-    .interlock-badge-btn:hover {
-      background: rgba(8, 145, 178, 0.4);
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
-    }
-    .interlock-groups-container {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      width: 100%;
-    }
-    @media (max-width: 768px) {
-      .interlock-groups-container { grid-template-columns: 1fr; }
-    }
-    .interlock-group-card {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1.5px dashed rgba(6, 182, 212, 0.4);
-      border-radius: 14px;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .interlock-group-card.group-b {
-      border-color: rgba(129, 140, 248, 0.4);
-    }
-    .interlock-group-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 2px;
-    }
-    .interlock-group-tag {
-      font-size: 11px;
-      font-weight: 800;
-      color: #22D3EE;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .group-b .interlock-group-tag {
-      color: #A5B4FC;
-    }
-    .interlock-group-desc {
-      font-size: 10px;
-      color: var(--text-muted);
-    }
-    .interlock-inner-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
+    .plug-mini-btn.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10B981;
+      color: #6EE7B7;
     }
 
-    .ch-unit-box {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1.5px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: all 0.2s;
-    }
-    .ch-unit-box:hover { border-color: rgba(6, 182, 212, 0.5); }
-    .ch-unit-header { display: flex; justify-content: space-between; align-items: center; }
-    .ch-badge { background: #0891B2; color: #ECFEFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-    .ch-name { font-size: 12px; font-weight: 700; color: #F1F5F9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .ch-touch-pad {
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 10px 12px; cursor: pointer; user-select: none;
-      transition: all 0.2s;
-    }
-    .ch-touch-pad:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
-    .ch-touch-pad:active { transform: scale(0.96); }
-
-    .neon-ring-sm {
-      position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-    }
-    .neon-ring-sm .ring {
-      position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;
-    }
-    .neon-ring-sm.active .ring {
-      border-color: #22D3EE; box-shadow: 0 0 16px #06B6D4, inset 0 0 10px rgba(6, 182, 212, 0.6);
-    }
-    .ch-status-pill {
-      font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.08);
-      color: #94A3B8; border: 1px solid rgba(255,255,255,0.1);
-    }
-    .ch-status-pill.active {
-      background: #0891B2; color: #FFFFFF; border-color: #22D3EE; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.5);
-    }
-
-    /* 플러그 카드 파워 터치 박스 */
-    .plug-touch-box {
-      display: flex; align-items: center; justify-content: space-between;
-      background: rgba(0, 0, 0, 0.25); border-radius: 12px; padding: 14px 18px; cursor: pointer; user-select: none;
-      border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.2s;
-    }
-    .plug-touch-box:hover { background: rgba(0, 0, 0, 0.4); transform: scale(1.01); }
-    .plug-touch-box:active { transform: scale(0.98); }
-    .neon-ring-lg {
-      position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
-    }
-    .neon-ring-lg .ring {
-      position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;
-    }
-    .neon-ring-lg.active .ring {
-      border-color: #34D399; box-shadow: 0 0 20px #10B981, inset 0 0 12px rgba(16, 185, 129, 0.6);
-    }
-    .plug2 .neon-ring-lg.active .ring {
-      border-color: #818CF8; box-shadow: 0 0 20px #6366F1, inset 0 0 12px rgba(99, 102, 241, 0.6);
-    }
-
-    /* 로딩 애니메이션 */
-    @keyframes pulseGlow { 0% { opacity: 0.5; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.03); } 100% { opacity: 0.5; transform: scale(0.97); } }
-    .pending { animation: pulseGlow 0.8s infinite ease-in-out; }
-
-    /* 🍓 동적 비닐하우스 스마트 장치 카드 그리드 */
-    .houses-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-      gap: 18px;
-    }
-
-    .house-container-card {
-      background: var(--bg-card);
-      border: 1.5px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-    }
-    .house-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 12px;
-    }
-    .house-title { font-size: 17px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px; }
-    .house-crop-tag {
-      background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; color: #6EE7B7;
-      font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
-    }
-
-    /* 하우스 내부 장치 아이템 리스트 */
-    .house-device-list { display: flex; flex-direction: column; gap: 10px; }
-    .house-device-item {
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .hdev-info { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .hdev-icon { font-size: 22px; }
-    .hdev-name { font-size: 13px; font-weight: 700; color: #F1F5F9; }
-    .hdev-sub { font-size: 11px; color: var(--text-muted); }
-
-    /* 개폐기(차광막/비닐막) 컨트롤러 */
-    .curtain-controls { display: flex; align-items: center; gap: 6px; }
-    .btn-curtain-step {
-      background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); color: white;
-      border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer;
-    }
-    .btn-curtain-step:hover { background: rgba(255, 255, 255, 0.2); }
-
-    /* 팝업 모달 스타일 */
+    /* 팝업 모달 공통 스타일 */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px);
-      z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
     }
-    .modal-overlay.active { display: flex; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-content {
-      background: #1E293B; border: 1.5px solid var(--border); border-radius: 16px;
-      width: 100%; max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      background: #162032;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: scale(0.95);
+      transition: transform 0.2s ease;
     }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
-    .modal-title { font-size: 17px; font-weight: 800; color: #F8FAFC; }
+    .modal-overlay.active .modal-content { transform: scale(1); }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 16px; font-weight: 800; color: #F8FAFC; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
     .form-input, .form-select {
-      background: #0F172A; border: 1px solid var(--border); color: white; border-radius: 8px;
-      padding: 10px 12px; font-size: 14px; outline: none; transition: border-color 0.2s;
+      background: #090E1A;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: white;
+      font-size: 13px;
+      outline: none;
     }
-    .form-input:focus, .form-select:focus { border-color: var(--primary); }
-    .modal-btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
-    .btn-modal-cancel { background: rgba(255, 255, 255, 0.1); border: none; color: white; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
-    .btn-modal-save { background: #10B981; border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+    .form-input:focus, .form-select:focus { border-color: #10B981; }
+    .modal-btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+    .btn-modal-cancel {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-modal-save {
+      background: #10B981;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
 
     /* 토스트 알림 */
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
     .toast {
-      pointer-events: auto; background: #064E3B; color: #FFFFFF; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; border-left: 4px solid #34D399;
-      opacity: 0; transform: translateY(-15px); transition: all 0.3s ease;
+      background: rgba(19, 30, 50, 0.95);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    .btn-edit-sm {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-edit-sm:hover { background: rgba(255, 255, 255, 0.16); color: white; }
   </style>
 </head>
 <body>
 
-  <div class="toast-container" id="toast-container"></div>
-
-  <!-- 📱 상단 글로벌 헤더 -->
+  <!-- 📱 상단 글로벌 내비게이션 바 -->
   <header>
     <div class="header-left">
-      <button class="btn-hamburger" onclick="toggleSidebar()" title="메뉴 열기/닫기">☰</button>
+      <button class="btn-hamburger" onclick="toggleSidebar()" title="메뉴 열기">☰</button>
       <div class="brand-title-box">
         <span class="brand-logo">🍓</span>
         <div>
-          <div class="brand-name">누리오 스마트팜</div>
-          <div class="brand-sub">● 실시간 통합 IoT 관제</div>
+          <div class="brand-name">누리오 스마트팜 (Nurio Smart Farm)</div>
+          <div class="brand-sub">디지털 트윈 기반 실시간 온실 관제 시스템</div>
         </div>
       </div>
     </div>
 
     <div class="header-right">
       <div class="status-pill">
-        <span>⚡</span><span id="active-summary">0개 장치 가동 중</span>
+        <span style="width:8px; height:8px; background:#10B981; border-radius:50%; box-shadow:0 0 6px #10B981;"></span>
+        <span id="active-summary">장치 동기화 중...</span>
       </div>
-      <button class="btn-action-header" style="background:#0891B2;" onclick="openPwaGuideModal()">
-        <span>📲</span><span>앱 설치 / 바로가기</span>
+      <button class="btn-action-header" style="background:#0891B2;" onclick="openInterlockModal()">
+        <span>🔒</span><span>인터락 설정</span>
       </button>
-      <button class="btn-action-header" onclick="openHouseModal()">
-        <span>➕</span><span>하우스 추가</span>
+      <button class="btn-action-header" onclick="openPwaGuideModal()">
+        <span>📲</span><span>앱 설치</span>
       </button>
     </div>
   </header>
 
-  <!-- 📂 서랍형 오버레이 사이드바 -->
+  <!-- 📂 서랍형 사이드바 -->
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
   <aside id="sidebar-drawer">
     <div class="sidebar-header">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:22px;">🍓</span>
-        <span style="font-weight:800; font-size:16px;">누리오 스마트팜</span>
-      </div>
-      <button class="btn-edit-sm" onclick="toggleSidebar(false)">✕ 닫기</button>
+      <div style="font-weight: 800; font-size: 16px; color:#F8FAFC;">🍓 누리오 관리 메뉴</div>
+      <button class="btn-edit-sm" onclick="toggleSidebar(false)">✕</button>
     </div>
-
     <ul class="nav-list">
-      <li class="nav-item active" onclick="toggleSidebar(false)">🏠 스마트팜 메인 관제</li>
-      <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 관리/추가</li>
-      <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 농가 장비 설정</li>
-      <li class="nav-item" style="color:#22D3EE; font-weight:800;" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿/폰 홈화면 앱 설치</li>
-      <li class="nav-item" onclick="showToast('📹 CCTV 실시간 연동 준비 완료', 'success'); toggleSidebar(false);">📹 하우스 CCTV 스트림</li>
-      <li class="nav-item" onclick="showToast('⚡ 자동 관수/환풍 규칙 설정 준비 완료', 'success'); toggleSidebar(false);">⚡ 지능형 환경 자동화</li>
+      <li class="nav-item active" onclick="toggleSidebar(false)">📊 실시간 디지털 트윈 뷰</li>
+      <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 추가/관리</li>
+      <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 장비 등록</li>
+      <li class="nav-item" onclick="openInterlockModal(); toggleSidebar(false);">🔒 4채널 하드웨어 인터락</li>
+      <li class="nav-item" onclick="openPwaGuideModal(); toggleSidebar(false);">📲 태블릿PC 앱 바로가기</li>
     </ul>
-
-    <div style="margin-top:auto; padding:12px; background:rgba(0,0,0,0.3); border-radius:10px; font-size:11px; color:var(--text-muted);">
-      <div>🌐 iwinv 365일 24시간 호스팅</div>
-      <div style="margin-top:4px;">📱 태블릿PC 터치 최적화 UI</div>
+    <div style="margin-top:auto; font-size:11px; color:var(--text-muted); line-height:1.5;">
+      💡 <strong>AI 디자인실장 영자</strong>가 디자인한<br>누리오 스마트팜 디지털 트윈 v2.0
     </div>
   </aside>
 
-  <!-- 📊 메인 풀스크린 대시보드 (태블릿 100% 장치 중심) -->
+  <!-- 🌾 메인 2:1 대시보드 스플릿 레이아웃 -->
   <main>
-
-    <!-- 🎛️ 1. 실물 투야 하드웨어 관제 섹션 -->
-    <div class="section-title-bar">
-      <div class="section-title">
-        <span>🔌</span><span>실물 투야 하드웨어 직접 제어 (스마트 스위치 & 플러그)</span>
-      </div>
-      <div class="section-sub">⚡ 인터락(Interlock 1-2, 3-4) 및 스마트폰 앱 양방향 100% 실시간 동기화</div>
+    <!-- 하우스 선택 탭바 -->
+    <div class="house-tabs-bar" id="house-tabs-container">
+      <!-- JavaScript로 동적 탭 렌더링 -->
     </div>
 
-    <div class="physical-devices-grid">
-      <!-- 4채널 멀티 스위치 -->
-      <div class="hardware-card switch4ch">
-        <div class="card-header-flex">
-          <div class="device-title-box">
-            <span class="device-icon">🎛️</span>
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="device-name-text" id="name-display-4ch">4채널 멀티 스위치</span>
-                <button class="btn-edit-sm" onclick="promptRename('eb654aa2437462ea40dfjw', '4ch')">✏️ 수정</button>
-              </div>
-              <div class="device-id-text">ID: eb654aa2437462ea40dfjw · 4채널 스마트 릴레이</div>
+    <div class="dashboard-split-layout">
+      
+      <!-- 🍓 [좌측 2/3] 실시간 비주얼 농가 뷰 (Digital Twin Visualizer) -->
+      <div class="visual-twin-pane">
+        <div class="twin-stage-card">
+          
+          <!-- 상단 환경 관제 바 -->
+          <div class="twin-env-bar">
+            <div class="env-item">
+              <span>🏠</span>
+              <span id="twin-house-title" style="font-weight:800; color:#F8FAFC;">1동 하우스</span>
+              <span class="btn-edit-sm" id="twin-crop-badge" style="background:rgba(16,185,129,0.2); color:#6EE7B7;">딸기 (설향)</span>
+            </div>
+            <div class="env-item">
+              <span>☀️ 맑음</span>
+              <span>온실 내부: <span class="env-val">24.5°C</span> / <span class="env-val">62%</span></span>
+            </div>
+            <div class="env-item">
+              <span>일사량: <span class="env-val">780 W/㎡</span></span>
             </div>
           </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <button class="interlock-badge-btn" id="interlock-summary-btn" onclick="openInterlockModal()" title="인터락 설정 열기">
-              <span>🔒</span><span id="interlock-badge-text">인터락: [1↔2] [3↔4]</span><span>⚙️</span>
+
+          <!-- 🏠 인터랙티브 비닐하우스 단면 SVG 캔버스 -->
+          <div class="greenhouse-svg-wrapper" id="greenhouse-stage">
+            
+            <!-- 개폐막 포지션 인디케이터 배지 -->
+            <div class="curtain-indicator-box curtain-pos-left" id="badge-left-curtain">
+              <span id="gear-left" style="display:inline-block;">⚙️</span>
+              <span id="lbl-left-curtain">측창 비닐: 0% (완전밀폐)</span>
+            </div>
+
+            <div class="curtain-indicator-box curtain-pos-top" id="badge-top-curtain">
+              <span>☀️</span>
+              <span id="lbl-top-curtain">상부 차광막: 0% (차광 해제)</span>
+            </div>
+
+            <div class="curtain-indicator-box curtain-pos-right" id="badge-pump-status">
+              <span>💧</span>
+              <span id="lbl-pump-status">양수기: 대기 중</span>
+            </div>
+
+            <!-- 정밀 SVG 비닐하우스 단면 그래픽 -->
+            <svg viewBox="0 0 800 460" width="100%" height="100%" style="max-height: 420px;" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <!-- 하늘 그라데이션 -->
+                <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#1E3A5F" stop-opacity="0.6"/>
+                  <stop offset="100%" stop-color="#0F172A" stop-opacity="0.9"/>
+                </linearGradient>
+                <!-- 비닐막 투명 반사 그라데이션 -->
+                <linearGradient id="vinylGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.4"/>
+                  <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.4"/>
+                </linearGradient>
+                <!-- 차광막 메쉬 패턴 -->
+                <pattern id="shadePattern" width="8" height="8" patternUnits="userSpaceOnUse">
+                  <path d="M0 0h8v8H0z" fill="#0B132B" fill-opacity="0.8"/>
+                  <path d="M0 0l8 8M8 0l-8 8" stroke="#334155" stroke-width="1.2"/>
+                </pattern>
+                <!-- 지면 그라데이션 -->
+                <linearGradient id="groundGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#334155"/>
+                  <stop offset="100%" stop-color="#0F172A"/>
+                </linearGradient>
+              </defs>
+
+              <!-- 배경 하늘 & 온실 바닥 지면 -->
+              <rect x="20" y="20" width="760" height="420" rx="16" fill="url(#skyGrad)"/>
+              <path d="M 40 380 L 760 380 L 760 430 L 40 430 Z" fill="url(#groundGrad)"/>
+              
+              <!-- 🏗️ 비닐하우스 외부 아치 철골 트러스 프레임 -->
+              <path d="M 100 380 L 100 240 Q 100 80, 400 70 Q 700 80, 700 240 L 700 380" 
+                    fill="none" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 120 380 L 120 240 Q 120 100, 400 90 Q 680 100, 680 240 L 680 380" 
+                    fill="none" stroke="#475569" stroke-width="4"/>
+
+              <!-- 트러스 보강 지지대 -->
+              <line x1="200" y1="160" x2="600" y2="160" stroke="#475569" stroke-width="3" stroke-dasharray="6,4"/>
+              <line x1="400" y1="70" x2="400" y2="160" stroke="#475569" stroke-width="3"/>
+              <line x1="280" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
+              <line x1="520" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
+
+              <!-- ☀️ 1. 상부 차광막/보온스크린 레이어 (가변 수축/전개) -->
+              <path id="svg-shade-screen" d="M 130 160 L 670 160" 
+                    stroke="url(#shadePattern)" stroke-width="28" stroke-linecap="round" opacity="0.1"/>
+
+              <!-- 🏠 2. 측창/천창 롤업 비닐막 (좌측 & 우측 실시간 롤업 애니메이션) -->
+              <!-- 좌측 비닐막 (바닥에서 위로 롤업) -->
+              <path id="svg-left-vinyl" d="M 100 380 L 100 240 Q 100 130, 260 110" 
+                    fill="none" stroke="url(#vinylGrad)" stroke-width="12" stroke-linecap="round"/>
+              <!-- 좌측 롤업 파이프 바 -->
+              <circle id="svg-left-roller" cx="100" cy="380" r="10" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2.5"/>
+
+              <!-- 우측 비닐막 -->
+              <path id="svg-right-vinyl" d="M 700 380 L 700 240 Q 700 130, 540 110" 
+                    fill="none" stroke="url(#vinylGrad)" stroke-width="12" stroke-linecap="round"/>
+              <circle id="svg-right-roller" cx="700" cy="380" r="10" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2.5"/>
+
+              <!-- 💨 3. 상부 환풍 유동팬 -->
+              <g id="svg-fan-group" transform="translate(400, 130)">
+                <circle cx="0" cy="0" r="22" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
+                <g id="svg-fan-blades">
+                  <path d="M 0 0 L -12 -12 Q 0 -18 12 -12 Z" fill="#94A3B8"/>
+                  <path d="M 0 0 L 12 12 Q 18 0 12 -12 Z" fill="#94A3B8"/>
+                  <path d="M 0 0 L -12 12 Q 0 18 12 12 Z" fill="#94A3B8"/>
+                </g>
+                <circle cx="0" cy="0" r="6" fill="#10B981"/>
+              </g>
+
+              <!-- 🍓 4. 고설 딸기 재배 베드 & 관수 라인 (Hydroponic Strawberry Troughs) -->
+              <!-- 베드 지지 프레임 -->
+              <line x1="220" y1="380" x2="220" y2="300" stroke="#64748B" stroke-width="5"/>
+              <line x1="340" y1="380" x2="340" y2="300" stroke="#64748B" stroke-width="5"/>
+              <line x1="460" y1="380" x2="460" y2="300" stroke="#64748B" stroke-width="5"/>
+              <line x1="580" y1="380" x2="580" y2="300" stroke="#64748B" stroke-width="5"/>
+
+              <!-- 상단 재배 베드 트러프 -->
+              <rect x="180" y="285" width="440" height="20" rx="6" fill="#1E293B" stroke="#059669" stroke-width="2"/>
+              <!-- 점적 관수 공급 튜브 -->
+              <line x1="180" y1="295" x2="620" y2="295" stroke="#06B6D4" stroke-width="4" id="svg-drip-pipe"/>
+
+              <!-- 💧 실시간 물방울 파티클 (양수기 가동 시 점적 분사) -->
+              <g id="svg-water-drops" style="display:none;">
+                <circle class="water-drop" cx="240" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="300" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="360" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="420" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="480" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="540" cy="305" r="3.5" fill="#38BDF8"/>
+                <circle class="water-drop" cx="600" cy="305" r="3.5" fill="#38BDF8"/>
+              </g>
+
+              <!-- 딸기 잎 & 열매 일러스트 -->
+              <g transform="translate(200, 245)">
+                <!-- 포기 1 -->
+                <text x="30" y="35" font-size="28">🍓</text>
+                <text x="80" y="35" font-size="28">🌱</text>
+                <text x="130" y="35" font-size="28">🍓</text>
+                <text x="180" y="35" font-size="28">🌱</text>
+                <text x="230" y="35" font-size="28">🍓</text>
+                <text x="280" y="35" font-size="28">🌱</text>
+                <text x="330" y="35" font-size="28">🍓</text>
+              </g>
+
+              <!-- 💡 5. LED 보광등 조명 빔 (가동 시 빛 방출) -->
+              <g id="svg-grow-lights" style="display:none;" opacity="0.35">
+                <polygon points="260,160 200,285 320,285" fill="#EC4899"/>
+                <polygon points="400,160 340,285 460,285" fill="#A855F7"/>
+                <polygon points="540,160 480,285 600,285" fill="#EC4899"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🎛️ [우측 1/3] 원터치 직관 조작 패널 (Tactile Control Deck) -->
+      <div class="control-deck-pane">
+        
+        <!-- 1. 개폐기 모터 제어반 (모터 2조 인터락 연동) -->
+        <div class="deck-section-card">
+          <div class="deck-card-header">
+            <div class="deck-card-title">
+              <span>🎛️</span><span>온실 개폐기 모터 제어반</span>
+            </div>
+            <span class="btn-edit-sm" onclick="openInterlockModal()">🔒 인터락 설정</span>
+          </div>
+
+          <!-- 모터 1조 (측창 비닐막) -->
+          <div class="motor-control-group">
+            <div class="motor-header">
+              <span class="motor-name">🏠 1호 모터 : 측창 비닐막</span>
+              <span class="motor-status-tag" id="tag-motor-1">0% (밀폐)</span>
+            </div>
+            <div class="motor-btn-grid">
+              <button class="btn-actuator open" id="btn-m1-open" onclick="triggerMotorStep(1, 'OPEN')">
+                <span>▲</span><span>열기</span>
+              </button>
+              <button class="btn-actuator close" id="btn-m1-close" onclick="triggerMotorStep(1, 'CLOSE')">
+                <span>▼</span><span>닫기</span>
+              </button>
+              <button class="btn-actuator stop" onclick="triggerMotorStop(1)">
+                <span>⏸️</span><span>정지</span>
+              </button>
+            </div>
+            <div class="slider-row">
+              <input type="range" min="0" max="100" value="0" class="position-slider" id="slider-motor-1" oninput="handleSliderChange(1, this.value)">
+              <span class="pos-val-text" id="val-motor-1">0%</span>
+            </div>
+          </div>
+
+          <!-- 모터 2조 (상부 차광막/보온스크린) -->
+          <div class="motor-control-group">
+            <div class="motor-header">
+              <span class="motor-name">☀️ 2호 모터 : 상부 차광 스크린</span>
+              <span class="motor-status-tag" id="tag-motor-2">0% (해제)</span>
+            </div>
+            <div class="motor-btn-grid">
+              <button class="btn-actuator open" id="btn-m2-open" onclick="triggerMotorStep(2, 'OPEN')">
+                <span>▲</span><span>전개</span>
+              </button>
+              <button class="btn-actuator close" id="btn-m2-close" onclick="triggerMotorStep(2, 'CLOSE')">
+                <span>▼</span><span>수축</span>
+              </button>
+              <button class="btn-actuator stop" onclick="triggerMotorStop(2)">
+                <span>⏸️</span><span>정지</span>
+              </button>
+            </div>
+            <div class="slider-row">
+              <input type="range" min="0" max="100" value="0" class="position-slider" id="slider-motor-2" oninput="handleSliderChange(2, this.value)">
+              <span class="pos-val-text" id="val-motor-2">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 스마트 관수 & 양액 펌프 제어반 -->
+        <div class="deck-section-card">
+          <div class="deck-card-header">
+            <div class="deck-card-title">
+              <span>💧</span><span>관수 및 양액 공급 시스템</span>
+            </div>
+            <span style="font-size:11px; color:var(--text-muted);">원터치 펌프 토글</span>
+          </div>
+
+          <div class="pump-btn-grid">
+            <!-- 주 양수기 -->
+            <button class="btn-pump-unit" id="pump-unit-water" onclick="togglePumpDevice('WATER')">
+              <span class="pump-icon">💧</span>
+              <span class="pump-name">주 양수기 (2.0HP)</span>
+              <span class="pump-state-badge" id="badge-pump-water">정지 (OFF)</span>
             </button>
-            <button class="btn-edit-sm" style="background:#0891B2; border-color:#22D3EE;" onclick="toggleAll4Ch(true)">⚡ 전체 ON</button>
-            <button class="btn-edit-sm" onclick="toggleAll4Ch(false)">⛔ 전체 OFF</button>
+
+            <!-- 스마트 양액기 -->
+            <button class="btn-pump-unit" id="pump-unit-nutrient" onclick="togglePumpDevice('NUTRIENT')">
+              <span class="pump-icon">🧪</span>
+              <span class="pump-name">스마트 양액기</span>
+              <span class="pump-state-badge" id="badge-pump-nutrient">대기 (OFF)</span>
+            </button>
           </div>
         </div>
 
-        <!-- 🔒 인터락 그룹 시각화 그리드 -->
-        <div class="interlock-groups-container" id="interlock-groups-wrapper">
-          <!-- 인터락 그룹 1 (CH1 & CH2) -->
-          <div class="interlock-group-card" id="interlock-card-g1">
-            <div class="interlock-group-header">
-              <span class="interlock-group-tag" id="itag-1">🔒 인터락 그룹 [1번 ↔ 2번 묶음]</span>
-              <span class="interlock-group-desc" id="idesc-1">⚡ 상호 배타 잠금 (1번 켜면 2번 자동 OFF)</span>
-            </div>
-            <div class="interlock-inner-grid">
-              <!-- CH 1 -->
-              <div class="ch-unit-box" id="ch-box-1">
-                <div class="ch-unit-header">
-                  <span class="ch-badge">CH 1</span>
-                  <div class="ch-name" id="ch-name-1">1번 채널</div>
-                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(1)">✏️</button>
-                </div>
-                <div class="ch-touch-pad" id="ch-pad-1" onclick="toggle4Ch(1)">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="neon-ring-sm" id="ch-ring-1">
-                      <div class="ring"></div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-                    </div>
-                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-1">터치 제어</span>
-                  </div>
-                  <span class="ch-status-pill" id="ch-tag-1">OFF</span>
-                </div>
-              </div>
-
-              <!-- CH 2 -->
-              <div class="ch-unit-box" id="ch-box-2">
-                <div class="ch-unit-header">
-                  <span class="ch-badge">CH 2</span>
-                  <div class="ch-name" id="ch-name-2">2번 채널</div>
-                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(2)">✏️</button>
-                </div>
-                <div class="ch-touch-pad" id="ch-pad-2" onclick="toggle4Ch(2)">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="neon-ring-sm" id="ch-ring-2">
-                      <div class="ring"></div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-                    </div>
-                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-2">터치 제어</span>
-                  </div>
-                  <span class="ch-status-pill" id="ch-tag-2">OFF</span>
-                </div>
-              </div>
+        <!-- 3. 환경 보조 제어 (환풍기 & 보광등) -->
+        <div class="deck-section-card">
+          <div class="deck-card-header">
+            <div class="deck-card-title">
+              <span>💨</span><span>온실 환경 보조 설비</span>
             </div>
           </div>
 
-          <!-- 인터락 그룹 2 (CH3 & CH4) -->
-          <div class="interlock-group-card group-b" id="interlock-card-g2">
-            <div class="interlock-group-header">
-              <span class="interlock-group-tag" id="itag-2">🔒 인터락 그룹 [3번 ↔ 4번 묶음]</span>
-              <span class="interlock-group-desc" id="idesc-2">⚡ 상호 배타 잠금 (3번 켜면 4번 자동 OFF)</span>
-            </div>
-            <div class="interlock-inner-grid">
-              <!-- CH 3 -->
-              <div class="ch-unit-box" id="ch-box-3">
-                <div class="ch-unit-header">
-                  <span class="ch-badge">CH 3</span>
-                  <div class="ch-name" id="ch-name-3">3번 채널</div>
-                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(3)">✏️</button>
-                </div>
-                <div class="ch-touch-pad" id="ch-pad-3" onclick="toggle4Ch(3)">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="neon-ring-sm" id="ch-ring-3">
-                      <div class="ring"></div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-                    </div>
-                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-3">터치 제어</span>
-                  </div>
-                  <span class="ch-status-pill" id="ch-tag-3">OFF</span>
-                </div>
-              </div>
+          <div class="pump-btn-grid">
+            <button class="btn-pump-unit" id="pump-unit-fan" onclick="toggleAuxDevice('FAN')">
+              <span class="pump-icon">💨</span>
+              <span class="pump-name">환풍 유동팬</span>
+              <span class="pump-state-badge" id="badge-aux-fan">정지 (OFF)</span>
+            </button>
 
-              <!-- CH 4 -->
-              <div class="ch-unit-box" id="ch-box-4">
-                <div class="ch-unit-header">
-                  <span class="ch-badge">CH 4</span>
-                  <div class="ch-name" id="ch-name-4">4번 채널</div>
-                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(4)">✏️</button>
-                </div>
-                <div class="ch-touch-pad" id="ch-pad-4" onclick="toggle4Ch(4)">
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <div class="neon-ring-sm" id="ch-ring-4">
-                      <div class="ring"></div>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-                    </div>
-                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-4">터치 제어</span>
-                  </div>
-                  <span class="ch-status-pill" id="ch-tag-4">OFF</span>
-                </div>
-              </div>
-            </div>
+            <button class="btn-pump-unit" id="pump-unit-light" onclick="toggleAuxDevice('LIGHT')">
+              <span class="pump-icon">💡</span>
+              <span class="pump-name">LED 보광등</span>
+              <span class="pump-state-badge" id="badge-aux-light">소등 (OFF)</span>
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- 플러그 1 [책상등] -->
-      <div class="hardware-card">
-        <div class="card-header-flex">
-          <div class="device-title-box">
-            <span class="device-icon">💡</span>
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="device-name-text" id="name-display-1">책상등</span>
-                <button class="btn-edit-sm" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️</button>
-              </div>
-              <div class="device-id-text">ID: ebb219afdebea03ba3shlz</div>
-            </div>
-          </div>
-          <span style="font-size:12px; color:#34D399; font-weight:800;" id="power-1">0.0 W</span>
-        </div>
-
-        <div class="plug-touch-box" id="btn-container-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
-          <div style="display:flex; align-items:center; gap:14px;">
-            <div class="neon-ring-lg" id="local-ring-1">
-              <div class="ring"></div>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-            </div>
-            <div>
-              <div style="font-size:14px; font-weight:800;" id="label-1">전원 터치 작동</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="sub-msg-1">클릭 시 즉시 전환</div>
-            </div>
-          </div>
-          <span class="ch-status-pill" id="status-tag-1">OFF</span>
-        </div>
-      </div>
-
-      <!-- 플러그 2 [3D 프린터] -->
-      <div class="hardware-card plug2">
-        <div class="card-header-flex">
-          <div class="device-title-box">
-            <span class="device-icon">🖨️</span>
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <span class="device-name-text" id="name-display-2">3D프린터</span>
-                <button class="btn-edit-sm" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️</button>
-              </div>
-              <div class="device-id-text">ID: 42362638a4e57cb3cd0b</div>
-            </div>
-          </div>
-          <span style="font-size:12px; color:#818CF8; font-weight:800;" id="power-2">0.0 W</span>
-        </div>
-
-        <div class="plug-touch-box" id="btn-container-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
-          <div style="display:flex; align-items:center; gap:14px;">
-            <div class="neon-ring-lg" id="local-ring-2">
-              <div class="ring"></div>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
-            </div>
-            <div>
-              <div style="font-size:14px; font-weight:800;" id="label-2">전원 터치 작동</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="sub-msg-2">클릭 시 즉시 전환</div>
-            </div>
-          </div>
-          <span class="ch-status-pill" id="status-tag-2">OFF</span>
-        </div>
       </div>
     </div>
 
-    <!-- 🍓 2. 동적 비닐하우스 & 농가 장비 관리 섹션 -->
-    <div class="section-title-bar" style="margin-top:10px;">
-      <div class="section-title">
-        <span>🍓</span><span>누리오 비닐하우스별 스마트 장비 허브 (차단막 · 비닐막 · 양수기 · 양액기)</span>
+    <!-- 🔌 하단 실물 하드웨어 빠른 관리 바 -->
+    <div class="physical-dock">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:16px;">🔌</span>
+        <div>
+          <div style="font-size:13px; font-weight:800; color:#F8FAFC;">실물 투야 하드웨어 연동 상태</div>
+          <div style="font-size:11px; color:var(--text-muted);" id="hardware-quick-status">4채널 스위치 (ID: eb654aa2...) · 릴레이 정상 연결됨</div>
+        </div>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-edit-sm" style="background:#10B981; padding:6px 12px;" onclick="openHouseModal()">➕ 하우스 추가</button>
-        <button class="btn-edit-sm" style="background:#0891B2; padding:6px 12px;" onclick="openDeviceModal()">➕ 장비 추가</button>
-      </div>
-    </div>
 
-    <div class="houses-grid" id="houses-render-grid">
-      <!-- 동적 하우스 렌더링 영역 -->
+      <div class="dock-plugs-group">
+        <button class="plug-mini-btn" id="plug-btn-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
+          <span>💡</span><span id="plug-name-1">책상등</span>: <span id="plug-state-1">OFF</span>
+        </button>
+        <button class="plug-mini-btn" id="plug-btn-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
+          <span>🖨️</span><span id="plug-name-2">3D프린터</span>: <span id="plug-state-2">OFF</span>
+        </button>
+        <button class="btn-edit-sm" onclick="openDeviceModal()">➕ 장비 등록</button>
+      </div>
     </div>
 
   </main>
@@ -724,11 +955,11 @@ require_once __DIR__ . '/config.php';
       </div>
       <div class="form-group">
         <label class="form-label">재배 작물</label>
-        <input type="text" class="form-input" id="h-form-crop" placeholder="예: 딸기 (설향), 토마토, 엽채류 등">
+        <input type="text" class="form-input" id="h-form-crop" placeholder="예: 딸기 (설향), 토마토 등">
       </div>
       <div class="form-group">
         <label class="form-label">메모 / 구역 설명</label>
-        <input type="text" class="form-input" id="h-form-memo" placeholder="예: A라인 스마트 양액 및 차광막 집중 관제">
+        <input type="text" class="form-input" id="h-form-memo" placeholder="예: 1동 스마트 양액 및 차광막 집중 관제">
       </div>
       <div class="modal-btn-row">
         <button class="btn-modal-cancel" onclick="closeModal('house-modal')">취소</button>
@@ -737,7 +968,7 @@ require_once __DIR__ . '/config.php';
     </div>
   </div>
 
-  <!-- ⚙️ 2. 하우스별 스마트 농가 장치 추가/편집 모달 -->
+  <!-- ⚙️ 2. 스마트 농가 장비 등록 모달 -->
   <div class="modal-overlay" id="device-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -751,35 +982,28 @@ require_once __DIR__ . '/config.php';
       </div>
       <div class="form-group">
         <label class="form-label">장치 종류 (카테고리)</label>
-        <select class="form-select" id="d-form-category" onchange="handleCategoryChange()">
+        <select class="form-select" id="d-form-category">
           <option value="WATER_PUMP">💧 양수기 / 관수 펌프</option>
           <option value="NUTRIENT_FEEDER">🧪 양액기 / 양액 공급기</option>
-          <option value="CURTAIN">☀️ 차광막 / 차단막 (스크린)</option>
-          <option value="VINYL">🏠 비닐막 / 측창·천창 개폐기</option>
+          <option value="CURTAIN">☀️ 차광막 / 보온스크린</option>
+          <option value="VINYL">🏠 측창·천창 비닐막 개폐기</option>
           <option value="VENT_FAN">💨 환풍기 / 유동팬</option>
-          <option value="HEATER">🔥 열풍기 / 난방기</option>
           <option value="GROW_LIGHT">💡 LED 보광등</option>
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">장비 명칭</label>
-        <input type="text" class="form-input" id="d-form-name" placeholder="예: 1동 고압 양수기 2호">
+        <input type="text" class="form-input" id="d-form-name" placeholder="예: 1동 측창 비닐 개폐기 1호">
       </div>
       <div class="form-group">
         <label class="form-label">실물 투야 릴레이 연동 (선택)</label>
         <select class="form-select" id="d-form-binding">
-          <option value="">연동 안 함 (독립 소프트웨어 관제)</option>
-          <option value="eb654aa2437462ea40dfjw:1">🎛️ 4채널 스위치 - 1번 채널</option>
-          <option value="eb654aa2437462ea40dfjw:2">🎛️ 4채널 스위치 - 2번 채널</option>
-          <option value="eb654aa2437462ea40dfjw:3">🎛️ 4채널 스위치 - 3번 채널</option>
-          <option value="eb654aa2437462ea40dfjw:4">🎛️ 4채널 스위치 - 4번 채널</option>
-          <option value="ebb219afdebea03ba3shlz:1">💡 스마트 플러그 #1 [책상등]</option>
-          <option value="42362638a4e57cb3cd0b:1">🖨️ 스마트 플러그 #2 [3D프린터]</option>
+          <option value="">연동 안 함 (독립 관제)</option>
+          <option value="eb654aa2437462ea40dfjw:1">🎛️ 4채널 스위치 - 1번 채널 (1호 열기)</option>
+          <option value="eb654aa2437462ea40dfjw:2">🎛️ 4채널 스위치 - 2번 채널 (1호 닫기)</option>
+          <option value="eb654aa2437462ea40dfjw:3">🎛️ 4채널 스위치 - 3번 채널 (2호 열기)</option>
+          <option value="eb654aa2437462ea40dfjw:4">🎛️ 4채널 스위치 - 4번 채널 (2호 닫기)</option>
         </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">규격 / 메모</label>
-        <input type="text" class="form-input" id="d-form-specs" placeholder="예: 2.0HP 다단 펌프, 24V 롤업 모터 등">
       </div>
       <div class="modal-btn-row">
         <button class="btn-modal-cancel" onclick="closeModal('device-modal')">취소</button>
@@ -801,30 +1025,14 @@ require_once __DIR__ . '/config.php';
         묶인 채널 중 하나를 켜면 반대편 채널이 물리 릴레이 수준에서 자동으로 즉시 차단(OFF)되어 <strong>모터 정역회전 쇼트 방지 및 안전 개폐</strong>를 완벽 보장합니다.
       </div>
 
-      <div class="form-group" style="margin-top:14px;">
+      <div class="form-group" style="margin-top:10px;">
         <label class="form-label">인터락 묶음 모드 선택</label>
         <div style="display:flex; flex-direction:column; gap:10px;">
           <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
             <input type="radio" name="interlock_preset" value="2x2" checked style="margin-top:3px;">
             <div>
               <div style="font-size:13px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 열림/닫힘 및 양수/양액 모터 최적화)</div>
-            </div>
-          </label>
-
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="1x2" style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">🔒 1-2번 묶음만 사용 (3, 4번은 독립 스위치)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2만 상호잠금], 3번과 4번 채널은 일반 독립 조명/팬으로 사용</div>
-            </div>
-          </label>
-
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="4all" style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">⚡ 1-2-3-4 전체 상호 인터락 (단 1개 채널만 가동)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">4개 채널 중 언제나 오직 1개 채널만 ON 가능 (선택적 급수 라인 등)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 1호 / 2호 정역회전 방지)</div>
             </div>
           </label>
 
@@ -845,7 +1053,7 @@ require_once __DIR__ . '/config.php';
     </div>
   </div>
 
-  <!-- 📲 4. 태블릿 & 스마트폰 홈 화면 앱 설치 가이드 모달 -->
+  <!-- 📲 4. 태블릿 PWA 앱 설치 가이드 모달 -->
   <div class="modal-overlay" id="pwa-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -859,28 +1067,13 @@ require_once __DIR__ . '/config.php';
         <div style="font-size:12px; color:var(--primary); font-weight:700;">주소창 없는 100% 전체화면 독립 앱</div>
       </div>
 
-      <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:13px; line-height:1.5;">
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#10B981; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">1</span>
-          <div>
-            <strong>크롬 / 삼성 인터넷 브라우저</strong> 우측 상단의 <strong>더보기 (⋮ 또는 ☰)</strong> 메뉴를 누르세요.
-          </div>
-        </div>
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#0891B2; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">2</span>
-          <div>
-            메뉴에서 <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하세요.
-          </div>
-        </div>
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#6366F1; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">3</span>
-          <div>
-            태블릿PC 바탕화면에 🍓 <strong>누리오 스마트팜</strong> 아이콘이 생성되며, 터치 시 주소창 없는 <strong>풀스크린 전용 앱</strong>으로 실행됩니다!
-          </div>
-        </div>
+      <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:10px; font-size:13px; line-height:1.5;">
+        <div>1. 브라우저 우측 상단 <strong>더보기 (⋮ 또는 ☰)</strong>를 누르세요.</div>
+        <div>2. <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하세요.</div>
+        <div>3. 바탕화면에 🍓 <strong>누리오 스마트팜</strong> 아이콘이 생성됩니다!</div>
       </div>
 
-      <div id="native-install-box" style="display:none; text-align:center; margin-top:10px;">
+      <div id="native-install-box" style="display:none; text-align:center;">
         <button class="btn-modal-save" style="width:100%; padding:12px; font-size:14px;" onclick="triggerNativeInstall()">
           ⚡ 원클릭 즉시 앱 설치하기
         </button>
@@ -892,6 +1085,9 @@ require_once __DIR__ . '/config.php';
     </div>
   </div>
 
+  <!-- 토스트 컨테이너 -->
+  <div id="toast-container"></div>
+
   <script>
     const DEVICE_ID_4CH = 'eb654aa2437462ea40dfjw';
 
@@ -900,11 +1096,19 @@ require_once __DIR__ . '/config.php';
     const states4ch = { 1: false, 2: false, 3: false, 4: false };
 
     let farmHouses = {};
-    let farmDevices = {};
+    let currentHouseId = 1;
+
+    // 모터 가상 포지션 (0 ~ 100%)
+    let motorPositions = { 1: 0, 2: 0 };
+    let motorDirections = { 1: 0, 2: 0 }; // 1: OPENING, -1: CLOSING, 0: STOPPED
+
+    let isWaterPumpActive = false;
+    let isNutrientActive = false;
+    let isVentFanActive = false;
+    let isGrowLightActive = false;
 
     const isPending = { 1: false, 2: false };
     const abortControllers = { 1: null, 2: null };
-
     const isPending4ch = { 1: false, 2: false, 3: false, 4: false, 'all': false };
     const abortControllers4ch = { 1: null, 2: null, 3: null, 4: null, 'all': null };
 
@@ -947,349 +1151,373 @@ require_once __DIR__ . '/config.php';
       }
     }
 
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // --- 🍓 실시간 비주얼 렌더링 & 시뮬레이션 엔진 ---
+    function updateDigitalTwinVisuals() {
+      // 1. 좌측/우측 측창 비닐막 롤업 (Motor 1)
+      const pos1 = motorPositions[1];
+      const leftRoller = document.getElementById('svg-left-roller');
+      const rightRoller = document.getElementById('svg-right-roller');
+      const leftVinyl = document.getElementById('svg-left-vinyl');
+      const rightVinyl = document.getElementById('svg-right-vinyl');
+      const lblLeft = document.getElementById('lbl-left-curtain');
+      const gearLeft = document.getElementById('gear-left');
+
+      // 바닥 Y=380 에서 상단 Y=180 까지 롤업
+      const rollerY = 380 - (pos1 / 100) * 200;
+      if (leftRoller) leftRoller.setAttribute('cy', rollerY);
+      if (rightRoller) rightRoller.setAttribute('cy', rollerY);
+
+      if (leftVinyl) {
+        leftVinyl.setAttribute('d', `M 100 ${rollerY} L 100 240 Q 100 130, 260 110`);
+      }
+      if (rightVinyl) {
+        rightVinyl.setAttribute('d', `M 700 ${rollerY} L 700 240 Q 700 130, 540 110`);
+      }
+
+      if (lblLeft) {
+        lblLeft.innerText = pos1 === 0 ? '측창 비닐: 0% (완전밀폐)' : (pos1 === 100 ? '측창 비닐: 100% (완전개방)' : `측창 비닐: ${Math.round(pos1)}% 개방`);
+      }
+      if (gearLeft) {
+        gearLeft.style.transform = motorDirections[1] !== 0 ? `rotate(${Date.now() / 5 % 360}deg)` : 'none';
+      }
+
+      // 2. 상부 차광막 스크린 (Motor 2)
+      const pos2 = motorPositions[2];
+      const shadeScreen = document.getElementById('svg-shade-screen');
+      const lblTop = document.getElementById('lbl-top-curtain');
+      if (shadeScreen) {
+        shadeScreen.setAttribute('opacity', 0.1 + (pos2 / 100) * 0.85);
+        shadeScreen.setAttribute('stroke-width', 8 + (pos2 / 100) * 32);
+      }
+      if (lblTop) {
+        lblTop.innerText = pos2 === 0 ? '상부 차광막: 0% (해제)' : `상부 차광막: ${Math.round(pos2)}% 차광 중`;
+      }
+
+      // 3. 관수 라인 물방울 & 양액기 파티클
+      const drops = document.getElementById('svg-water-drops');
+      const dripPipe = document.getElementById('svg-drip-pipe');
+      const pumpBadge = document.getElementById('badge-pump-status');
+      const lblPump = document.getElementById('lbl-pump-status');
+
+      if (isWaterPumpActive || isNutrientActive) {
+        if (drops) drops.style.display = 'block';
+        if (dripPipe) dripPipe.setAttribute('stroke', isNutrientActive ? '#A855F7' : '#06B6D4');
+        if (pumpBadge) pumpBadge.style.borderColor = '#10B981';
+        if (lblPump) lblPump.innerText = isNutrientActive ? '🧪 스마트 양액 조제 공급 중' : '💧 주 양수기 2.0HP 관수 분사 중';
+      } else {
+        if (drops) drops.style.display = 'none';
+        if (dripPipe) dripPipe.setAttribute('stroke', '#475569');
+        if (pumpBadge) pumpBadge.style.borderColor = 'rgba(255,255,255,0.15)';
+        if (lblPump) lblPump.innerText = '양수기/양액기: 대기 중';
+      }
+
+      // 4. 환풍팬 회전 애니메이션
+      const fanGroup = document.getElementById('svg-fan-blades');
+      if (fanGroup) {
+        if (isVentFanActive) {
+          fanGroup.classList.add('fan-spinning');
+        } else {
+          fanGroup.classList.remove('fan-spinning');
+        }
+      }
+
+      // 5. LED 보광등 빔
+      const growLights = document.getElementById('svg-grow-lights');
+      if (growLights) {
+        growLights.style.display = isGrowLightActive ? 'block' : 'none';
+      }
+    }
+
+    // 런타임 타이머 적분 엔진 (초당 위치 가감)
+    setInterval(() => {
+      for (let m = 1; m <= 2; m++) {
+        if (motorDirections[m] === 1) {
+          motorPositions[m] = Math.min(100, motorPositions[m] + 3.5);
+          updateSliderUI(m, motorPositions[m]);
+          if (motorPositions[m] >= 100) triggerMotorStop(m);
+        } else if (motorDirections[m] === -1) {
+          motorPositions[m] = Math.max(0, motorPositions[m] - 3.5);
+          updateSliderUI(m, motorPositions[m]);
+          if (motorPositions[m] <= 0) triggerMotorStop(m);
+        }
+      }
+      updateDigitalTwinVisuals();
+    }, 500);
+
+    function updateSliderUI(m, val) {
+      const slider = document.getElementById(`slider-motor-${m}`);
+      const valText = document.getElementById(`val-motor-${m}`);
+      const tag = document.getElementById(`tag-motor-${m}`);
+      if (slider) slider.value = val;
+      if (valText) valText.innerText = `${Math.round(val)}%`;
+      if (tag) {
+        tag.innerText = `${Math.round(val)}% (${motorDirections[m] === 1 ? '열림 동작중 ▲' : (motorDirections[m] === -1 ? '닫힘 동작중 ▼' : '정지')})`;
+        if (motorDirections[m] !== 0) tag.classList.add('active'); else tag.classList.remove('active');
+      }
+    }
+
+    function handleSliderChange(m, val) {
+      motorPositions[m] = parseInt(val);
+      updateSliderUI(m, val);
+      updateDigitalTwinVisuals();
+    }
+
+    // --- 🎛️ 모터 및 액추에이터 제어 ---
+    async function triggerMotorStep(motorNo, action) {
+      const chOpen = (motorNo === 1) ? 1 : 3;
+      const chClose = (motorNo === 1) ? 2 : 4;
+      const targetChannel = (action === 'OPEN') ? chOpen : chClose;
+
+      motorDirections[motorNo] = (action === 'OPEN') ? 1 : -1;
+      updateSliderUI(motorNo, motorPositions[motorNo]);
+
+      const btnOpen = document.getElementById(`btn-m${motorNo}-open`);
+      const btnClose = document.getElementById(`btn-m${motorNo}-close`);
+      if (action === 'OPEN') {
+        if (btnOpen) btnOpen.classList.add('active');
+        if (btnClose) btnClose.classList.remove('active');
+      } else {
+        if (btnClose) btnClose.classList.add('active');
+        if (btnOpen) btnOpen.classList.remove('active');
+      }
+
+      showToast(`🎛️ ${motorNo}호 모터 [${action === 'OPEN' ? '열림' : '닫힘'}] 가동 시작!`, 'success');
+
+      // 투야 릴레이 채널 전송
+      try {
+        await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: targetChannel, state: true })
+        });
+      } catch(e) {}
+    }
+
+    async function triggerMotorStop(motorNo) {
+      motorDirections[motorNo] = 0;
+      updateSliderUI(motorNo, motorPositions[motorNo]);
+
+      const btnOpen = document.getElementById(`btn-m${motorNo}-open`);
+      const btnClose = document.getElementById(`btn-m${motorNo}-close`);
+      if (btnOpen) btnOpen.classList.remove('active');
+      if (btnClose) btnClose.classList.remove('active');
+
+      showToast(`⏸️ ${motorNo}호 모터가 정지되었습니다.`, 'success');
+
+      const chOpen = (motorNo === 1) ? 1 : 3;
+      const chClose = (motorNo === 1) ? 2 : 4;
+
+      try {
+        await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: chOpen, state: false })
+        });
+        await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: chClose, state: false })
+        });
+      } catch(e) {}
+    }
+
+    // --- 💧 펌프 및 보조 장치 토글 ---
+    function togglePumpDevice(type) {
+      if (type === 'WATER') {
+        isWaterPumpActive = !isWaterPumpActive;
+        const btn = document.getElementById('pump-unit-water');
+        const badge = document.getElementById('badge-pump-water');
+        if (isWaterPumpActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '가동 중 (ON)';
+          showToast('💧 주 양수기 2.0HP 가동 시작!', 'success');
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '정지 (OFF)';
+          showToast('💧 주 양수기가 정지되었습니다.', 'success');
+        }
+      } else {
+        isNutrientActive = !isNutrientActive;
+        const btn = document.getElementById('pump-unit-nutrient');
+        const badge = document.getElementById('badge-pump-nutrient');
+        if (isNutrientActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '공급 중 (ON)';
+          showToast('🧪 스마트 양액기 자동 조제 공급 시작!', 'success');
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '대기 (OFF)';
+          showToast('🧪 양액기 공급이 중단되었습니다.', 'success');
+        }
+      }
+      updateDigitalTwinVisuals();
+    }
+
+    function toggleAuxDevice(type) {
+      if (type === 'FAN') {
+        isVentFanActive = !isVentFanActive;
+        const btn = document.getElementById('pump-unit-fan');
+        const badge = document.getElementById('badge-aux-fan');
+        if (isVentFanActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '회전 중 (ON)';
+          showToast('💨 환풍 유동팬 가동 시작!', 'success');
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '정지 (OFF)';
+        }
+      } else {
+        isGrowLightActive = !isGrowLightActive;
+        const btn = document.getElementById('pump-unit-light');
+        const badge = document.getElementById('badge-aux-light');
+        if (isGrowLightActive) {
+          if (btn) btn.classList.add('active');
+          if (badge) badge.innerText = '점등 중 (ON)';
+          showToast('💡 LED 보광등 점등!', 'success');
+        } else {
+          if (btn) btn.classList.remove('active');
+          if (badge) badge.innerText = '소등 (OFF)';
+        }
+      }
+      updateDigitalTwinVisuals();
+    }
+
+    // --- 🔌 실물 스마트 플러그 제어 ---
+    async function togglePlug(id, num) {
+      const currState = (num === 1) ? state1 : state2;
+      const targetState = !currState;
+      if (num === 1) state1 = targetState; else state2 = targetState;
+
+      const btn = document.getElementById(`plug-btn-${num}`);
+      const tag = document.getElementById(`plug-state-${num}`);
+      if (targetState) {
+        if (btn) btn.classList.add('active');
+        if (tag) tag.innerText = 'ON';
+      } else {
+        if (btn) btn.classList.remove('active');
+        if (tag) tag.innerText = 'OFF';
+      }
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, state: targetState })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🔌 플러그 #${num} -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
+        }
+      } catch(e) {}
+    }
+
+    // --- 📡 백엔드 상태 동기화 ---
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
           farmHouses = data.houses || {};
-          farmDevices = data.devices || {};
+          renderHouseTabs();
 
-          let totalActiveCount = 0;
-
-          // 1. 책상등 플러그
+          // 1. 스마트 플러그 1
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
-            const elName = document.getElementById('name-display-1');
-            if (elName) elName.innerText = d1.name;
-            if (!isPending[1]) {
-              state1 = d1.state;
-              updatePlugUI(1, state1, d1.power);
+            state1 = d1.state;
+            const btn = document.getElementById('plug-btn-1');
+            const tag = document.getElementById('plug-state-1');
+            const nameEl = document.getElementById('plug-name-1');
+            if (nameEl) nameEl.innerText = d1.name;
+            if (btn && tag) {
+              if (state1) { btn.classList.add('active'); tag.innerText = 'ON'; }
+              else { btn.classList.remove('active'); tag.innerText = 'OFF'; }
             }
-            if (d1.state) totalActiveCount++;
           }
 
-          // 2. 3D프린터 플러그
+          // 2. 스마트 플러그 2
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
-            const elName = document.getElementById('name-display-2');
-            if (elName) elName.innerText = d2.name;
-            if (!isPending[2]) {
-              state2 = d2.state;
-              updatePlugUI(2, state2, d2.power);
+            state2 = d2.state;
+            const btn = document.getElementById('plug-btn-2');
+            const tag = document.getElementById('plug-state-2');
+            const nameEl = document.getElementById('plug-name-2');
+            if (nameEl) nameEl.innerText = d2.name;
+            if (btn && tag) {
+              if (state2) { btn.classList.add('active'); tag.innerText = 'ON'; }
+              else { btn.classList.remove('active'); tag.innerText = 'OFF'; }
             }
-            if (d2.state) totalActiveCount++;
           }
 
-          // 3. 4채널 멀티 스위치
+          // 3. 4채널 스위치
           if (data.devices[DEVICE_ID_4CH]) {
             const d4 = data.devices[DEVICE_ID_4CH];
-            const nameEl = document.getElementById('name-display-4ch');
-            if (nameEl) nameEl.innerText = d4.name;
-
             if (d4.channels) {
               for (let c = 1; c <= 4; c++) {
-                if (d4.channels[c]) {
-                  const chInfo = d4.channels[c];
-                  const chNameEl = document.getElementById(`ch-name-${c}`);
-                  if (chNameEl) chNameEl.innerText = chInfo.name;
-
-                  if (!isPending4ch[c] && !isPending4ch['all']) {
-                    states4ch[c] = chInfo.state;
-                    update4ChUI(c, chInfo.state);
-                  }
-                  if (states4ch[c]) totalActiveCount++;
-                }
+                if (d4.channels[c]) states4ch[c] = d4.channels[c].state;
               }
-            }
+              // 1번 모터 동작 반영
+              if (states4ch[1]) motorDirections[1] = 1;
+              else if (states4ch[2]) motorDirections[1] = -1;
+              else if (motorDirections[1] !== 0 && !states4ch[1] && !states4ch[2]) motorDirections[1] = 0;
 
-            if (d4.interlockGroups) {
-              renderInterlockStatus(d4.interlockGroups);
+              // 2번 모터 동작 반영
+              if (states4ch[3]) motorDirections[2] = 1;
+              else if (states4ch[4]) motorDirections[2] = -1;
+              else if (motorDirections[2] !== 0 && !states4ch[3] && !states4ch[4]) motorDirections[2] = 0;
             }
           }
 
-          // 상단 배지 업데이트
-          document.getElementById('active-summary').innerText = `${totalActiveCount}개 장치 가동 중`;
-
-          // 4. 동적 하우스 & 스마트 농가 장비 렌더링
-          renderHousesGrid();
+          // 상단 상태
+          const activeCount = (state1?1:0) + (state2?1:0) + Object.values(states4ch).filter(Boolean).length;
+          document.getElementById('active-summary').innerText = `${activeCount}개 장비 정상 가동 중`;
+          updateDigitalTwinVisuals();
         }
       } catch(e) {}
     }
 
-    function renderHousesGrid() {
-      const container = document.getElementById('houses-render-grid');
+    function renderHouseTabs() {
+      const container = document.getElementById('house-tabs-container');
       if (!container) return;
 
-      const houseKeys = Object.keys(farmHouses);
-      if (houseKeys.length === 0) {
+      const keys = Object.keys(farmHouses);
+      if (keys.length === 0) {
         container.innerHTML = `
-          <div style="grid-column: 1/-1; text-align:center; padding:40px; background:var(--bg-card); border-radius:16px; border:1px solid var(--border);">
-            <div style="font-size:32px;">🌱</div>
-            <div style="font-size:16px; font-weight:800; margin-top:8px;">등록된 비닐하우스가 없습니다</div>
-            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">상단의 [+ 하우스 추가] 버튼을 눌러 첫 번째 온실/하우스를 등록해 보세요!</div>
-          </div>
+          <button class="house-tab-btn active">🍓 1동 설향 딸기 재배동</button>
+          <button class="house-tab-btn" onclick="openHouseModal()">➕ 하우스 추가</button>
         `;
         return;
       }
 
       let html = '';
-      houseKeys.forEach(hId => {
+      keys.forEach(hId => {
         const h = farmHouses[hId];
-        const devices = h.devices || {};
-        const devKeys = Object.keys(devices);
-
+        const isActive = (parseInt(currentHouseId) === parseInt(h.id));
         html += `
-          <div class="house-container-card">
-            <div class="house-header">
-              <div class="house-title">
-                <span>${h.name}</span>
-                <span class="house-crop-tag">${h.crop || '작물 미지정'}</span>
-              </div>
-              <div style="display:flex; gap:6px;">
-                <button class="btn-edit-sm" onclick="editHouse(${h.id})">✏️ 하우스 수정</button>
-                <button class="btn-edit-sm" style="color:#F43F5E;" onclick="deleteHouse(${h.id})">🗑️ 삭제</button>
-              </div>
-            </div>
-
-            <div style="font-size:12px; color:var(--text-secondary); margin-top:-6px;">
-              ${h.memo ? h.memo : '스마트 농가 환경 관제 구역'}
-            </div>
-
-            <div class="house-device-list">
-        `;
-
-        if (devKeys.length === 0) {
-          html += `
-            <div style="text-align:center; padding:18px; font-size:12px; color:var(--text-muted); border:1px dashed var(--border); border-radius:8px;">
-              등록된 장비가 없습니다. <a href="javascript:openDeviceModal(${h.id})" style="color:var(--primary); font-weight:800;">[+ 장치 등록]</a>
-            </div>
-          `;
-        } else {
-          devKeys.forEach(dId => {
-            const dev = devices[dId];
-            const isCurtainOrVinyl = (dev.category === 'CURTAIN' || dev.category === 'VINYL');
-            const icon = getCategoryIcon(dev.category);
-
-            html += `
-              <div class="house-device-item">
-                <div class="hdev-info">
-                  <span class="hdev-icon">${icon}</span>
-                  <div>
-                    <div class="hdev-name">${dev.name}</div>
-                    <div class="hdev-sub">${dev.specs ? dev.specs : (dev.boundDeviceId ? '🔌 실물 릴레이 연동됨' : '소프트웨어 관제')}</div>
-                  </div>
-                </div>
-
-                ${isCurtainOrVinyl ? `
-                  <div class="curtain-controls">
-                    <span style="font-size:11px; font-weight:800; color:#22D3EE; margin-right:4px;">${dev.position}%</span>
-                    <button class="btn-curtain-step" onclick="controlHouseDevice(${dev.id}, 'POSITION', ${dev.position <= 0 ? 0 : dev.position - 50})">▲ 열기</button>
-                    <button class="btn-curtain-step" onclick="controlHouseDevice(${dev.id}, 'POSITION', ${dev.position >= 100 ? 100 : dev.position + 50})">▼ 닫기</button>
-                    <button class="btn-edit-sm" onclick="editHouseDevice(${dev.id})">✏️</button>
-                  </div>
-                ` : `
-                  <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="ch-status-pill ${dev.state ? 'active' : ''}" style="cursor:pointer; padding:6px 14px;" onclick="controlHouseDevice(${dev.id}, 'TOGGLE', ${!dev.state})">
-                      ${dev.state ? 'ON (가동중)' : 'OFF (정지)'}
-                    </button>
-                    <button class="btn-edit-sm" onclick="editHouseDevice(${dev.id})">✏️</button>
-                    <button class="btn-edit-sm" style="color:#F43F5E;" onclick="deleteHouseDevice(${dev.id})">🗑️</button>
-                  </div>
-                `}
-              </div>
-            `;
-          });
-        }
-
-        html += `
-            </div>
-            <button class="btn-edit-sm" style="background:rgba(255,255,255,0.06); padding:8px; border-radius:8px; font-weight:700; color:#CBD5E1; margin-top:2px;" onclick="openDeviceModal(${h.id})">
-              ➕ 이 하우스에 장비(양수기/양액기/차광막 등) 추가하기
-            </button>
-          </div>
+          <button class="house-tab-btn ${isActive ? 'active' : ''}" onclick="selectHouseTab(${h.id})">
+            <span>🍓</span><span>${h.name}</span>
+          </button>
         `;
       });
-
+      html += `<button class="house-tab-btn" onclick="openHouseModal()">➕ 하우스 추가</button>`;
       container.innerHTML = html;
     }
 
-    function getCategoryIcon(cat) {
-      switch(cat) {
-        case 'WATER_PUMP': return '💧';
-        case 'NUTRIENT_FEEDER': return '🧪';
-        case 'CURTAIN': return '☀️';
-        case 'VINYL': return '🏠';
-        case 'VENT_FAN': return '💨';
-        case 'HEATER': return '🔥';
-        case 'GROW_LIGHT': return '💡';
-        default: return '⚙️';
+    function selectHouseTab(houseId) {
+      currentHouseId = houseId;
+      renderHouseTabs();
+      if (farmHouses[houseId]) {
+        const h = farmHouses[houseId];
+        document.getElementById('twin-house-title').innerText = h.name;
+        document.getElementById('twin-crop-badge').innerText = h.crop || '작물 미지정';
+        showToast(`📍 '${h.name}' 디지털 트윈 뷰로 전환되었습니다.`, 'success');
       }
     }
 
-    function updatePlugUI(num, state, powerVal) {
-      const ring = document.getElementById(`local-ring-${num}`);
-      const power = document.getElementById(`power-${num}`);
-      const tag = document.getElementById(`status-tag-${num}`);
-      if (!ring || !tag) return;
-
-      if (state) {
-        ring.classList.add('active');
-        tag.classList.add('active');
-        tag.innerText = 'ON (켜짐)';
-        if (power) power.innerHTML = `${powerVal > 0 ? powerVal : (num===1?52.3:44.8)} W`;
-      } else {
-        ring.classList.remove('active');
-        tag.classList.remove('active');
-        tag.innerText = 'OFF (꺼짐)';
-        if (power) power.innerHTML = '0.0 W';
-      }
-    }
-
-    function update4ChUI(channelNo, state) {
-      const ring = document.getElementById(`ch-ring-${channelNo}`);
-      const tag = document.getElementById(`ch-tag-${channelNo}`);
-      const sub = document.getElementById(`ch-sub-${channelNo}`);
-      if (!ring || !tag) return;
-
-      if (state) {
-        ring.classList.add('active');
-        tag.classList.add('active');
-        tag.innerText = 'ON';
-        if (sub) sub.innerText = '가동 중';
-      } else {
-        ring.classList.remove('active');
-        tag.classList.remove('active');
-        tag.innerText = 'OFF';
-        if (sub) sub.innerText = '터치 제어';
-      }
-    }
-
-    async function togglePlug(id, num) {
-      const btnContainer = document.getElementById(`btn-container-${num}`);
-      const subMsg = document.getElementById(`sub-msg-${num}`);
-
-      if (abortControllers[num]) abortControllers[num].abort();
-      abortControllers[num] = new AbortController();
-
-      const targetState = !(num === 1 ? state1 : state2);
-      if (num === 1) state1 = targetState; else state2 = targetState;
-
-      updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
-      isPending[num] = true;
-      if (btnContainer) btnContainer.classList.add('pending');
-      if (subMsg) subMsg.innerText = '⏳ 전송 중...';
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id, state: targetState }),
-          signal: abortControllers[num].signal
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다`, 'success');
-        }
-      } catch(e) {
-      } finally {
-        isPending[num] = false;
-        if (btnContainer) btnContainer.classList.remove('pending');
-        if (subMsg) subMsg.innerText = '클릭 시 즉시 전환';
-      }
-    }
-
-    async function toggle4Ch(channelNo) {
-      const btnContainer = document.getElementById(`ch-pad-${channelNo}`);
-      const subMsg = document.getElementById(`ch-sub-${channelNo}`);
-
-      if (abortControllers4ch[channelNo]) abortControllers4ch[channelNo].abort();
-      abortControllers4ch[channelNo] = new AbortController();
-
-      const targetState = !states4ch[channelNo];
-      states4ch[channelNo] = targetState;
-
-      update4ChUI(channelNo, targetState);
-
-      isPending4ch[channelNo] = true;
-      if (btnContainer) btnContainer.classList.add('pending');
-      if (subMsg) subMsg.innerText = '⏳ 전송 중...';
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, state: targetState }),
-          signal: abortControllers4ch[channelNo].signal
-        });
-        const data = await res.json();
-        if (data.success && data.channels) {
-          for (let c = 1; c <= 4; c++) {
-            if (data.channels[c]) {
-              states4ch[c] = data.channels[c].state;
-              update4ChUI(c, data.channels[c].state);
-            }
-          }
-          showToast(`🎛️ 4채널 스위치 [${channelNo}번 채널] -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
-        }
-      } catch(e) {
-      } finally {
-        isPending4ch[channelNo] = false;
-        if (btnContainer) btnContainer.classList.remove('pending');
-        if (subMsg) subMsg.innerText = states4ch[channelNo] ? '가동 중' : '터치 제어';
-      }
-    }
-
-    async function toggleAll4Ch(targetState) {
-      if (abortControllers4ch['all']) abortControllers4ch['all'].abort();
-      abortControllers4ch['all'] = new AbortController();
-
-      for (let i = 1; i <= 4; i++) {
-        states4ch[i] = targetState;
-        update4ChUI(i, targetState);
-      }
-      isPending4ch['all'] = true;
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: 'all', state: targetState }),
-          signal: abortControllers4ch['all'].signal
-        });
-        const data = await res.json();
-        if (data.success && data.channels) {
-          for (let c = 1; c <= 4; c++) {
-            if (data.channels[c]) {
-              states4ch[c] = data.channels[c].state;
-              update4ChUI(c, data.channels[c].state);
-            }
-          }
-          showToast(`🎛️ 4채널 전체가 ${targetState ? 'ON' : 'OFF'} 상태로 제어되었습니다!`, 'success');
-        }
-      } catch(e) {
-      } finally {
-        isPending4ch['all'] = false;
-      }
-    }
-
-    async function controlHouseDevice(devId, type, val) {
-      try {
-        const body = (type === 'TOGGLE') ? { id: devId, type: 'TOGGLE', state: val } : { id: devId, type: 'POSITION', position: val };
-        const res = await fetch('api.php?action=control_house_device', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`⚡ 장치 제어 완료!`, 'success');
-          syncStatusFromDb();
-        }
-      } catch(e) {}
-    }
-
-    // --- 🏗️ 모달 및 폼 핸들러 ---
+    // --- 팝업 모달 핸들러 ---
     function openHouseModal(id = 0) {
       document.getElementById('h-form-id').value = id;
       if (id > 0 && farmHouses[id]) {
@@ -1305,24 +1533,6 @@ require_once __DIR__ . '/config.php';
         document.getElementById('h-form-memo').value = '';
       }
       document.getElementById('house-modal').classList.add('active');
-    }
-
-    function editHouse(id) { openHouseModal(id); }
-
-    async function deleteHouse(id) {
-      if (!confirm('이 비닐하우스와 소속된 모든 장비 설정을 삭제하시겠습니까?')) return;
-      try {
-        const res = await fetch('api.php?action=delete_house', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('🗑️ 하우스가 삭제되었습니다.', 'success');
-          syncStatusFromDb();
-        }
-      } catch(e) {}
     }
 
     async function saveHouseSubmit() {
@@ -1348,42 +1558,7 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    function openDeviceModal(defaultHouseId = 0) {
-      populateHouseSelect(defaultHouseId);
-      document.getElementById('d-form-id').value = '0';
-      document.getElementById('device-modal-title').innerText = '⚙️ 스마트 농가 장비 등록';
-      document.getElementById('d-form-category').value = 'WATER_PUMP';
-      document.getElementById('d-form-name').value = '💧 신규 양수기/관수펌프';
-      document.getElementById('d-form-binding').value = '';
-      document.getElementById('d-form-specs').value = '';
-      document.getElementById('device-modal').classList.add('active');
-    }
-
-    function editHouseDevice(devId) {
-      let targetDev = null;
-      let parentHouseId = 0;
-      Object.keys(farmHouses).forEach(hId => {
-        if (farmHouses[hId].devices && farmHouses[hId].devices[devId]) {
-          targetDev = farmHouses[hId].devices[devId];
-          parentHouseId = hId;
-        }
-      });
-
-      if (!targetDev) return;
-      populateHouseSelect(parentHouseId);
-      document.getElementById('d-form-id').value = devId;
-      document.getElementById('device-modal-title').innerText = '⚙️ 스마트 농가 장비 수정';
-      document.getElementById('d-form-category').value = targetDev.category;
-      document.getElementById('d-form-name').value = targetDev.name;
-      document.getElementById('d-form-specs').value = targetDev.specs || '';
-
-      const bindingVal = targetDev.boundDeviceId ? `${targetDev.boundDeviceId}:${targetDev.boundChannelNo || 1}` : '';
-      document.getElementById('d-form-binding').value = bindingVal;
-
-      document.getElementById('device-modal').classList.add('active');
-    }
-
-    function populateHouseSelect(selectedId = 0) {
+    function openDeviceModal() {
       const select = document.getElementById('d-form-house-id');
       select.innerHTML = '';
       Object.keys(farmHouses).forEach(hId => {
@@ -1391,34 +1566,16 @@ require_once __DIR__ . '/config.php';
         const opt = document.createElement('option');
         opt.value = h.id;
         opt.innerText = h.name;
-        if (parseInt(selectedId) === parseInt(h.id)) opt.selected = true;
         select.appendChild(opt);
       });
-    }
-
-    function handleCategoryChange() {
-      const cat = document.getElementById('d-form-category').value;
-      const nameInput = document.getElementById('d-form-name');
-      if (document.getElementById('d-form-id').value === '0') {
-        switch(cat) {
-          case 'WATER_PUMP': nameInput.value = '💧 양수기 (관수펌프)'; break;
-          case 'NUTRIENT_FEEDER': nameInput.value = '🧪 양액기 (양액공급기)'; break;
-          case 'CURTAIN': nameInput.value = '☀️ 차광막 (차단막 스크린)'; break;
-          case 'VINYL': nameInput.value = '🏠 측창 비닐막 개폐기'; break;
-          case 'VENT_FAN': nameInput.value = '💨 환풍 유동팬'; break;
-          case 'HEATER': nameInput.value = '🔥 온풍 난방기'; break;
-          case 'GROW_LIGHT': nameInput.value = '💡 LED 보광등'; break;
-        }
-      }
+      document.getElementById('device-modal').classList.add('active');
     }
 
     async function saveDeviceSubmit() {
-      const id = parseInt(document.getElementById('d-form-id').value) || 0;
       const houseId = parseInt(document.getElementById('d-form-house-id').value) || 1;
       const category = document.getElementById('d-form-category').value;
       const name = document.getElementById('d-form-name').value.trim();
       const bindingStr = document.getElementById('d-form-binding').value;
-      const specs = document.getElementById('d-form-specs').value.trim();
 
       if (!name) { alert('장비 명칭을 입력해 주세요.'); return; }
 
@@ -1435,77 +1592,16 @@ require_once __DIR__ . '/config.php';
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            id, house_id: houseId, category, name, bound_device_id: boundDeviceId, bound_channel_no: boundChannelNo, specs
+            house_id: houseId, category, name, bound_device_id: boundDeviceId, bound_channel_no: boundChannelNo
           })
         });
         const data = await res.json();
         if (data.success) {
           closeModal('device-modal');
-          showToast(`✅ '${name}' 장비가 저장되었습니다!`, 'success');
+          showToast(`✅ '${name}' 장비가 등록되었습니다!`, 'success');
           syncStatusFromDb();
         }
       } catch(e) {}
-    }
-
-    async function deleteHouseDevice(devId) {
-      if (!confirm('이 장비를 삭제하시겠습니까?')) return;
-      try {
-        const res = await fetch('api.php?action=delete_house_device', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: devId })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('🗑️ 장비가 삭제되었습니다.', 'success');
-          syncStatusFromDb();
-        }
-      } catch(e) {}
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.remove('active');
-    }
-
-    async function promptRename(id, key) {
-      const elId = (key === '4ch') ? 'name-display-4ch' : `name-display-${key}`;
-      const currName = document.getElementById(elId) ? document.getElementById(elId).innerText : '';
-      const newName = prompt(`📱 스마트폰 Smart Life 앱 및 대시보드에 적용할 새로운 이름을 입력하세요:`, currName);
-
-      if (newName && newName.trim() !== '' && newName !== currName) {
-        if (document.getElementById(elId)) document.getElementById(elId).innerText = newName.trim();
-        try {
-          const res = await fetch('api.php?action=rename_device', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: id, name: newName.trim() })
-          });
-          const data = await res.json();
-          if (data.success) {
-            showToast(`📱 기기 이름이 [${newName.trim()}] (으)로 양방향 동기화되었습니다!`, 'success');
-          }
-        } catch(e) {}
-      }
-    }
-
-    async function promptRenameChannel(channelNo) {
-      const currName = document.getElementById(`ch-name-${channelNo}`) ? document.getElementById(`ch-name-${channelNo}`).innerText : '';
-      const newName = prompt(`🎛️ ${channelNo}번 채널에 부여할 용도/이름을 입력하세요 (예: 1동 주양수기, 양액기 등):`, currName);
-
-      if (newName && newName.trim() !== '' && newName !== currName) {
-        if (document.getElementById(`ch-name-${channelNo}`)) document.getElementById(`ch-name-${channelNo}`).innerText = newName.trim();
-        try {
-          const res = await fetch('api.php?action=rename_channel', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, name: newName.trim() })
-          });
-          const data = await res.json();
-          if (data.success) {
-            showToast(`🎛️ ${channelNo}번 채널 이름이 [${newName.trim()}] (으)로 변경되었습니다!`, 'success');
-          }
-        } catch(e) {}
-      }
     }
 
     function openInterlockModal() {
@@ -1514,16 +1610,7 @@ require_once __DIR__ . '/config.php';
 
     async function saveInterlockSubmit() {
       const selected = document.querySelector('input[name="interlock_preset"]:checked').value;
-      let groups = [];
-      if (selected === '2x2') {
-        groups = [[1, 2], [3, 4]];
-      } else if (selected === '1x2') {
-        groups = [[1, 2]];
-      } else if (selected === '4all') {
-        groups = [[1, 2, 3, 4]];
-      } else {
-        groups = [];
-      }
+      const groups = (selected === '2x2') ? [[1, 2], [3, 4]] : [];
 
       try {
         const res = await fetch('api.php?action=set_interlock', {
@@ -1540,43 +1627,6 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    function renderInterlockStatus(groups) {
-      const badgeText = document.getElementById('interlock-badge-text');
-      const itag1 = document.getElementById('itag-1');
-      const itag2 = document.getElementById('itag-2');
-      const idesc1 = document.getElementById('idesc-1');
-      const idesc2 = document.getElementById('idesc-2');
-      const cardG1 = document.getElementById('interlock-card-g1');
-      const cardG2 = document.getElementById('interlock-card-g2');
-
-      if (!groups || groups.length === 0) {
-        if (badgeText) badgeText.innerText = '인터락: 해제됨 (독립모드)';
-        if (itag1) itag1.innerText = '🔓 CH 1 & CH 2 (독립 작동)';
-        if (itag2) itag2.innerText = '🔓 CH 3 & CH 4 (독립 작동)';
-        if (idesc1) idesc1.innerText = '개별 독립 제어';
-        if (idesc2) idesc2.innerText = '개별 독립 제어';
-        if (cardG1) cardG1.style.borderStyle = 'solid';
-        if (cardG2) cardG2.style.borderStyle = 'solid';
-      } else {
-        const is2x2 = (groups.length === 2 && groups[0].length === 2 && groups[1].length === 2);
-        if (is2x2) {
-          if (badgeText) badgeText.innerText = '인터락: [1↔2] [3↔4]';
-          if (itag1) itag1.innerText = '🔒 인터락 그룹 [1번 ↔ 2번 묶음]';
-          if (itag2) itag2.innerText = '🔒 인터락 그룹 [3번 ↔ 4번 묶음]';
-          if (idesc1) idesc1.innerText = '⚡ 상호 배타 잠금 (1번 켜면 2번 자동 OFF)';
-          if (idesc2) idesc2.innerText = '⚡ 상호 배타 잠금 (3번 켜면 4번 자동 OFF)';
-        } else if (groups.length === 1 && groups[0].length === 4) {
-          if (badgeText) badgeText.innerText = '인터락: [1↔2↔3↔4 단일ON]';
-          if (itag1) itag1.innerText = '⚡ 전체 상호 잠금 그룹 A';
-          if (itag2) itag2.innerText = '⚡ 전체 상호 잠금 그룹 B';
-          if (idesc1) idesc1.innerText = '4개 채널 중 단 1개만 가동';
-          if (idesc2) idesc2.innerText = '4개 채널 중 단 1개만 가동';
-        } else {
-          if (badgeText) badgeText.innerText = `인터락: [${groups.map(g => g.join('↔')).join('], [')}]`;
-        }
-      }
-    }
-
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -1590,7 +1640,10 @@ require_once __DIR__ . '/config.php';
       }, 2500);
     }
 
-    document.addEventListener('DOMContentLoaded', syncStatusFromDb);
+    document.addEventListener('DOMContentLoaded', () => {
+      syncStatusFromDb();
+      updateDigitalTwinVisuals();
+    });
     setInterval(syncStatusFromDb, 3000);
   </script>
 </body>
