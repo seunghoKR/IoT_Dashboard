@@ -1,0 +1,6 @@
+# Force SSL / HTTPS & UTF-8
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+AddDefaultCharset UTF-8
