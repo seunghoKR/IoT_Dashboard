@@ -180,6 +180,86 @@ function renameTuyaDevice($deviceId, $newName) {
     return isset($data['success']) && $data['success'];
 }
 
+function sendTuyaCommandRaw($deviceId, $code, $value) {
+    $token = getTuyaAccessToken();
+    if (!$token) return false;
+
+    $t = (string)round(microtime(true) * 1000);
+    $url = "/v1.0/devices/{$deviceId}/commands";
+    $bodyObj = ['commands' => [['code' => $code, 'value' => $value]]];
+    $bodyStr = json_encode($bodyObj);
+    $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'POST', $url, $bodyStr);
+
+    $ch = curl_init(TUYA_ENDPOINT . $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyStr);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 4);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'client_id: ' . TUYA_CLIENT_ID,
+        'access_token: ' . $token,
+        'sign: ' . $sign,
+        't: ' . $t,
+        'sign_method: HMAC-SHA256',
+        'Content-Type: application/json'
+    ]);
+    $res = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($res, true);
+    return isset($data['success']) && $data['success'];
+}
+
+function decodeTuyaInterlock($base64Str) {
+    if (empty($base64Str)) return [];
+    $raw = base64_decode($base64Str);
+    $len = strlen($raw);
+    $groups = [];
+    for ($i = 0; $i < $len; $i += 2) {
+        if ($i + 1 < $len) {
+            $high = ord($raw[$i]);
+            $low = ord($raw[$i + 1]);
+            $val = ($high << 8) | $low;
+            if ($val > 0) {
+                $group = [];
+                for ($bit = 0; $bit < 16; $bit++) {
+                    if (($val & (1 << $bit)) !== 0) {
+                        $group[] = $bit + 1;
+                    }
+                }
+                if (!empty($group)) {
+                    $groups[] = $group;
+                }
+            }
+        }
+    }
+    return $groups;
+}
+
+function encodeTuyaInterlock($groups) {
+    // 8 bytes (4 groups of 16-bit uint)
+    $buf = array_fill(0, 8, 0);
+    $idx = 0;
+    foreach ($groups as $grp) {
+        if ($idx >= 4) break;
+        $mask = 0;
+        foreach ($grp as $chNo) {
+            $bit = (int)$chNo - 1;
+            if ($bit >= 0 && $bit < 16) {
+                $mask |= (1 << $bit);
+            }
+        }
+        $buf[$idx * 2] = ($mask >> 8) & 0xFF;
+        $buf[$idx * 2 + 1] = $mask & 0xFF;
+        $idx++;
+    }
+    $binaryStr = '';
+    foreach ($buf as $b) {
+        $binaryStr .= chr($b);
+    }
+    return base64_encode($binaryStr);
+}
+
 function fetchTuyaMultipleDevicesParallel($deviceIds) {
     $token = getTuyaAccessToken();
     if (!$token || empty($deviceIds)) return [];
@@ -226,6 +306,7 @@ function fetchTuyaMultipleDevicesParallel($deviceIds) {
             $name = $resObj['name'] ?? null;
             $channels = [];
             $state = false;
+            $interlockGroups = [];
             if (isset($resObj['status']) && is_array($resObj['status'])) {
                 foreach ($resObj['status'] as $item) {
                     if ($item['code'] === 'switch_1' || $item['code'] === 'switch') {
@@ -235,10 +316,12 @@ function fetchTuyaMultipleDevicesParallel($deviceIds) {
                         $cNum = (int)$m[1];
                         $channels[$cNum] = (bool)$item['value'];
                         if ((bool)$item['value']) $state = true;
+                    } elseif ($item['code'] === 'switch_interlock') {
+                        $interlockGroups = decodeTuyaInterlock($item['value']);
                     }
                 }
             }
-            $results[$id] = ['name' => $name, 'state' => $state, 'channels' => $channels];
+            $results[$id] = ['name' => $name, 'state' => $state, 'channels' => $channels, 'interlockGroups' => $interlockGroups];
         }
     }
     curl_multi_close($mh);
@@ -305,6 +388,9 @@ try {
                 foreach ($liveTuya as $id => $info) {
                     if (isset($devices[$id])) {
                         $devices[$id]['state'] = $info['state'];
+                        if (isset($info['interlockGroups'])) {
+                            $devices[$id]['interlockGroups'] = $info['interlockGroups'];
+                        }
                     }
                 }
             }
@@ -564,6 +650,28 @@ try {
             'deviceId' => $id,
             'channel' => $cNo,
             'newName' => $newName
+        ]);
+        exit;
+    }
+
+    if ($action === 'set_interlock') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $input['id'] ?? 'eb654aa2437462ea40dfjw';
+        $groups = $input['groups'] ?? []; // e.g. [[1,2], [3,4]] or [[1,2,3,4]] or []
+
+        $base64Val = encodeTuyaInterlock($groups);
+        $tuyaSuccess = sendTuyaCommandRaw($id, 'switch_interlock', $base64Val);
+
+        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+        $grpSummary = empty($groups) ? '전체 해제(독립모드)' : json_encode($groups);
+        $stmtLog->execute(["[인터락 설정] 4채널 스위치 [{$id}] 인터락 그룹 변경 -> {$grpSummary} (Tuya 전송: " . ($tuyaSuccess ? '성공' : '실패') . ")"]);
+
+        echo json_encode([
+            'success' => true,
+            'deviceId' => $id,
+            'groups' => $groups,
+            'base64' => $base64Val,
+            'tuyaDispatched' => $tuyaSuccess
         ]);
         exit;
     }

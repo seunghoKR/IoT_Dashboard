@@ -221,6 +221,73 @@ require_once __DIR__ . '/config.php';
       .multi-ch-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
+    /* 🔒 인터락 그룹핑 시각화 */
+    .interlock-badge-btn {
+      background: rgba(8, 145, 178, 0.18);
+      border: 1px solid #22D3EE;
+      color: #22D3EE;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .interlock-badge-btn:hover {
+      background: rgba(8, 145, 178, 0.4);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+    .interlock-groups-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      .interlock-groups-container { grid-template-columns: 1fr; }
+    }
+    .interlock-group-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1.5px dashed rgba(6, 182, 212, 0.4);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .interlock-group-card.group-b {
+      border-color: rgba(129, 140, 248, 0.4);
+    }
+    .interlock-group-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 2px;
+    }
+    .interlock-group-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: #22D3EE;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .group-b .interlock-group-tag {
+      color: #A5B4FC;
+    }
+    .interlock-group-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .interlock-inner-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
     .ch-unit-box {
       background: rgba(0, 0, 0, 0.3);
       border: 1.5px solid rgba(255, 255, 255, 0.08);
@@ -457,85 +524,107 @@ require_once __DIR__ . '/config.php';
             </div>
           </div>
           <div style="display:flex; align-items:center; gap:8px;">
+            <button class="interlock-badge-btn" id="interlock-summary-btn" onclick="openInterlockModal()" title="인터락 설정 열기">
+              <span>🔒</span><span id="interlock-badge-text">인터락: [1↔2] [3↔4]</span><span>⚙️</span>
+            </button>
             <button class="btn-edit-sm" style="background:#0891B2; border-color:#22D3EE;" onclick="toggleAll4Ch(true)">⚡ 전체 ON</button>
             <button class="btn-edit-sm" onclick="toggleAll4Ch(false)">⛔ 전체 OFF</button>
           </div>
         </div>
 
-        <div class="multi-ch-grid">
-          <!-- CH 1 -->
-          <div class="ch-unit-box" id="ch-box-1">
-            <div class="ch-unit-header">
-              <span class="ch-badge">CH 1</span>
-              <div class="ch-name" id="ch-name-1">1번 채널</div>
-              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(1)">✏️</button>
+        <!-- 🔒 인터락 그룹 시각화 그리드 -->
+        <div class="interlock-groups-container" id="interlock-groups-wrapper">
+          <!-- 인터락 그룹 1 (CH1 & CH2) -->
+          <div class="interlock-group-card" id="interlock-card-g1">
+            <div class="interlock-group-header">
+              <span class="interlock-group-tag" id="itag-1">🔒 인터락 그룹 [1번 ↔ 2번 묶음]</span>
+              <span class="interlock-group-desc" id="idesc-1">⚡ 상호 배타 잠금 (1번 켜면 2번 자동 OFF)</span>
             </div>
-            <div class="ch-touch-pad" id="ch-pad-1" onclick="toggle4Ch(1)">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="neon-ring-sm" id="ch-ring-1">
-                  <div class="ring"></div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+            <div class="interlock-inner-grid">
+              <!-- CH 1 -->
+              <div class="ch-unit-box" id="ch-box-1">
+                <div class="ch-unit-header">
+                  <span class="ch-badge">CH 1</span>
+                  <div class="ch-name" id="ch-name-1">1번 채널</div>
+                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(1)">✏️</button>
                 </div>
-                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-1">터치 제어</span>
+                <div class="ch-touch-pad" id="ch-pad-1" onclick="toggle4Ch(1)">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="neon-ring-sm" id="ch-ring-1">
+                      <div class="ring"></div>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                    </div>
+                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-1">터치 제어</span>
+                  </div>
+                  <span class="ch-status-pill" id="ch-tag-1">OFF</span>
+                </div>
               </div>
-              <span class="ch-status-pill" id="ch-tag-1">OFF</span>
+
+              <!-- CH 2 -->
+              <div class="ch-unit-box" id="ch-box-2">
+                <div class="ch-unit-header">
+                  <span class="ch-badge">CH 2</span>
+                  <div class="ch-name" id="ch-name-2">2번 채널</div>
+                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(2)">✏️</button>
+                </div>
+                <div class="ch-touch-pad" id="ch-pad-2" onclick="toggle4Ch(2)">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="neon-ring-sm" id="ch-ring-2">
+                      <div class="ring"></div>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                    </div>
+                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-2">터치 제어</span>
+                  </div>
+                  <span class="ch-status-pill" id="ch-tag-2">OFF</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- CH 2 -->
-          <div class="ch-unit-box" id="ch-box-2">
-            <div class="ch-unit-header">
-              <span class="ch-badge">CH 2</span>
-              <div class="ch-name" id="ch-name-2">2번 채널</div>
-              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(2)">✏️</button>
+          <!-- 인터락 그룹 2 (CH3 & CH4) -->
+          <div class="interlock-group-card group-b" id="interlock-card-g2">
+            <div class="interlock-group-header">
+              <span class="interlock-group-tag" id="itag-2">🔒 인터락 그룹 [3번 ↔ 4번 묶음]</span>
+              <span class="interlock-group-desc" id="idesc-2">⚡ 상호 배타 잠금 (3번 켜면 4번 자동 OFF)</span>
             </div>
-            <div class="ch-touch-pad" id="ch-pad-2" onclick="toggle4Ch(2)">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="neon-ring-sm" id="ch-ring-2">
-                  <div class="ring"></div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+            <div class="interlock-inner-grid">
+              <!-- CH 3 -->
+              <div class="ch-unit-box" id="ch-box-3">
+                <div class="ch-unit-header">
+                  <span class="ch-badge">CH 3</span>
+                  <div class="ch-name" id="ch-name-3">3번 채널</div>
+                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(3)">✏️</button>
                 </div>
-                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-2">터치 제어</span>
+                <div class="ch-touch-pad" id="ch-pad-3" onclick="toggle4Ch(3)">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="neon-ring-sm" id="ch-ring-3">
+                      <div class="ring"></div>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                    </div>
+                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-3">터치 제어</span>
+                  </div>
+                  <span class="ch-status-pill" id="ch-tag-3">OFF</span>
+                </div>
               </div>
-              <span class="ch-status-pill" id="ch-tag-2">OFF</span>
-            </div>
-          </div>
 
-          <!-- CH 3 -->
-          <div class="ch-unit-box" id="ch-box-3">
-            <div class="ch-unit-header">
-              <span class="ch-badge">CH 3</span>
-              <div class="ch-name" id="ch-name-3">3번 채널</div>
-              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(3)">✏️</button>
-            </div>
-            <div class="ch-touch-pad" id="ch-pad-3" onclick="toggle4Ch(3)">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="neon-ring-sm" id="ch-ring-3">
-                  <div class="ring"></div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+              <!-- CH 4 -->
+              <div class="ch-unit-box" id="ch-box-4">
+                <div class="ch-unit-header">
+                  <span class="ch-badge">CH 4</span>
+                  <div class="ch-name" id="ch-name-4">4번 채널</div>
+                  <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(4)">✏️</button>
                 </div>
-                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-3">터치 제어</span>
-              </div>
-              <span class="ch-status-pill" id="ch-tag-3">OFF</span>
-            </div>
-          </div>
-
-          <!-- CH 4 -->
-          <div class="ch-unit-box" id="ch-box-4">
-            <div class="ch-unit-header">
-              <span class="ch-badge">CH 4</span>
-              <div class="ch-name" id="ch-name-4">4번 채널</div>
-              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(4)">✏️</button>
-            </div>
-            <div class="ch-touch-pad" id="ch-pad-4" onclick="toggle4Ch(4)">
-              <div style="display:flex; align-items:center; gap:8px;">
-                <div class="neon-ring-sm" id="ch-ring-4">
-                  <div class="ring"></div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                <div class="ch-touch-pad" id="ch-pad-4" onclick="toggle4Ch(4)">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="neon-ring-sm" id="ch-ring-4">
+                      <div class="ring"></div>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                    </div>
+                    <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-4">터치 제어</span>
+                  </div>
+                  <span class="ch-status-pill" id="ch-tag-4">OFF</span>
                 </div>
-                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-4">터치 제어</span>
               </div>
-              <span class="ch-status-pill" id="ch-tag-4">OFF</span>
             </div>
           </div>
         </div>
@@ -784,6 +873,10 @@ require_once __DIR__ . '/config.php';
                   if (states4ch[c]) totalActiveCount++;
                 }
               }
+            }
+
+            if (d4.interlockGroups) {
+              renderInterlockStatus(d4.interlockGroups);
             }
           }
 
@@ -1287,6 +1380,63 @@ require_once __DIR__ . '/config.php';
       }
     }
 
+  <!-- 🔒 4. 4채널 멀티 스위치 인터락 설정 모달 -->
+  <div class="modal-overlay" id="interlock-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🔒 4채널 하드웨어 인터락(Interlock) 설정</div>
+        <button class="btn-edit-sm" onclick="closeModal('interlock-modal')">✕</button>
+      </div>
+
+      <div style="background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.3); border-radius:12px; padding:12px; font-size:12px; color:#CFFAFE; line-height:1.5;">
+        📱 <strong>스마트폰 Smart Life 앱 및 투야 하드웨어와 실시간 100% 양방향 동기화됩니다.</strong><br>
+        묶인 채널 중 하나를 켜면 반대편 채널이 물리 릴레이 수준에서 자동으로 즉시 차단(OFF)되어 <strong>모터 정역회전 쇼트 방지 및 안전 개폐</strong>를 완벽 보장합니다.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">인터락 묶음 모드 선택</label>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="2x2" checked style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 열림/닫힘 및 양수/양액 모터 최적화)</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="1x2" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">🔒 1-2번 묶음만 사용 (3, 4번은 독립 스위치)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2만 상호잠금], 3번과 4번 채널은 일반 독립 조명/팬으로 사용</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="4all" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">⚡ 1-2-3-4 전체 상호 인터락 (단 1개 채널만 가동)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">4개 채널 중 언제나 오직 1개 채널만 ON 가능 (선택적 급수 라인 등)</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="none" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F43F5E;">⛔ 인터락 완전 해제 (4채널 개별 독립 스위치)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">상호 잠금 없이 4개 채널을 모두 자유롭게 켜고 끕니다.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('interlock-modal')">취소</button>
+        <button class="btn-modal-save" style="background:#0891B2;" onclick="saveInterlockSubmit()">저장 & Tuya 동기화</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 📲 3. 태블릿 & 스마트폰 홈 화면 앱 설치 가이드 모달 -->
   <div class="modal-overlay" id="pwa-modal">
     <div class="modal-content">
@@ -1356,6 +1506,75 @@ require_once __DIR__ . '/config.php';
           closeModal('pwa-modal');
         }
         deferredPrompt = null;
+      }
+    }
+
+    function openInterlockModal() {
+      document.getElementById('interlock-modal').classList.add('active');
+    }
+
+    async function saveInterlockSubmit() {
+      const selected = document.querySelector('input[name="interlock_preset"]:checked').value;
+      let groups = [];
+      if (selected === '2x2') {
+        groups = [[1, 2], [3, 4]];
+      } else if (selected === '1x2') {
+        groups = [[1, 2]];
+      } else if (selected === '4all') {
+        groups = [[1, 2, 3, 4]];
+      } else {
+        groups = [];
+      }
+
+      try {
+        const res = await fetch('api.php?action=set_interlock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, groups: groups })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal('interlock-modal');
+          showToast(`🔒 인터락 설정이 투야 클라우드 및 앱에 실시간 반영되었습니다!`, 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    function renderInterlockStatus(groups) {
+      const badgeText = document.getElementById('interlock-badge-text');
+      const itag1 = document.getElementById('itag-1');
+      const itag2 = document.getElementById('itag-2');
+      const idesc1 = document.getElementById('idesc-1');
+      const idesc2 = document.getElementById('idesc-2');
+      const cardG1 = document.getElementById('interlock-card-g1');
+      const cardG2 = document.getElementById('interlock-card-g2');
+
+      if (!groups || groups.length === 0) {
+        if (badgeText) badgeText.innerText = '인터락: 해제됨 (독립모드)';
+        if (itag1) itag1.innerText = '🔓 CH 1 & CH 2 (독립 작동)';
+        if (itag2) itag2.innerText = '🔓 CH 3 & CH 4 (독립 작동)';
+        if (idesc1) idesc1.innerText = '개별 독립 제어';
+        if (idesc2) idesc2.innerText = '개별 독립 제어';
+        if (cardG1) cardG1.style.borderStyle = 'solid';
+        if (cardG2) cardG2.style.borderStyle = 'solid';
+      } else {
+        const is2x2 = (groups.length === 2 && groups[0].length === 2 && groups[1].length === 2);
+        if (is2x2) {
+          if (badgeText) badgeText.innerText = '인터락: [1↔2] [3↔4]';
+          if (itag1) itag1.innerText = '🔒 인터락 그룹 [1번 ↔ 2번 묶음]';
+          if (itag2) itag2.innerText = '🔒 인터락 그룹 [3번 ↔ 4번 묶음]';
+          if (idesc1) idesc1.innerText = '⚡ 상호 배타 잠금 (1번 켜면 2번 자동 OFF)';
+          if (idesc2) idesc2.innerText = '⚡ 상호 배타 잠금 (3번 켜면 4번 자동 OFF)';
+        } else if (groups.length === 1 && groups[0].length === 4) {
+          if (badgeText) badgeText.innerText = '인터락: [1↔2↔3↔4 단일ON]';
+          if (itag1) itag1.innerText = '⚡ 전체 상호 잠금 그룹 A';
+          if (itag2) itag2.innerText = '⚡ 전체 상호 잠금 그룹 B';
+          if (idesc1) idesc1.innerText = '4개 채널 중 단 1개만 가동';
+          if (idesc2) idesc2.innerText = '4개 채널 중 단 1개만 가동';
+        } else {
+          if (badgeText) badgeText.innerText = `인터락: [${groups.map(g => g.join('↔')).join('], [')}]`;
+        }
       }
     }
 
