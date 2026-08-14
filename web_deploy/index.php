@@ -417,20 +417,19 @@ require_once __DIR__ . '/config.php';
       padding: 10px;
     }
 
-    /* 🌡️ 온실 내부 투야 스마트 온·습도 센서 실시간 HUD 위젯 */
+    /* 🌡️ 온실 내부 투야 스마트 온·습도 센서 실시간 HUD 위젯 (좌측 상단 고정 배치로 천정 송풍기 시야 100% 확보) */
     .sensor-hud-center {
       position: absolute;
-      top: 15%;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 14px;
+      left: 16px;
       background: rgba(10, 18, 33, 0.92);
       backdrop-filter: blur(10px);
-      border: 2px solid rgba(56, 189, 248, 0.5);
+      border: 2px solid rgba(56, 189, 248, 0.6);
       border-radius: 14px;
-      padding: 10px 18px;
+      padding: 8px 16px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       z-index: 15;
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6), 0 0 15px rgba(56, 189, 248, 0.2);
     }
@@ -1051,45 +1050,57 @@ require_once __DIR__ . '/config.php';
               <line x1="280" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
               <line x1="520" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
 
-              <!-- 💨 3. 하우스 천정 중앙 고성능 순환 송풍기 (유동팬) -->
-              <g id="svg-center-fan-unit" transform="translate(400, 115)">
+              <!-- 💨 3. 하우스 천정 중앙 대형 고시인성 순환 송풍기 (유동팬) -->
+              <g id="svg-center-fan-unit" transform="translate(400, 125)">
                 <!-- 천정 고정 마운트 브라켓 -->
-                <line x1="0" y1="-45" x2="0" y2="-25" stroke="#94A3B8" stroke-width="4"/>
-                <!-- 원형 송풍기 하우징 케이스 -->
-                <circle cx="0" cy="0" r="28" fill="#15233C" stroke="#64748B" stroke-width="3"/>
-                <circle cx="0" cy="0" r="25" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,3"/>
-                <!-- 4엽 고성능 회전 팬 날개 (작동 시 고속 회전) -->
+                <line x1="0" y1="-55" x2="0" y2="-38" stroke="#CBD5E1" stroke-width="6"/>
+                <line x1="-25" y1="-38" x2="25" y2="-38" stroke="#94A3B8" stroke-width="4"/>
+                
+                <!-- 원형 송풍기 보호망 및 외부 하우징 (반지름 42px 대형화) -->
+                <circle cx="0" cy="0" r="42" fill="#0F172A" stroke="#38BDF8" stroke-width="3.5" filter="drop-shadow(0 0 10px rgba(56,189,248,0.4))"/>
+                <circle cx="0" cy="0" r="37" fill="none" stroke="#64748B" stroke-width="1.5" stroke-dasharray="4,3"/>
+                <!-- 방사형 보호 그릴 살대 -->
+                <line x1="-36" y1="0" x2="36" y2="0" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+                <line x1="0" y1="-36" x2="0" y2="36" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+
+                <!-- 4엽 대형 고성능 회전 팬 날개 (작동 시 초고속 회전) -->
                 <g id="svg-fan-blades">
                   <!-- 날개 1 (상) -->
-                  <path d="M 0 0 C -6 -12 -12 -18 0 -22 C 12 -18 6 -12 0 0 Z" fill="#38BDF8"/>
+                  <path d="M 0 0 C -9 -16 -18 -26 0 -34 C 18 -26 9 -16 0 0 Z" fill="#00E5FF" stroke="#FFFFFF" stroke-width="1"/>
                   <!-- 날개 2 (우) -->
-                  <path d="M 0 0 C 12 -6 18 -12 22 0 C 18 12 12 6 0 0 Z" fill="#38BDF8"/>
+                  <path d="M 0 0 C 16 -9 26 -18 34 0 C 26 18 16 9 0 0 Z" fill="#00E5FF" stroke="#FFFFFF" stroke-width="1"/>
                   <!-- 날개 3 (하) -->
-                  <path d="M 0 0 C 6 12 12 18 0 22 C -12 18 -6 12 0 0 Z" fill="#38BDF8"/>
+                  <path d="M 0 0 C 9 16 18 26 0 34 C -18 26 -9 16 0 0 Z" fill="#00E5FF" stroke="#FFFFFF" stroke-width="1"/>
                   <!-- 날개 4 (좌) -->
-                  <path d="M 0 0 C -12 6 -18 12 -22 0 C -18 -12 -12 -6 0 0 Z" fill="#38BDF8"/>
-                  <!-- 중앙 모터 로터 캡 & 작동 LED -->
-                  <circle cx="0" cy="0" r="7" fill="#1E293B" stroke="#06B6D4" stroke-width="2"/>
-                  <circle cx="0" cy="0" r="3.5" fill="#10B981" id="svg-fan-led"/>
+                  <path d="M 0 0 C -16 9 -26 18 -34 0 C -26 -18 -16 -9 0 0 Z" fill="#00E5FF" stroke="#FFFFFF" stroke-width="1"/>
+                  <!-- 중앙 모터 로터 허브 & 작동 LED -->
+                  <circle cx="0" cy="0" r="11" fill="#1E293B" stroke="#38BDF8" stroke-width="2.5"/>
+                  <circle cx="0" cy="0" r="5" fill="#64748B" id="svg-fan-led"/>
                 </g>
-                <!-- 송풍 가동 시 하방 순환 바람결 파동 효과 -->
-                <g id="svg-fan-wind" style="display:none;" opacity="0.75">
-                  <path class="wind-wave" d="M -20 32 Q 0 45, 20 32" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
-                  <path class="wind-wave" d="M -30 46 Q 0 62, 30 46" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" style="animation-delay:0.3s;"/>
-                  <path class="wind-wave" d="M -40 60 Q 0 80, 40 60" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" style="animation-delay:0.6s;"/>
+
+                <!-- 송풍 가동 시 하방 순환 강력 바람결 파동 효과 -->
+                <g id="svg-fan-wind" style="display:none;" opacity="0.85">
+                  <path class="wind-wave" d="M -30 46 Q 0 68, 30 46" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round"/>
+                  <path class="wind-wave" d="M -48 64 Q 0 94, 48 64" fill="none" stroke="#38BDF8" stroke-width="3.5" stroke-linecap="round" style="animation-delay:0.25s;"/>
+                  <path class="wind-wave" d="M -65 82 Q 0 120, 65 82" fill="none" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" style="animation-delay:0.5s;"/>
                 </g>
+
+                <!-- 송풍기 명칭 배지 -->
+                <rect x="-65" y="46" width="130" height="22" rx="6" fill="rgba(15,23,42,0.92)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+                <text x="0" y="61" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="900">💨 천정 순환 송풍기</text>
               </g>
 
-              <!-- 📡 트러스 상단에 매달린 스마트 온·습도 센서 노드 일러스트 -->
-              <g transform="translate(400, 168)">
-                <line x1="0" y1="0" x2="0" y2="24" stroke="#94A3B8" stroke-width="2"/>
-                <rect x="-14" y="24" width="28" height="40" rx="6" fill="#F8FAFC" stroke="#06B6D4" stroke-width="2"/>
+              <!-- 📡 트러스 하단에 매달린 스마트 온·습도 센서 노드 일러스트 (송풍기와 겹치지 않게 하방 배치) -->
+              <g transform="translate(560, 200)">
+                <line x1="0" y1="-40" x2="0" y2="0" stroke="#94A3B8" stroke-width="2"/>
+                <rect x="-14" y="0" width="28" height="42" rx="6" fill="#F8FAFC" stroke="#06B6D4" stroke-width="2.5" filter="drop-shadow(0 2px 6px rgba(0,0,0,0.5))"/>
                 <!-- 센서 환기 슬릿 및 LED -->
-                <circle cx="0" cy="34" r="3" fill="#10B981"/>
-                <line x1="-8" y1="46" x2="8" y2="46" stroke="#64748B" stroke-width="2"/>
-                <line x1="-8" y1="52" x2="8" y2="52" stroke="#64748B" stroke-width="2"/>
+                <circle cx="0" cy="12" r="3" fill="#10B981"/>
+                <line x1="-8" y1="24" x2="8" y2="24" stroke="#64748B" stroke-width="2"/>
+                <line x1="-8" y1="30" x2="8" y2="30" stroke="#64748B" stroke-width="2"/>
                 <!-- RF 전파 링 -->
-                <circle cx="0" cy="34" r="15" fill="none" stroke="#38BDF8" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
+                <circle cx="0" cy="12" r="16" fill="none" stroke="#38BDF8" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,3"/>
+                <text x="0" y="54" text-anchor="middle" fill="#BAE6FD" font-size="10" font-weight="800">📡 온·습도 센서</text>
               </g>
 
               <!-- ☀️ 1. 상부 차광막/보온스크린 레이어 -->
