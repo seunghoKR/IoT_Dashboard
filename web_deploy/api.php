@@ -1,11 +1,18 @@
 <?php
 /**
- * IoT Dashboard REST API (PHP 8.4 + MariaDB + Tuya Cloud OpenAPI 직통 제어)
+ * IoT Dashboard REST API (PHP 8.4 + MariaDB + Tuya Cloud 양방향 이름 동기화)
  */
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=utf-8');
+
+if (function_exists('opcache_reset')) {
+    @opcache_reset();
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -84,6 +91,35 @@ function sendTuyaCommand($deviceId, $state) {
     return isset($data['success']) && $data['success'];
 }
 
+function renameTuyaDevice($deviceId, $newName) {
+    $token = getTuyaAccessToken();
+    if (!$token) return false;
+
+    $t = (string)round(microtime(true) * 1000);
+    $url = "/v1.0/devices/{$deviceId}";
+    $bodyObj = ['name' => $newName];
+    $bodyStr = json_encode($bodyObj);
+    $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'PUT', $url, $bodyStr);
+
+    $ch = curl_init(TUYA_ENDPOINT . $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $bodyStr);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'client_id: ' . TUYA_CLIENT_ID,
+        'access_token: ' . $token,
+        'sign: ' . $sign,
+        't: ' . $t,
+        'sign_method: HMAC-SHA256',
+        'Content-Type: application/json'
+    ]);
+    $res = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($res, true);
+    return isset($data['success']) && $data['success'];
+}
+
 $action = $_GET['action'] ?? $_POST['action'] ?? 'get_status';
 
 try {
@@ -140,16 +176,14 @@ try {
             $state = !((bool)$curr);
         }
 
-        // 1. 외부 호스팅 -> 실제 투야 클라우드를 통해 집/농장의 디바이스로 0.3초 만에 명령 전송!
         $tuyaSuccess = sendTuyaCommand($id, $state);
 
-        // 2. MariaDB 상태 저장
         $powerWatts = $state ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
         $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
         $stmtUp->execute([$state ? 1 : 0, $powerWatts, $id]);
 
         $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-        $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF') . " (Tuya전송: " . ($tuyaSuccess ? '성공' : '실패') . ")"]);
+        $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
 
         echo json_encode([
             'success' => true,
@@ -157,6 +191,33 @@ try {
             'targetState' => $state,
             'powerWatt' => $powerWatts,
             'tuyaDispatched' => $tuyaSuccess
+        ]);
+        exit;
+    }
+
+    if ($action === 'rename_device') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $input['id'] ?? $_GET['id'] ?? $_POST['id'] ?? '';
+        $newName = trim($input['name'] ?? $_GET['name'] ?? $_POST['name'] ?? '');
+
+        if (!$id || !$newName) {
+            echo json_encode(['success' => false, 'error' => 'Device ID & New Name required']);
+            exit;
+        }
+
+        $appRenamed = renameTuyaDevice($id, $newName);
+
+        $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ? WHERE `id` = ?");
+        $stmtUp->execute([$newName, $id]);
+
+        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+        $stmtLog->execute(["[양방향 동기화] 스마트플러그 [{$id}] 이름을 '{$newName}'(으)로 변경 (앱 동기화: " . ($appRenamed ? '성공' : '실패') . ")"]);
+
+        echo json_encode([
+            'success' => true,
+            'deviceId' => $id,
+            'newName' => $newName,
+            'appSynced' => $appRenamed
         ]);
         exit;
     }

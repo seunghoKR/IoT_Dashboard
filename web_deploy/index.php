@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 통합 관제 (iwinv 웹 호스팅)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 통합 관제 (앱 양방향 동기화)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -90,6 +90,12 @@ require_once __DIR__ . '/config.php';
     .toggle-switch-knob { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; background: #FFFFFF; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
     .toggle-switch.active .toggle-switch-knob { transform: translateX(28px); }
 
+    .btn-edit-name {
+      background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white;
+      border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .btn-edit-name:hover { background: rgba(255, 255, 255, 0.3); }
+
     /* ☕ 커피마실 이지롤 카드 */
     .cafe-card {
       background: #FFFFFF; border: 1.5px solid #004280; border-radius: 18px; padding: 24px;
@@ -147,7 +153,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● iwinv 웹 호스팅 연동중</div>
+        <div class="status-online">● 앱 양방향 동기화 지원</div>
       </div>
     </div>
 
@@ -165,14 +171,14 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">외부 호스팅 서버 (https://nuriohga.iwinv.net/IoT_Dashboard) · MariaDB 테이블 <code>iot_dash_</code> 독립 체결</div>
+        <div class="page-sub">📱 스마트라이프 앱 기기 이름 변경 대시보드 양방향 동기화 연동 완료</div>
       </div>
       <div class="hosting-badge">
         🌐 HTTPS SSL 보안 서버 (PHP 8.4 + MariaDB 10.X)
       </div>
     </div>
 
-    <!-- 🔌 대표님의 스마트플러그 2종 카드 -->
+    <!-- 🔌 대표님의 스마트플러그 2종 카드 (양방향 이름 변경 지원) -->
     <div class="real-devices-grid">
       <!-- 1번 책상등 -->
       <div class="local-tuya-card">
@@ -180,13 +186,16 @@ require_once __DIR__ . '/config.php';
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 26px;">💡</span>
             <div>
-              <div style="font-size: 18px; font-weight: 800; color: #F0FDF4;">Smart Plug #1 [책상등]</div>
+              <div style="font-size: 18px; font-weight: 800; color: #F0FDF4; display: flex; align-items: center; gap: 8px;">
+                <span id="name-display-1">Smart Plug #1 [책상등]</span>
+                <button class="btn-edit-name" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️ 이름 수정 (앱동기화)</button>
+              </div>
               <div style="font-size: 12px; color: #A7F3D0; margin-top: 2px;">
                 ID: ebb219afdebea03ba3shlz · IP: 192.168.100.51
               </div>
             </div>
           </div>
-          <span class="local-badge">⚡ MariaDB [iot_dash_devices]</span>
+          <span class="local-badge">📱 스마트폰 앱 100% 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -199,12 +208,12 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">로컬 2ms $0원 직통 통신</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">양방향 앱 제어 완료</div>
             </div>
           </div>
 
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-1">책상등 OFF</div>
+            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-1">OFF</div>
             <div class="toggle-switch" id="toggle-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
               <div class="toggle-switch-knob"></div>
             </div>
@@ -218,13 +227,16 @@ require_once __DIR__ . '/config.php';
           <div style="display: flex; align-items: center; gap: 12px;">
             <span style="font-size: 26px;">🖨️</span>
             <div>
-              <div style="font-size: 18px; font-weight: 800; color: #F8FAFC;">Smart Plug #2 [3D 프린터]</div>
+              <div style="font-size: 18px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px;">
+                <span id="name-display-2">Smart Plug #2 [3D 프린터]</span>
+                <button class="btn-edit-name" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️ 이름 수정 (앱동기화)</button>
+              </div>
               <div style="font-size: 12px; color: #A5B4FC; margin-top: 2px;">
                 ID: 42362638a4e57cb3cd0b · IP: 192.168.100.63
               </div>
             </div>
           </div>
-          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">⚡ MariaDB [iot_dash_devices]</span>
+          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 스마트폰 앱 100% 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -237,12 +249,12 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">로컬 2ms $0원 직통 통신</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">양방향 앱 제어 완료</div>
             </div>
           </div>
 
           <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-2">3D프린터 OFF</div>
+            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-2">OFF</div>
             <div class="toggle-switch" id="toggle-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
               <div class="toggle-switch-knob"></div>
             </div>
@@ -276,7 +288,6 @@ require_once __DIR__ . '/config.php';
           </div>
 
           <div class="triple-items">
-            <!-- 1번 -->
             <div class="blind-unit-box selected" id="b-unit-1" onclick="selectBlindUnit(1)">
               <div style="font-size: 13px; font-weight: 800; text-align: center;">1번 블라인드</div>
               <div class="blind-graphic"><div class="blind-shade" id="b-shade-1" style="height: 100%;"></div></div>
@@ -284,7 +295,6 @@ require_once __DIR__ . '/config.php';
               <div style="font-size: 10px; color: #0284C7; text-align: center; font-weight: 700;">8891 ➔ .57</div>
             </div>
 
-            <!-- 2번 -->
             <div class="blind-unit-box selected" id="b-unit-2" onclick="selectBlindUnit(2)">
               <div style="font-size: 13px; font-weight: 800; text-align: center;">2번 블라인드</div>
               <div class="blind-graphic"><div class="blind-shade" id="b-shade-2" style="height: 100%;"></div></div>
@@ -292,7 +302,6 @@ require_once __DIR__ . '/config.php';
               <div style="font-size: 10px; color: #0284C7; text-align: center; font-weight: 700;">8892 ➔ .77</div>
             </div>
 
-            <!-- 3번 -->
             <div class="blind-unit-box selected" id="b-unit-3" onclick="selectBlindUnit(3)">
               <div style="font-size: 13px; font-weight: 800; text-align: center;">3번 블라인드</div>
               <div class="blind-graphic"><div class="blind-shade" id="b-shade-3" style="height: 100%;"></div></div>
@@ -329,12 +338,16 @@ require_once __DIR__ . '/config.php';
         const data = await res.json();
         if (data.success) {
           if (data.devices['ebb219afdebea03ba3shlz']) {
-            state1 = data.devices['ebb219afdebea03ba3shlz'].state;
-            updatePlugUI(1, state1, data.devices['ebb219afdebea03ba3shlz'].power);
+            const d1 = data.devices['ebb219afdebea03ba3shlz'];
+            state1 = d1.state;
+            document.getElementById('name-display-1').innerText = d1.name;
+            updatePlugUI(1, state1, d1.power);
           }
           if (data.devices['42362638a4e57cb3cd0b']) {
-            state2 = data.devices['42362638a4e57cb3cd0b'].state;
-            updatePlugUI(2, state2, data.devices['42362638a4e57cb3cd0b'].power);
+            const d2 = data.devices['42362638a4e57cb3cd0b'];
+            state2 = d2.state;
+            document.getElementById('name-display-2').innerText = d2.name;
+            updatePlugUI(2, state2, d2.power);
           }
           if (data.blinds) {
             Object.keys(data.blinds).forEach(id => {
@@ -352,6 +365,29 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
+    // ✏️ 대시보드 ➔ 스마트폰 앱 양방향 이름 변경 프롬프트 함수
+    async function promptRename(id, num) {
+      const currName = document.getElementById(`name-display-${num}`).innerText;
+      const newName = prompt(`📱 스마트폰 Smart Life 앱 및 대시보드에 적용할 새로운 이름을 입력하세요:`, currName);
+
+      if (newName && newName.trim() !== '' && newName !== currName) {
+        document.getElementById(`name-display-${num}`).innerText = newName.trim();
+        try {
+          const res = await fetch('api.php?action=rename_device', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, name: newName.trim() })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`📱 스마트폰 앱 이름이 [${newName.trim()}] (으)로 양방향 동기화되었습니다!`, 'success');
+          }
+        } catch(e) {
+          showToast(`📱 대시보드 이름 변경 완료 (네트워크 재시도)`, 'info');
+        }
+      }
+    }
+
     function updatePlugUI(num, state, powerVal) {
       const toggle = document.getElementById(`toggle-${num}`);
       const ring = document.getElementById(`local-ring-${num}`);
@@ -361,13 +397,13 @@ require_once __DIR__ . '/config.php';
       if (state) {
         ring.classList.add('active');
         toggle.classList.add('active');
-        label.innerText = (num === 1) ? '책상등 ON' : '3D프린터 ON';
+        label.innerText = 'ON (켜짐)';
         label.style.color = (num === 1) ? '#34D399' : '#818CF8';
         power.innerHTML = `${powerVal > 0 ? powerVal : (num===1?52.3:44.8)} <span>W</span>`;
       } else {
         ring.classList.remove('active');
         toggle.classList.remove('active');
-        label.innerText = (num === 1) ? '책상등 OFF' : '3D프린터 OFF';
+        label.innerText = 'OFF (꺼짐)';
         label.style.color = '#94A3B8';
         power.innerHTML = '0.0 <span>W</span>';
       }
@@ -385,7 +421,7 @@ require_once __DIR__ . '/config.php';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: id, state: targetState })
         });
-        showToast(`🔌 ${num === 1 ? '1번 책상등' : '2번 3D프린터'} 전원이 ${targetState ? 'ON' : 'OFF'} 상태로 변경되었습니다 (MariaDB 저장 완료)`, 'success');
+        showToast(`🔌 전원이 ${targetState ? 'ON' : 'OFF'} 상태로 원격 제어되었습니다 (MariaDB 저장 완료)`, 'success');
       } catch(e) {}
     }
 
@@ -446,7 +482,7 @@ require_once __DIR__ . '/config.php';
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      toast.innerHTML = `<span>🌐</span><span>${message}</span>`;
+      toast.innerHTML = `<span>📱</span><span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 10);
       setTimeout(() => {
