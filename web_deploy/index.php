@@ -2117,14 +2117,14 @@ require_once __DIR__ . '/config.php';
             }
           }
 
-          // 2. 스마트 플러그 2 (양액기) - 사용자 조작 4초 이내에는 폴링 덮어쓰기 방지
+          // 2. 스마트 플러그 2 (천정 송풍기 / 유동팬) - 사용자 조작 4초 이내에는 폴링 덮어쓰기 방지
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
             const nameEl = document.getElementById('plug-name-2');
             if (nameEl) nameEl.innerText = d2.name;
             if (now - lastActionTimestamp[2] > 4000) {
               state2 = d2.state;
-              isNutrientActive = state2;
+              isVentFanActive = state2;
               updatePlugUI(2, state2);
             }
           }
