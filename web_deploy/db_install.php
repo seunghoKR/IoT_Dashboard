@@ -54,16 +54,36 @@ try {
         `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
+    // 5. 멀티채널 기기 채널 관리 테이블 (iot_dash_channels)
+    $sqlChannels = "CREATE TABLE IF NOT EXISTS `{$prefix}channels` (
+        `device_id` VARCHAR(64) NOT NULL,
+        `channel_no` INT NOT NULL,
+        `channel_code` VARCHAR(30) NOT NULL,
+        `channel_name` VARCHAR(100) NOT NULL,
+        `is_active` TINYINT(1) DEFAULT 0,
+        `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`device_id`, `channel_no`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+
     $pdo->exec($sqlDevices);
     $pdo->exec($sqlBlinds);
     $pdo->exec($sqlTelemetry);
     $pdo->exec($sqlLogs);
+    $pdo->exec($sqlChannels);
 
-    // 초기 시드 데이터 삽입 (스마트플러그 2종 & 이지롤 블라인드 3대)
+    // 초기 시드 데이터 삽입 (스마트플러그 2종 + 4채널 스위치 & 이지롤 블라인드 3대)
     $pdo->exec("INSERT INTO `{$prefix}devices` (`id`, `device_name`, `device_type`, `local_ip`, `mac_address`, `is_active`, `power_watt`) VALUES
-        ('ebb219afdebea03ba3shlz', '💡 Smart Plug #1 [책상등]', 'SMART_PLUG', '192.168.100.51', '50:8b:b9:00:5c:f5', 0, 0.00),
-        ('42362638a4e57cb3cd0b', '🖨️ Smart Plug #2 [3D 프린터]', 'SMART_PLUG', '192.168.100.63', 'a4:e5:7c:b3:cd:0b', 0, 0.00)
-        ON DUPLICATE KEY UPDATE `updated_at` = CURRENT_TIMESTAMP;");
+        ('ebb219afdebea03ba3shlz', '책상등', 'SMART_PLUG', '192.168.100.51', '50:8b:b9:00:5c:f5', 0, 0.00),
+        ('42362638a4e57cb3cd0b', '3D프린터', 'SMART_PLUG', '192.168.100.63', 'a4:e5:7c:b3:cd:0b', 0, 0.00),
+        ('eb654aa2437462ea40dfjw', '4채널 멀티 스위치', '4CH_SWITCH', '49.171.41.10', '4c:d7:b7:b0:ea:16', 0, 0.00)
+        ON DUPLICATE KEY UPDATE `device_name` = VALUES(`device_name`), `updated_at` = CURRENT_TIMESTAMP;");
+
+    $pdo->exec("INSERT INTO `{$prefix}channels` (`device_id`, `channel_no`, `channel_code`, `channel_name`, `is_active`) VALUES
+        ('eb654aa2437462ea40dfjw', 1, 'switch_1', '1번 채널 (급수/조명)', 0),
+        ('eb654aa2437462ea40dfjw', 2, 'switch_2', '2번 채널 (환풍/팬)', 0),
+        ('eb654aa2437462ea40dfjw', 3, 'switch_3', '3번 채널 (보조기기)', 0),
+        ('eb654aa2437462ea40dfjw', 4, 'switch_4', '4번 채널 (예비)', 0)
+        ON DUPLICATE KEY UPDATE `channel_name` = VALUES(`channel_name`), `updated_at` = CURRENT_TIMESTAMP;");
 
     $pdo->exec("INSERT INTO `{$prefix}blinds` (`blind_id`, `blind_name`, `serial_no`, `local_ip`, `public_port`, `internal_port`, `position_pct`) VALUES
         (1, '1번 블라인드', 'EZS15N1100036', '192.168.100.57', 8891, 48899, 100),
@@ -74,7 +94,8 @@ try {
     echo "<h1>✅ MariaDB 테이블 자동 설치 완료!</h1>";
     echo "<p>생성된 테이블 목록 (접두사: <strong>{$prefix}</strong>):</p>";
     echo "<ul>
-            <li><code>{$prefix}devices</code> (스마트 플러그 2종)</li>
+            <li><code>{$prefix}devices</code> (스마트 플러그 2종 + 4채널 스위치)</li>
+            <li><code>{$prefix}channels</code> (4채널 스위치 세부 채널 관리)</li>
             <li><code>{$prefix}blinds</code> (커피마실 이지롤 3대)</li>
             <li><code>{$prefix}telemetry</code> (온습도/CO2 시계열)</li>
             <li><code>{$prefix}logs</code> (조작 이력)</li>

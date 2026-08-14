@@ -65,6 +65,13 @@ require_once __DIR__ . '/config.php';
     }
     .local-tuya-card.plug2 {
       background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); border-color: #6366F1;
+      box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.4);
+    }
+    .local-tuya-card.switch4ch {
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #083344 100%);
+      border-color: #06B6D4;
+      box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.25);
+      grid-column: 1 / -1;
     }
     .local-card-header { display: flex; justify-content: space-between; align-items: center; z-index: 2; }
     .local-badge {
@@ -97,14 +104,67 @@ require_once __DIR__ . '/config.php';
     .plug2 .local-neon-ring.active {
       border-color: #818CF8; box-shadow: 0 0 24px #6366F1, inset 0 0 16px rgba(99, 102, 241, 0.6);
     }
+    .ch-neon-ring.active {
+      border-color: #22D3EE; box-shadow: 0 0 20px #06B6D4, inset 0 0 12px rgba(6, 182, 212, 0.7);
+    }
 
-    /* 로딩 중 펄스 안니메션 */
+    /* 4채널 서브 그리드 스타일 */
+    .channels-4-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; z-index: 2;
+    }
+    @media (max-width: 900px) {
+      .channels-4-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .channel-box {
+      background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .channel-box:hover {
+      background: rgba(255, 255, 255, 0.08); border-color: rgba(6, 182, 212, 0.4);
+    }
+    .channel-box-header {
+      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;
+    }
+    .channel-badge {
+      background: #0891B2; color: #ECFEFF; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
+    }
+    .ch-power-touch {
+      display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;
+      background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 10px 12px; transition: all 0.2s;
+    }
+    .ch-power-touch:hover { background: rgba(0, 0, 0, 0.35); transform: scale(1.02); }
+    .ch-power-touch:active { transform: scale(0.96); }
+    .ch-ring-container { position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .ch-neon-ring {
+      position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;
+    }
+    .ch-status-tag {
+      font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.1);
+      color: #94A3B8; border: 1px solid rgba(255,255,255,0.15); transition: all 0.2s;
+    }
+    .ch-status-tag.active {
+      background: #0891B2; color: #FFFFFF; border-color: #22D3EE; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.5);
+    }
+    .master-btn-group {
+      display: flex; gap: 8px;
+    }
+    .btn-master {
+      background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: white;
+      border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-master:hover { background: rgba(255, 255, 255, 0.22); }
+    .btn-master.on { background: #0891B2; border-color: #22D3EE; }
+    .btn-master.on:hover { background: #0E7490; }
+
+    /* 로딩 중 펄스 애니메이션 */
     @keyframes pulseGlow {
       0% { opacity: 0.5; transform: scale(0.98); }
       50% { opacity: 1; transform: scale(1.04); }
       100% { opacity: 0.5; transform: scale(0.98); }
     }
-    .power-touch-btn.pending .local-ring-container {
+    .power-touch-btn.pending .local-ring-container,
+    .ch-power-touch.pending .ch-ring-container {
       animation: pulseGlow 0.8s infinite ease-in-out;
     }
 
@@ -210,7 +270,7 @@ require_once __DIR__ . '/config.php';
       </div>
     </div>
 
-    <!-- 🔌 대표님의 직관적 파워 버튼 통합 스마트플러그 2종 카드 -->
+    <!-- 🔌 대표님의 스마트 기기 제어 카드 그리드 -->
     <div class="real-devices-grid">
       <!-- 1번 책상등 -->
       <div class="local-tuya-card">
@@ -283,6 +343,128 @@ require_once __DIR__ . '/config.php';
           <div class="power-status-tag" id="status-tag-2">OFF (꺼짐)</div>
         </div>
       </div>
+
+      <!-- 🎛️ 3번 4채널 멀티 스위치 신규 카드 -->
+      <div class="local-tuya-card switch4ch">
+        <div class="local-card-header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 28px;">🎛️</span>
+            <div>
+              <div style="font-size: 18px; font-weight: 800; color: #F0FDF4; display: flex; align-items: center; gap: 8px;">
+                <span id="name-display-4ch">4채널 멀티 스위치</span>
+                <button class="btn-edit-name" onclick="promptRename('eb654aa2437462ea40dfjw', '4ch')">✏️ 기기명 수정</button>
+              </div>
+              <div style="font-size: 12px; color: #67E8F9; margin-top: 2px;">
+                ID: eb654aa2437462ea40dfjw · 4채널 스마트 릴레이 모듈
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span class="local-badge" style="background:rgba(6,182,212,0.25); border-color:#22D3EE; color:#67E8F9;" id="active-ch-count-badge">
+              ⚡ 0 / 4 채널 ON
+            </span>
+            <div class="master-btn-group">
+              <button class="btn-master on" onclick="toggleAll4Ch(true)" title="모든 채널을 동시에 켭니다">⚡ 전체 ON</button>
+              <button class="btn-master" onclick="toggleAll4Ch(false)" title="모든 채널을 동시에 끕니다">⛔ 전체 OFF</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4개 채널 독립 제어 그리드 -->
+        <div class="channels-4-grid">
+          <!-- 채널 1 -->
+          <div class="channel-box" id="ch-box-1">
+            <div class="channel-box-header">
+              <span class="channel-badge">CH 1</span>
+              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span id="ch-name-1">1번 채널</span>
+                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(1)">✏️</button>
+              </div>
+            </div>
+            <div class="ch-power-touch" id="ch-btn-1" onclick="toggle4Ch(1)" title="1번 채널 켜기/끄기">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="ch-ring-container">
+                  <div class="ch-neon-ring" id="ch-ring-1"></div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
+                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
+                  </svg>
+                </div>
+                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-1">터치 제어</div>
+              </div>
+              <div class="ch-status-tag" id="ch-tag-1">OFF</div>
+            </div>
+          </div>
+
+          <!-- 채널 2 -->
+          <div class="channel-box" id="ch-box-2">
+            <div class="channel-box-header">
+              <span class="channel-badge">CH 2</span>
+              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span id="ch-name-2">2번 채널</span>
+                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(2)">✏️</button>
+              </div>
+            </div>
+            <div class="ch-power-touch" id="ch-btn-2" onclick="toggle4Ch(2)" title="2번 채널 켜기/끄기">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="ch-ring-container">
+                  <div class="ch-neon-ring" id="ch-ring-2"></div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
+                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
+                  </svg>
+                </div>
+                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-2">터치 제어</div>
+              </div>
+              <div class="ch-status-tag" id="ch-tag-2">OFF</div>
+            </div>
+          </div>
+
+          <!-- 채널 3 -->
+          <div class="channel-box" id="ch-box-3">
+            <div class="channel-box-header">
+              <span class="channel-badge">CH 3</span>
+              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span id="ch-name-3">3번 채널</span>
+                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(3)">✏️</button>
+              </div>
+            </div>
+            <div class="ch-power-touch" id="ch-btn-3" onclick="toggle4Ch(3)" title="3번 채널 켜기/끄기">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="ch-ring-container">
+                  <div class="ch-neon-ring" id="ch-ring-3"></div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
+                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
+                  </svg>
+                </div>
+                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-3">터치 제어</div>
+              </div>
+              <div class="ch-status-tag" id="ch-tag-3">OFF</div>
+            </div>
+          </div>
+
+          <!-- 채널 4 -->
+          <div class="channel-box" id="ch-box-4">
+            <div class="channel-box-header">
+              <span class="channel-badge">CH 4</span>
+              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                <span id="ch-name-4">4번 채널</span>
+                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(4)">✏️</button>
+              </div>
+            </div>
+            <div class="ch-power-touch" id="ch-btn-4" onclick="toggle4Ch(4)" title="4번 채널 켜기/끄기">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="ch-ring-container">
+                  <div class="ch-neon-ring" id="ch-ring-4"></div>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
+                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
+                  </svg>
+                </div>
+                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-4">터치 제어</div>
+              </div>
+              <div class="ch-status-tag" id="ch-tag-4">OFF</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ☕ [커피마실 카페] 이지롤 블라인드 3대 관제 카드 -->
@@ -349,8 +531,12 @@ require_once __DIR__ . '/config.php';
   </main>
 
   <script>
+    const DEVICE_ID_4CH = 'eb654aa2437462ea40dfjw';
+
     let state1 = false;
     let state2 = false;
+    const states4ch = { 1: false, 2: false, 3: false, 4: false };
+
     let selectedUnit = 0;
     const heights = { 1: 100, 2: 100, 3: 100 };
 
@@ -358,12 +544,15 @@ require_once __DIR__ . '/config.php';
     const isPending = { 1: false, 2: false };
     const abortControllers = { 1: null, 2: null };
 
+    const isPending4ch = { 1: false, 2: false, 3: false, 4: false, 'all': false };
+    const abortControllers4ch = { 1: null, 2: null, 3: null, 4: null, 'all': null };
+
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
-          // 1번 책상등: 사용자가 전원 변경 버튼을 누르는 중(isPending)일 때는 하트비트가 UI를 건들지 않음!
+          // 1번 책상등
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
             document.getElementById('name-display-1').innerText = d1.name;
@@ -383,6 +572,32 @@ require_once __DIR__ . '/config.php';
             }
           }
 
+          // 3번 4채널 멀티 스위치
+          if (data.devices[DEVICE_ID_4CH]) {
+            const d4 = data.devices[DEVICE_ID_4CH];
+            const nameEl = document.getElementById('name-display-4ch');
+            if (nameEl) nameEl.innerText = d4.name;
+
+            if (d4.channels) {
+              let activeCount = 0;
+              for (let c = 1; c <= 4; c++) {
+                if (d4.channels[c]) {
+                  const chInfo = d4.channels[c];
+                  const chNameEl = document.getElementById(`ch-name-${c}`);
+                  if (chNameEl) chNameEl.innerText = chInfo.name;
+
+                  if (!isPending4ch[c] && !isPending4ch['all']) {
+                    states4ch[c] = chInfo.state;
+                    update4ChUI(c, chInfo.state);
+                  }
+                  if (states4ch[c]) activeCount++;
+                }
+              }
+              const badge = document.getElementById('active-ch-count-badge');
+              if (badge) badge.innerText = `⚡ ${activeCount} / 4 채널 ON`;
+            }
+          }
+
           if (data.blinds) {
             Object.keys(data.blinds).forEach(id => {
               const b = data.blinds[id];
@@ -399,12 +614,13 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    async function promptRename(id, num) {
-      const currName = document.getElementById(`name-display-${num}`).innerText;
+    async function promptRename(id, key) {
+      const elId = (key === '4ch') ? 'name-display-4ch' : `name-display-${key}`;
+      const currName = document.getElementById(elId).innerText;
       const newName = prompt(`📱 스마트폰 Smart Life 앱 및 대시보드에 적용할 새로운 이름을 입력하세요:`, currName);
 
       if (newName && newName.trim() !== '' && newName !== currName) {
-        document.getElementById(`name-display-${num}`).innerText = newName.trim();
+        document.getElementById(elId).innerText = newName.trim();
         try {
           const res = await fetch('api.php?action=rename_device', {
             method: 'POST',
@@ -413,7 +629,27 @@ require_once __DIR__ . '/config.php';
           });
           const data = await res.json();
           if (data.success) {
-            showToast(`📱 스마트폰 앱 이름이 [${newName.trim()}] (으)로 양방향 동기화되었습니다!`, 'success');
+            showToast(`📱 기기 이름이 [${newName.trim()}] (으)로 양방향 동기화되었습니다!`, 'success');
+          }
+        } catch(e) {}
+      }
+    }
+
+    async function promptRenameChannel(channelNo) {
+      const currName = document.getElementById(`ch-name-${channelNo}`).innerText;
+      const newName = prompt(`🎛️ ${channelNo}번 채널에 부여할 용도/이름을 입력하세요 (예: 급수 밸브, LED 3구 등):`, currName);
+
+      if (newName && newName.trim() !== '' && newName !== currName) {
+        document.getElementById(`ch-name-${channelNo}`).innerText = newName.trim();
+        try {
+          const res = await fetch('api.php?action=rename_channel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, name: newName.trim() })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`🎛️ ${channelNo}번 채널 이름이 [${newName.trim()}] (으)로 변경되었습니다!`, 'success');
           }
         } catch(e) {}
       }
@@ -437,11 +673,28 @@ require_once __DIR__ . '/config.php';
       }
     }
 
+    function update4ChUI(channelNo, state) {
+      const ring = document.getElementById(`ch-ring-${channelNo}`);
+      const tag = document.getElementById(`ch-tag-${channelNo}`);
+      const sub = document.getElementById(`ch-sub-${channelNo}`);
+
+      if (state) {
+        ring.classList.add('active');
+        tag.classList.add('active');
+        tag.innerText = 'ON';
+        sub.innerText = '가동 중';
+      } else {
+        ring.classList.remove('active');
+        tag.classList.remove('active');
+        tag.innerText = 'OFF';
+        sub.innerText = '터치 제어';
+      }
+    }
+
     async function togglePlug(id, num) {
       const btnContainer = document.getElementById(`btn-container-${num}`);
       const subMsg = document.getElementById(`sub-msg-${num}`);
 
-      // 이전 진행 중이던 전송 요청이 있다면 즉시 취소하여 딜레이 큐 연쇄 튕김 방지!
       if (abortControllers[num]) {
         abortControllers[num].abort();
       }
@@ -450,10 +703,10 @@ require_once __DIR__ . '/config.php';
       const targetState = !(num === 1 ? state1 : state2);
       if (num === 1) state1 = targetState; else state2 = targetState;
 
-      // ⚡ 1. 화면 즉시 변경 (0.01초 UI 체감 반응)
+      // ⚡ 1. 화면 즉시 변경
       updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
 
-      // ⏳ 2. 전송 중 로딩 펄스 적용 & 메시지 안내
+      // ⏳ 2. 전송 중 로딩 펄스 적용
       isPending[num] = true;
       btnContainer.classList.add('pending');
       subMsg.innerText = '⏳ 명령 전송 중...';
@@ -475,6 +728,89 @@ require_once __DIR__ . '/config.php';
         isPending[num] = false;
         btnContainer.classList.remove('pending');
         subMsg.innerText = '👈 파워 버튼 터치 시 전원 원격 작동';
+      }
+    }
+
+    async function toggle4Ch(channelNo) {
+      const btnContainer = document.getElementById(`ch-btn-${channelNo}`);
+      const subMsg = document.getElementById(`ch-sub-${channelNo}`);
+
+      if (abortControllers4ch[channelNo]) {
+        abortControllers4ch[channelNo].abort();
+      }
+      abortControllers4ch[channelNo] = new AbortController();
+
+      const targetState = !states4ch[channelNo];
+      states4ch[channelNo] = targetState;
+
+      // ⚡ 즉시 UI 반영
+      update4ChUI(channelNo, targetState);
+
+      // 전체 활성 개수 배지 즉시 업데이트
+      let count = 0;
+      for (let i = 1; i <= 4; i++) if (states4ch[i]) count++;
+      document.getElementById('active-ch-count-badge').innerText = `⚡ ${count} / 4 채널 ON`;
+
+      // ⏳ 로딩 펄스
+      isPending4ch[channelNo] = true;
+      btnContainer.classList.add('pending');
+      subMsg.innerText = '⏳ 전송 중...';
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, state: targetState }),
+          signal: abortControllers4ch[channelNo].signal
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🎛️ 4채널 스위치 [${channelNo}번 채널] -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
+        }
+      } catch(e) {
+        if (e.name !== 'AbortError') {}
+      } finally {
+        isPending4ch[channelNo] = false;
+        btnContainer.classList.remove('pending');
+        subMsg.innerText = targetState ? '가동 중' : '터치 제어';
+      }
+    }
+
+    async function toggleAll4Ch(targetState) {
+      if (abortControllers4ch['all']) {
+        abortControllers4ch['all'].abort();
+      }
+      abortControllers4ch['all'] = new AbortController();
+
+      for (let i = 1; i <= 4; i++) {
+        states4ch[i] = targetState;
+        update4ChUI(i, targetState);
+        const sub = document.getElementById(`ch-sub-${i}`);
+        if (sub) sub.innerText = '⏳ 전송 중...';
+      }
+      document.getElementById('active-ch-count-badge').innerText = `⚡ ${targetState ? 4 : 0} / 4 채널 ON`;
+
+      isPending4ch['all'] = true;
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: 'all', state: targetState }),
+          signal: abortControllers4ch['all'].signal
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🎛️ 4채널 스위치 전체가 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다!`, 'success');
+        }
+      } catch(e) {
+        if (e.name !== 'AbortError') {}
+      } finally {
+        isPending4ch['all'] = false;
+        for (let i = 1; i <= 4; i++) {
+          const sub = document.getElementById(`ch-sub-${i}`);
+          if (sub) sub.innerText = targetState ? '가동 중' : '터치 제어';
+        }
       }
     }
 

@@ -25,12 +25,13 @@
 
 ## 2. 🔌 하드웨어 구성 및 원격 제어 명세
 
-### 1) Tuya Smart Plug (Smart Life 앱 연동 기기 2종)
+### 1) Tuya Smart Devices (Smart Life 앱 연동 기기 3종)
 - **Tuya Cloud OpenAPI**: Data Center Western America (`https://openapi.tuyaus.com`)
   - Client ID: `qsdjvehhx7n8ptuth45v`
   - Client Secret: `f1b450e443494a30950e9ad0095e201f`
 - **Smart Plug #1 [책상등]**: ID `ebb219afdebea03ba3shlz`, MAC `50:8b:b9:00:5c:f5`, Local IP `192.168.100.51`
 - **Smart Plug #2 [3D 프린터]**: ID `42362638a4e57cb3cd0b`, MAC `a4:e5:7c:b3:cd:0b`, Local IP `192.168.100.63`
+- **4CH Smart Switch #3 [4채널 멀티 스위치]**: ID `eb654aa2437462ea40dfjw`, Category `tdq` (4채널 릴레이 `switch_1` ~ `switch_4`)
 
 ### 2) 카페 "커피마실" 이지롤 EASY-ROLL 스마트 롤블라인드 3대
 - **카페 공인 IP**: `180.227.195.211` (Gateway `180.227.195.129`, Subnet `255.255.255.128`)

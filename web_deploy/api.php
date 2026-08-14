@@ -73,7 +73,7 @@ function fetchTuyaRealDeviceInfo($deviceId) {
 
     $ch = curl_init(TUYA_ENDPOINT . $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'client_id: ' . TUYA_CLIENT_ID,
         'access_token: ' . $token,
@@ -88,26 +88,45 @@ function fetchTuyaRealDeviceInfo($deviceId) {
     if (isset($data['success']) && $data['success'] && is_array($data['result'])) {
         $resObj = $data['result'];
         $name = $resObj['name'] ?? null;
-        $state = null;
+        $channels = [];
+        $state = false;
         if (isset($resObj['status']) && is_array($resObj['status'])) {
             foreach ($resObj['status'] as $item) {
-                if (($item['code'] === 'switch_1' || $item['code'] === 'switch') && is_bool($item['value'])) {
+                if ($item['code'] === 'switch_1' || $item['code'] === 'switch') {
                     $state = (bool)$item['value'];
+                    $channels[1] = (bool)$item['value'];
+                } elseif (preg_match('/^switch_(\d+)$/', $item['code'], $m)) {
+                    $cNum = (int)$m[1];
+                    $channels[$cNum] = (bool)$item['value'];
+                    if ((bool)$item['value']) $state = true;
                 }
             }
         }
-        return ['name' => $name, 'state' => $state];
+        return ['name' => $name, 'state' => $state, 'channels' => $channels];
     }
     return null;
 }
 
-function sendTuyaCommand($deviceId, $state) {
+function sendTuyaCommand($deviceId, $state, $channel = 1) {
     $token = getTuyaAccessToken();
     if (!$token) return false;
 
     $t = (string)round(microtime(true) * 1000);
     $url = "/v1.0/devices/{$deviceId}/commands";
-    $bodyObj = ['commands' => [['code' => 'switch_1', 'value' => (bool)$state]]];
+
+    if ($channel === 'all' || $channel === 0) {
+        $commands = [
+            ['code' => 'switch_1', 'value' => (bool)$state],
+            ['code' => 'switch_2', 'value' => (bool)$state],
+            ['code' => 'switch_3', 'value' => (bool)$state],
+            ['code' => 'switch_4', 'value' => (bool)$state]
+        ];
+    } else {
+        $code = ($channel > 1) ? "switch_{$channel}" : 'switch_1';
+        $commands = [['code' => $code, 'value' => (bool)$state]];
+    }
+
+    $bodyObj = ['commands' => $commands];
     $bodyStr = json_encode($bodyObj);
     $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'POST', $url, $bodyStr);
 
@@ -173,14 +192,37 @@ try {
             $dbName = $row['device_name'];
             $dbState = (bool)$row['is_active'];
 
-            $devices[$id] = [
+            $devData = [
                 'name' => $dbName,
                 'type' => $row['device_type'],
                 'ip' => $row['local_ip'],
                 'mac' => $row['mac_address'],
                 'state' => $dbState,
-                'power' => $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00
+                'power' => $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : ($id === '42362638a4e57cb3cd0b' ? 44.80 : 15.60)) : 0.00,
+                'channels' => []
             ];
+
+            $devices[$id] = $devData;
+        }
+
+        // 채널 정보 로드
+        $hasChannelsTable = false;
+        try {
+            $stmtCh = $pdo->query("SELECT * FROM `{$prefix}channels` ORDER BY `device_id`, `channel_no` ASC");
+            while ($cRow = $stmtCh->fetch()) {
+                $devId = $cRow['device_id'];
+                $cNo = (int)$cRow['channel_no'];
+                if (isset($devices[$devId])) {
+                    $devices[$devId]['channels'][$cNo] = [
+                        'no' => $cNo,
+                        'code' => $cRow['channel_code'],
+                        'name' => $cRow['channel_name'],
+                        'state' => (bool)$cRow['is_active']
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            // 채널 테이블이 없는 경우 자동 무시
         }
 
         $stmtBlind = $pdo->query("SELECT * FROM `{$prefix}blinds` ORDER BY `blind_id` ASC");
@@ -208,6 +250,7 @@ try {
     if ($action === 'toggle_plug') {
         $input = json_decode(file_get_contents('php://input'), true);
         $id = $input['id'] ?? $_GET['id'] ?? $_POST['id'] ?? '';
+        $channel = $input['channel'] ?? $_GET['channel'] ?? $_POST['channel'] ?? null;
         $state = isset($input['state']) ? (bool)$input['state'] : (isset($_GET['state']) ? (bool)$_GET['state'] : null);
 
         if (!$id) {
@@ -215,30 +258,102 @@ try {
             exit;
         }
 
-        if ($state === null) {
-            $stmt = $pdo->prepare("SELECT `is_active` FROM `{$prefix}devices` WHERE `id` = ?");
-            $stmt->execute([$id]);
-            $curr = $stmt->fetchColumn();
-            $state = !((bool)$curr);
+        if ($channel !== null && $channel !== '' && $channel !== 'single') {
+            // 멀티채널 제어 (단일 채널 또는 전체)
+            if ($channel === 'all' || $channel == 0) {
+                if ($state === null) {
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM `{$prefix}channels` WHERE `device_id` = ? AND `is_active` = 1");
+                    $stmt->execute([$id]);
+                    $activeCount = (int)$stmt->fetchColumn();
+                    $state = ($activeCount === 0); // 전부 꺼져있으면 켬, 하나라도 켜져있으면 끔
+                }
+
+                $stmtUpCh = $pdo->prepare("UPDATE `{$prefix}channels` SET `is_active` = ? WHERE `device_id` = ?");
+                $stmtUpCh->execute([$state ? 1 : 0, $id]);
+
+                $powerWatts = $state ? 62.40 : 0.00;
+                $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+                $stmtUpDev->execute([$state ? 1 : 0, $powerWatts, $id]);
+
+                $tuyaSuccess = sendTuyaCommand($id, $state, 'all');
+
+                $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+                $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] 전체 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+
+                echo json_encode([
+                    'success' => true,
+                    'deviceId' => $id,
+                    'channel' => 'all',
+                    'targetState' => $state,
+                    'powerWatt' => $powerWatts,
+                    'tuyaDispatched' => $tuyaSuccess
+                ]);
+                exit;
+            } else {
+                $cNo = (int)$channel;
+                if ($state === null) {
+                    $stmt = $pdo->prepare("SELECT `is_active` FROM `{$prefix}channels` WHERE `device_id` = ? AND `channel_no` = ?");
+                    $stmt->execute([$id, $cNo]);
+                    $curr = $stmt->fetchColumn();
+                    $state = !((bool)$curr);
+                }
+
+                $stmtUpCh = $pdo->prepare("UPDATE `{$prefix}channels` SET `is_active` = ? WHERE `device_id` = ? AND `channel_no` = ?");
+                $stmtUpCh->execute([$state ? 1 : 0, $id, $cNo]);
+
+                // 전체 활성 채널 수 조회하여 디바이스 총 전력 및 is_active 갱신
+                $stmtCnt = $pdo->prepare("SELECT COUNT(*) FROM `{$prefix}channels` WHERE `device_id` = ? AND `is_active` = 1");
+                $stmtCnt->execute([$id]);
+                $activeCount = (int)$stmtCnt->fetchColumn();
+                $devActive = ($activeCount > 0);
+                $powerWatts = $activeCount * 15.60;
+
+                $stmtUpDev = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+                $stmtUpDev->execute([$devActive ? 1 : 0, $powerWatts, $id]);
+
+                $tuyaSuccess = sendTuyaCommand($id, $state, $cNo);
+
+                $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+                $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] {$cNo}번 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+
+                echo json_encode([
+                    'success' => true,
+                    'deviceId' => $id,
+                    'channel' => $cNo,
+                    'targetState' => $state,
+                    'activeChannels' => $activeCount,
+                    'powerWatt' => $powerWatts,
+                    'tuyaDispatched' => $tuyaSuccess
+                ]);
+                exit;
+            }
+        } else {
+            // 일반 1구 플러그 제어
+            if ($state === null) {
+                $stmt = $pdo->prepare("SELECT `is_active` FROM `{$prefix}devices` WHERE `id` = ?");
+                $stmt->execute([$id]);
+                $curr = $stmt->fetchColumn();
+                $state = !((bool)$curr);
+            }
+
+            $powerWatts = $state ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
+            $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+            $stmtUp->execute([$state ? 1 : 0, $powerWatts, $id]);
+
+            $tuyaSuccess = sendTuyaCommand($id, $state, 1);
+
+            $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+            $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+
+            echo json_encode([
+                'success' => true,
+                'deviceId' => $id,
+                'targetState' => $state,
+                'powerWatt' => $powerWatts,
+                'tuyaDispatched' => $tuyaSuccess
+            ]);
+            exit;
         }
-
-        $powerWatts = $state ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
-        $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-        $stmtUp->execute([$state ? 1 : 0, $powerWatts, $id]);
-
-        $tuyaSuccess = sendTuyaCommand($id, $state);
-
-        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-        $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
-
-        echo json_encode([
-            'success' => true,
-            'deviceId' => $id,
-            'targetState' => $state,
-            'powerWatt' => $powerWatts,
-            'tuyaDispatched' => $tuyaSuccess
-        ]);
-        exit;
     }
 
     if ($action === 'rename_device') {
@@ -257,13 +372,39 @@ try {
         $stmtUp->execute([$newName, $id]);
 
         $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-        $stmtLog->execute(["[양방향 동기화] 스마트플러그 [{$id}] 이름을 '{$newName}'(으)로 변경 (앱 동기화: " . ($appRenamed ? '성공' : '실패') . ")"]);
+        $stmtLog->execute(["[양방향 동기화] 기기 [{$id}] 이름을 '{$newName}'(으)로 변경 (앱 동기화: " . ($appRenamed ? '성공' : '실패') . ")"]);
 
         echo json_encode([
             'success' => true,
             'deviceId' => $id,
             'newName' => $newName,
             'appSynced' => $appRenamed
+        ]);
+        exit;
+    }
+
+    if ($action === 'rename_channel') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $id = $input['id'] ?? $_GET['id'] ?? $_POST['id'] ?? '';
+        $cNo = (int)($input['channel'] ?? $_GET['channel'] ?? $_POST['channel'] ?? 0);
+        $newName = trim($input['name'] ?? $_GET['name'] ?? $_POST['name'] ?? '');
+
+        if (!$id || !$cNo || !$newName) {
+            echo json_encode(['success' => false, 'error' => 'Device ID, Channel & New Name required']);
+            exit;
+        }
+
+        $stmtUp = $pdo->prepare("UPDATE `{$prefix}channels` SET `channel_name` = ? WHERE `device_id` = ? AND `channel_no` = ?");
+        $stmtUp->execute([$newName, $id, $cNo]);
+
+        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+        $stmtLog->execute(["[채널 이름 변경] 기기 [{$id}] 채널 {$cNo}번 이름을 '{$newName}'(으)로 변경"]);
+
+        echo json_encode([
+            'success' => true,
+            'deviceId' => $id,
+            'channel' => $cNo,
+            'newName' => $newName
         ]);
         exit;
     }
