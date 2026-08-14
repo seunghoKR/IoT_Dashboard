@@ -788,6 +788,110 @@ require_once __DIR__ . '/config.php';
     </div>
   </div>
 
+  <!-- 🔒 3. 4채널 멀티 스위치 인터락 설정 모달 -->
+  <div class="modal-overlay" id="interlock-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">🔒 4채널 하드웨어 인터락(Interlock) 설정</div>
+        <button class="btn-edit-sm" onclick="closeModal('interlock-modal')">✕</button>
+      </div>
+
+      <div style="background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.3); border-radius:12px; padding:12px; font-size:12px; color:#CFFAFE; line-height:1.5;">
+        📱 <strong>스마트폰 Smart Life 앱 및 투야 하드웨어와 실시간 100% 양방향 동기화됩니다.</strong><br>
+        묶인 채널 중 하나를 켜면 반대편 채널이 물리 릴레이 수준에서 자동으로 즉시 차단(OFF)되어 <strong>모터 정역회전 쇼트 방지 및 안전 개폐</strong>를 완벽 보장합니다.
+      </div>
+
+      <div class="form-group" style="margin-top:14px;">
+        <label class="form-label">인터락 묶음 모드 선택</label>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="2x2" checked style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 열림/닫힘 및 양수/양액 모터 최적화)</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="1x2" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">🔒 1-2번 묶음만 사용 (3, 4번은 독립 스위치)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2만 상호잠금], 3번과 4번 채널은 일반 독립 조명/팬으로 사용</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="4all" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">⚡ 1-2-3-4 전체 상호 인터락 (단 1개 채널만 가동)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">4개 채널 중 언제나 오직 1개 채널만 ON 가능 (선택적 급수 라인 등)</div>
+            </div>
+          </label>
+
+          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
+            <input type="radio" name="interlock_preset" value="none" style="margin-top:3px;">
+            <div>
+              <div style="font-size:13px; font-weight:800; color:#F43F5E;">⛔ 인터락 완전 해제 (4채널 개별 독립 스위치)</div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">상호 잠금 없이 4개 채널을 모두 자유롭게 켜고 끕니다.</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('interlock-modal')">취소</button>
+        <button class="btn-modal-save" style="background:#0891B2;" onclick="saveInterlockSubmit()">저장 & Tuya 동기화</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📲 4. 태블릿 & 스마트폰 홈 화면 앱 설치 가이드 모달 -->
+  <div class="modal-overlay" id="pwa-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">📲 태블릿PC에 전용 앱으로 설치하기</div>
+        <button class="btn-edit-sm" onclick="closeModal('pwa-modal')">✕</button>
+      </div>
+
+      <div style="text-align:center; padding:10px 0;">
+        <img src="icon.svg" style="width:72px; height:72px; border-radius:18px; box-shadow:0 6px 15px rgba(0,0,0,0.4);" alt="App Icon">
+        <div style="font-size:16px; font-weight:800; margin-top:8px;">누리오 스마트팜</div>
+        <div style="font-size:12px; color:var(--primary); font-weight:700;">주소창 없는 100% 전체화면 독립 앱</div>
+      </div>
+
+      <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:13px; line-height:1.5;">
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#10B981; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">1</span>
+          <div>
+            <strong>크롬 / 삼성 인터넷 브라우저</strong> 우측 상단의 <strong>더보기 (⋮ 또는 ☰)</strong> 메뉴를 누르세요.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#0891B2; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">2</span>
+          <div>
+            메뉴에서 <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하세요.
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:flex-start;">
+          <span style="background:#6366F1; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">3</span>
+          <div>
+            태블릿PC 바탕화면에 🍓 <strong>누리오 스마트팜</strong> 아이콘이 생성되며, 터치 시 주소창 없는 <strong>풀스크린 전용 앱</strong>으로 실행됩니다!
+          </div>
+        </div>
+      </div>
+
+      <div id="native-install-box" style="display:none; text-align:center; margin-top:10px;">
+        <button class="btn-modal-save" style="width:100%; padding:12px; font-size:14px;" onclick="triggerNativeInstall()">
+          ⚡ 원클릭 즉시 앱 설치하기
+        </button>
+      </div>
+
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('pwa-modal')">확인 완료</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const DEVICE_ID_4CH = 'eb654aa2437462ea40dfjw';
 
@@ -803,6 +907,30 @@ require_once __DIR__ . '/config.php';
 
     const isPending4ch = { 1: false, 2: false, 3: false, 4: false, 'all': false };
     const abortControllers4ch = { 1: null, 2: null, 3: null, 4: null, 'all': null };
+
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const box = document.getElementById('native-install-box');
+      if (box) box.style.display = 'block';
+    });
+
+    function openPwaGuideModal() {
+      document.getElementById('pwa-modal').classList.add('active');
+    }
+
+    async function triggerNativeInstall() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          showToast('🎉 누리오 스마트팜 앱이 태블릿에 설치되었습니다!', 'success');
+          closeModal('pwa-modal');
+        }
+        deferredPrompt = null;
+      }
+    }
 
     function toggleSidebar(force) {
       const drawer = document.getElementById('sidebar-drawer');
@@ -1377,135 +1505,6 @@ require_once __DIR__ . '/config.php';
             showToast(`🎛️ ${channelNo}번 채널 이름이 [${newName.trim()}] (으)로 변경되었습니다!`, 'success');
           }
         } catch(e) {}
-      }
-    }
-
-  <!-- 🔒 4. 4채널 멀티 스위치 인터락 설정 모달 -->
-  <div class="modal-overlay" id="interlock-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">🔒 4채널 하드웨어 인터락(Interlock) 설정</div>
-        <button class="btn-edit-sm" onclick="closeModal('interlock-modal')">✕</button>
-      </div>
-
-      <div style="background:rgba(6, 182, 212, 0.12); border:1px solid rgba(6, 182, 212, 0.3); border-radius:12px; padding:12px; font-size:12px; color:#CFFAFE; line-height:1.5;">
-        📱 <strong>스마트폰 Smart Life 앱 및 투야 하드웨어와 실시간 100% 양방향 동기화됩니다.</strong><br>
-        묶인 채널 중 하나를 켜면 반대편 채널이 물리 릴레이 수준에서 자동으로 즉시 차단(OFF)되어 <strong>모터 정역회전 쇼트 방지 및 안전 개폐</strong>를 완벽 보장합니다.
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">인터락 묶음 모드 선택</label>
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="2x2" checked style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#34D399;">🌟 [농가 기본 권장] 1-2번 묶음 & 3-4번 묶음</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2 상호잠금], [CH3 ↔ CH4 상호잠금] (개폐기 열림/닫힘 및 양수/양액 모터 최적화)</div>
-            </div>
-          </label>
-
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="1x2" style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">🔒 1-2번 묶음만 사용 (3, 4번은 독립 스위치)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">[CH1 ↔ CH2만 상호잠금], 3번과 4번 채널은 일반 독립 조명/팬으로 사용</div>
-            </div>
-          </label>
-
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="4all" style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#F8FAFC;">⚡ 1-2-3-4 전체 상호 인터락 (단 1개 채널만 가동)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">4개 채널 중 언제나 오직 1개 채널만 ON 가능 (선택적 급수 라인 등)</div>
-            </div>
-          </label>
-
-          <label style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px; cursor:pointer; border:1px solid rgba(255,255,255,0.08);">
-            <input type="radio" name="interlock_preset" value="none" style="margin-top:3px;">
-            <div>
-              <div style="font-size:13px; font-weight:800; color:#F43F5E;">⛔ 인터락 완전 해제 (4채널 개별 독립 스위치)</div>
-              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">상호 잠금 없이 4개 채널을 모두 자유롭게 켜고 끕니다.</div>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div class="modal-btn-row">
-        <button class="btn-modal-cancel" onclick="closeModal('interlock-modal')">취소</button>
-        <button class="btn-modal-save" style="background:#0891B2;" onclick="saveInterlockSubmit()">저장 & Tuya 동기화</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 📲 3. 태블릿 & 스마트폰 홈 화면 앱 설치 가이드 모달 -->
-  <div class="modal-overlay" id="pwa-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">📲 태블릿PC에 전용 앱으로 설치하기</div>
-        <button class="btn-edit-sm" onclick="closeModal('pwa-modal')">✕</button>
-      </div>
-
-      <div style="text-align:center; padding:10px 0;">
-        <img src="icon.svg" style="width:72px; height:72px; border-radius:18px; box-shadow:0 6px 15px rgba(0,0,0,0.4);" alt="App Icon">
-        <div style="font-size:16px; font-weight:800; margin-top:8px;">누리오 스마트팜</div>
-        <div style="font-size:12px; color:var(--primary); font-weight:700;">주소창 없는 100% 전체화면 독립 앱</div>
-      </div>
-
-      <div style="background:rgba(0,0,0,0.3); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:13px; line-height:1.5;">
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#10B981; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">1</span>
-          <div>
-            <strong>크롬 / 삼성 인터넷 브라우저</strong> 우측 상단의 <strong>더보기 (⋮ 또는 ☰)</strong> 메뉴를 누르세요.
-          </div>
-        </div>
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#0891B2; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">2</span>
-          <div>
-            메뉴에서 <strong>[홈 화면에 추가]</strong> 또는 <strong>[앱 설치]</strong>를 선택하세요.
-          </div>
-        </div>
-        <div style="display:flex; gap:10px; align-items:flex-start;">
-          <span style="background:#6366F1; color:white; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0;">3</span>
-          <div>
-            태블릿PC 바탕화면에 🍓 <strong>누리오 스마트팜</strong> 아이콘이 생성되며, 터치 시 주소창 없는 <strong>풀스크린 전용 앱</strong>으로 실행됩니다!
-          </div>
-        </div>
-      </div>
-
-      <div id="native-install-box" style="display:none; text-align:center;">
-        <button class="btn-modal-save" style="width:100%; padding:12px; font-size:14px;" onclick="triggerNativeInstall()">
-          ⚡ 원클릭 즉시 앱 설치하기
-        </button>
-      </div>
-
-      <div class="modal-btn-row">
-        <button class="btn-modal-cancel" onclick="closeModal('pwa-modal')">확인 완료</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const box = document.getElementById('native-install-box');
-      if (box) box.style.display = 'block';
-    });
-
-    function openPwaGuideModal() {
-      document.getElementById('pwa-modal').classList.add('active');
-    }
-
-    async function triggerNativeInstall() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          showToast('🎉 누리오 스마트팜 앱이 태블릿에 설치되었습니다!', 'success');
-          closeModal('pwa-modal');
-        }
-        deferredPrompt = null;
       }
     }
 
