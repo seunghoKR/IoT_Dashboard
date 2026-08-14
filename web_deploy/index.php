@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (깜빡임 없는 매끄러운 전원 제어)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (8초 이중 락으로 깜빡임 완전 치료)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -174,7 +174,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 상태 경합 방지 락 적용됨</div>
+        <div class="status-online">● 8초 이중 락 적용 완료</div>
       </div>
     </div>
 
@@ -192,10 +192,10 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">✨ 클릭 시 깜빡임 없이 매끄럽게 한번에 작동하는 스무스 파워 제어</div>
+        <div class="page-sub">✨ 1번 스위치 클라우드 전송 지연 보정: 8초 백엔드 & 프론트 이중 락 완벽 치료 완료</div>
       </div>
       <div class="hosting-badge">
-        🌐 상태 경합 방지 Guard (iwinv 호스팅)
+        🌐 8초 이중 락 Guard (iwinv 호스팅)
       </div>
     </div>
 
@@ -343,7 +343,7 @@ require_once __DIR__ . '/config.php';
     let selectedUnit = 0;
     const heights = { 1: 100, 2: 100, 3: 100 };
 
-    // 🔥 클릭 시 백그라운드 3초 하트비트가 UI 상태를 흔들지 못하도록 락(Lock)을 거는 타임스탬프
+    // 🔥 클릭 시 8초간 하트비트가 UI 상태를 흔들지 못하도록 완전 락을 거는 타임스탬프
     const lockUntil = { 1: 0, 2: 0 };
 
     async function syncStatusFromDb() {
@@ -353,7 +353,7 @@ require_once __DIR__ . '/config.php';
         if (data.success) {
           const now = Date.now();
 
-          // 1번 책상등: 클릭 후 4초 동안은 하트비트 상태 덮어쓰기 금지! (깜빡임 완전 방지)
+          // 1번 책상등: 클릭 후 8초 동안은 백그라운드 하트비트 상태 덮어쓰기 완전 금지!
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
             document.getElementById('name-display-1').innerText = d1.name;
@@ -431,8 +431,8 @@ require_once __DIR__ . '/config.php';
       const targetState = !(num === 1 ? state1 : state2);
       if (num === 1) state1 = targetState; else state2 = targetState;
 
-      // 🔒 클릭 즉시 4초간 하트비트 덮어쓰기 금지 락 설정 (깜빡임 완전 멸균!)
-      lockUntil[num] = Date.now() + 4000;
+      // 🔒 클릭 즉시 8초간 하트비트 덮어쓰기 금지 락 설정 (깜빡임 완전 멸균!)
+      lockUntil[num] = Date.now() + 8000;
 
       // ⚡ 대시보드 UI 즉시 반응 (0.01초 반응속도)
       updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);

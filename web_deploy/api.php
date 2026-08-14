@@ -1,6 +1,6 @@
 <?php
 /**
- * IoT Dashboard REST API (PHP 8.4 + MariaDB + 완전 양방향 장치 이름 및 전원 동기화)
+ * IoT Dashboard REST API (PHP 8.4 + MariaDB + 완전 양방향 장치 이름 및 전원 동기화 + 8초 전원 락)
  */
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -22,6 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/config.php';
 $pdo = getDbConnection();
 $prefix = DB_PREFIX;
+
+// 최근 제어 시간 메모리 락 (8초)
+session_start();
+if (!isset($_SESSION['last_control'])) {
+    $_SESSION['last_control'] = [];
+}
 
 // Tuya Cloud Credentials
 define('TUYA_CLIENT_ID', 'qsdjvehhx7n8ptuth45v');
@@ -62,7 +68,6 @@ function getTuyaAccessToken() {
     return null;
 }
 
-// 📱 스마트폰 앱에서 조작한 실제 기기 상세 정보(실시간 이름 & 전원) 쿼리 함수
 function fetchTuyaRealDeviceInfo($deviceId) {
     $token = getTuyaAccessToken();
     if (!$token) return null;
@@ -164,32 +169,34 @@ try {
     if ($action === 'get_status') {
         $stmtDev = $pdo->query("SELECT * FROM `{$prefix}devices`");
         $devices = [];
+        $nowTime = time();
+
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
             $dbName = $row['device_name'];
             $dbState = (bool)$row['is_active'];
 
-            // 📱 스마트폰 스마트라이프 앱에서 수정한 기기 실시간 이름 및 전원 상태 쿼리!
-            $realInfo = fetchTuyaRealDeviceInfo($id);
-            if ($realInfo !== null) {
-                $needsUpdate = false;
+            // 🛡️ 최근 8초 이내에 대시보드에서 전원을 조작했다면, Tuya Cloud 지연 수신값으로 DB를 덮어쓰지 않고 대시보드 상태를 유지!
+            $lastCtrl = $_SESSION['last_control'][$id] ?? 0;
+            $isLocked = ($nowTime - $lastCtrl) < 8;
 
-                // 1. 앱에서 이름을 바꿨을 때 대시보드 & DB로 가져옴!
-                if ($realInfo['name'] !== null && $realInfo['name'] !== '' && $realInfo['name'] !== $dbName) {
-                    $dbName = $realInfo['name'];
-                    $needsUpdate = true;
-                }
-
-                // 2. 앱에서 전원을 바꿨을 때 대시보드 & DB로 가져옴!
-                if ($realInfo['state'] !== null && $realInfo['state'] !== $dbState) {
-                    $dbState = $realInfo['state'];
-                    $needsUpdate = true;
-                }
-
-                if ($needsUpdate) {
-                    $powerWatt = $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
-                    $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ?, `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-                    $stmtUp->execute([$dbName, $dbState ? 1 : 0, $powerWatt, $id]);
+            if (!$isLocked) {
+                $realInfo = fetchTuyaRealDeviceInfo($id);
+                if ($realInfo !== null) {
+                    $needsUpdate = false;
+                    if ($realInfo['name'] !== null && $realInfo['name'] !== '' && $realInfo['name'] !== $dbName) {
+                        $dbName = $realInfo['name'];
+                        $needsUpdate = true;
+                    }
+                    if ($realInfo['state'] !== null && $realInfo['state'] !== $dbState) {
+                        $dbState = $realInfo['state'];
+                        $needsUpdate = true;
+                    }
+                    if ($needsUpdate) {
+                        $powerWatt = $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
+                        $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ?, `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+                        $stmtUp->execute([$dbName, $dbState ? 1 : 0, $powerWatt, $id]);
+                    }
                 }
             }
 
@@ -242,11 +249,14 @@ try {
             $state = !((bool)$curr);
         }
 
-        $tuyaSuccess = sendTuyaCommand($id, $state);
+        // 🔒 대시보드 조작 시 8초간 backend 덮어쓰기 락 세팅!
+        $_SESSION['last_control'][$id] = time();
 
         $powerWatts = $state ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
         $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
         $stmtUp->execute([$state ? 1 : 0, $powerWatts, $id]);
+
+        $tuyaSuccess = sendTuyaCommand($id, $state);
 
         $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
         $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
