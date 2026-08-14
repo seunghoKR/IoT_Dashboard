@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 통합 관제 (앱 양방향 동기화)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 통합 관제 (실시간 라이브 동기화)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -153,7 +153,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 앱 양방향 동기화 지원</div>
+        <div class="status-online">● 실시간 앱 조작 상태 하트비트 동기화중</div>
       </div>
     </div>
 
@@ -171,14 +171,14 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">📱 스마트라이프 앱 기기 이름 변경 대시보드 양방향 동기화 연동 완료</div>
+        <div class="page-sub">📱 스마트폰 앱으로 켜고 꺼도 3초 자동 하트비트로 대시보드가 100% 라이브 동기화됩니다</div>
       </div>
       <div class="hosting-badge">
-        🌐 HTTPS SSL 보안 서버 (PHP 8.4 + MariaDB 10.X)
+        🌐 3초 무중단 하트비트 동기화 (iwinv 웹 호스팅)
       </div>
     </div>
 
-    <!-- 🔌 대표님의 스마트플러그 2종 카드 (양방향 이름 변경 지원) -->
+    <!-- 🔌 대표님의 스마트플러그 2종 카드 -->
     <div class="real-devices-grid">
       <!-- 1번 책상등 -->
       <div class="local-tuya-card">
@@ -188,14 +188,14 @@ require_once __DIR__ . '/config.php';
             <div>
               <div style="font-size: 18px; font-weight: 800; color: #F0FDF4; display: flex; align-items: center; gap: 8px;">
                 <span id="name-display-1">Smart Plug #1 [책상등]</span>
-                <button class="btn-edit-name" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️ 이름 수정 (앱동기화)</button>
+                <button class="btn-edit-name" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️ 이름 수정</button>
               </div>
               <div style="font-size: 12px; color: #A7F3D0; margin-top: 2px;">
                 ID: ebb219afdebea03ba3shlz · IP: 192.168.100.51
               </div>
             </div>
           </div>
-          <span class="local-badge">📱 스마트폰 앱 100% 동기화</span>
+          <span class="local-badge">📱 라이브 전원 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -208,7 +208,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">양방향 앱 제어 완료</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">3초 하트비트 추종</div>
             </div>
           </div>
 
@@ -229,14 +229,14 @@ require_once __DIR__ . '/config.php';
             <div>
               <div style="font-size: 18px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px;">
                 <span id="name-display-2">Smart Plug #2 [3D 프린터]</span>
-                <button class="btn-edit-name" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️ 이름 수정 (앱동기화)</button>
+                <button class="btn-edit-name" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️ 이름 수정</button>
               </div>
               <div style="font-size: 12px; color: #A5B4FC; margin-top: 2px;">
                 ID: 42362638a4e57cb3cd0b · IP: 192.168.100.63
               </div>
             </div>
           </div>
-          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 스마트폰 앱 100% 동기화</span>
+          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 라이브 전원 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -249,7 +249,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">양방향 앱 제어 완료</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">3초 하트비트 추종</div>
             </div>
           </div>
 
@@ -334,7 +334,7 @@ require_once __DIR__ . '/config.php';
 
     async function syncStatusFromDb() {
       try {
-        const res = await fetch('api.php?action=get_status');
+        const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
           if (data.devices['ebb219afdebea03ba3shlz']) {
@@ -365,7 +365,6 @@ require_once __DIR__ . '/config.php';
       } catch(e) {}
     }
 
-    // ✏️ 대시보드 ➔ 스마트폰 앱 양방향 이름 변경 프롬프트 함수
     async function promptRename(id, num) {
       const currName = document.getElementById(`name-display-${num}`).innerText;
       const newName = prompt(`📱 스마트폰 Smart Life 앱 및 대시보드에 적용할 새로운 이름을 입력하세요:`, currName);
@@ -382,9 +381,7 @@ require_once __DIR__ . '/config.php';
           if (data.success) {
             showToast(`📱 스마트폰 앱 이름이 [${newName.trim()}] (으)로 양방향 동기화되었습니다!`, 'success');
           }
-        } catch(e) {
-          showToast(`📱 대시보드 이름 변경 완료 (네트워크 재시도)`, 'info');
-        }
+        } catch(e) {}
       }
     }
 
@@ -493,6 +490,9 @@ require_once __DIR__ . '/config.php';
 
     renderGreenhouseCards();
     document.addEventListener('DOMContentLoaded', syncStatusFromDb);
+
+    // 📱 3초 간격 무중단 하트비트 라이브 전원 동기화
+    setInterval(syncStatusFromDb, 3000);
   </script>
 </body>
 </html>

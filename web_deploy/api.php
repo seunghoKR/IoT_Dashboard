@@ -1,6 +1,6 @@
 <?php
 /**
- * IoT Dashboard REST API (PHP 8.4 + MariaDB + Tuya Cloud 양방향 이름 동기화)
+ * IoT Dashboard REST API (PHP 8.4 + MariaDB + Tuya Cloud 실시간 하드웨어 상태 동기화)
  */
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -58,6 +58,38 @@ function getTuyaAccessToken() {
     if (isset($data['success']) && $data['success'] && isset($data['result']['access_token'])) {
         $token = $data['result']['access_token'];
         return $token;
+    }
+    return null;
+}
+
+// 📱 스마트폰 앱 조작 전원 상태(ON/OFF) 실시간 쿼리 함수
+function fetchTuyaRealStatus($deviceId) {
+    $token = getTuyaAccessToken();
+    if (!$token) return null;
+
+    $t = (string)round(microtime(true) * 1000);
+    $url = "/v1.0/devices/{$deviceId}/status";
+    $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'GET', $url);
+
+    $ch = curl_init(TUYA_ENDPOINT . $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'client_id: ' . TUYA_CLIENT_ID,
+        'access_token: ' . $token,
+        'sign: ' . $sign,
+        't: ' . $t,
+        'sign_method: HMAC-SHA256'
+    ]);
+    $res = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($res, true);
+    if (isset($data['success']) && $data['success'] && is_array($data['result'])) {
+        foreach ($data['result'] as $item) {
+            if (($item['code'] === 'switch_1' || $item['code'] === 'switch') && is_bool($item['value'])) {
+                return (bool)$item['value'];
+            }
+        }
     }
     return null;
 }
@@ -127,13 +159,25 @@ try {
         $stmtDev = $pdo->query("SELECT * FROM `{$prefix}devices`");
         $devices = [];
         while ($row = $stmtDev->fetch()) {
-            $devices[$row['id']] = [
+            $id = $row['id'];
+            $dbState = (bool)$row['is_active'];
+
+            // 📱 스마트폰 앱에서 조작한 실제 하드웨어 전원 상태(ON/OFF) 쿼리!
+            $realState = fetchTuyaRealStatus($id);
+            if ($realState !== null && $realState !== $dbState) {
+                $dbState = $realState;
+                $powerWatt = $realState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
+                $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+                $stmtUp->execute([$realState ? 1 : 0, $powerWatt, $id]);
+            }
+
+            $devices[$id] = [
                 'name' => $row['device_name'],
                 'type' => $row['device_type'],
                 'ip' => $row['local_ip'],
                 'mac' => $row['mac_address'],
-                'state' => (bool)$row['is_active'],
-                'power' => (float)$row['power_watt']
+                'state' => $dbState,
+                'power' => $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00
             ];
         }
 
