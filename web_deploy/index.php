@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (직관적 통합 파워 버튼)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (깜빡임 없는 매끄러운 전원 제어)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -72,7 +72,7 @@ require_once __DIR__ . '/config.php';
       color: #6EE7B7; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
     }
 
-    /* 🔥 대표님이 제안해주신 직관적 메인 파워 터치 버튼 영역 */
+    /* 🔥 대표님의 직관적 메인 파워 터치 버튼 영역 */
     .intuitive-power-box {
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 18px 24px;
@@ -174,7 +174,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 파워 버튼 직관 통합 완료</div>
+        <div class="status-online">● 상태 경합 방지 락 적용됨</div>
       </div>
     </div>
 
@@ -192,10 +192,10 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">✨ 대표님의 직관적 UI 아이디어 반영: 대형 네온 파워 버튼 하나로 온/오프 및 전력 100% 통합 제어</div>
+        <div class="page-sub">✨ 클릭 시 깜빡임 없이 매끄럽게 한번에 작동하는 스무스 파워 제어</div>
       </div>
       <div class="hosting-badge">
-        🌐 직관적 대형 파워 버튼 (iwinv 웹 호스팅)
+        🌐 상태 경합 방지 Guard (iwinv 호스팅)
       </div>
     </div>
 
@@ -219,7 +219,6 @@ require_once __DIR__ . '/config.php';
           <span class="local-badge">📱 100% 양방향 동기화</span>
         </div>
 
-        <!-- 💥 대표님의 직관적 통합 파워 터치 버튼 -->
         <div class="intuitive-power-box">
           <div class="power-touch-btn" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
@@ -256,7 +255,6 @@ require_once __DIR__ . '/config.php';
           <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 100% 양방향 동기화</span>
         </div>
 
-        <!-- 💥 대표님의 직관적 통합 파워 터치 버튼 -->
         <div class="intuitive-power-box">
           <div class="power-touch-btn" onclick="togglePlug('42362638a4e57cb3cd0b', 2)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
@@ -345,23 +343,36 @@ require_once __DIR__ . '/config.php';
     let selectedUnit = 0;
     const heights = { 1: 100, 2: 100, 3: 100 };
 
+    // 🔥 클릭 시 백그라운드 3초 하트비트가 UI 상태를 흔들지 못하도록 락(Lock)을 거는 타임스탬프
+    const lockUntil = { 1: 0, 2: 0 };
+
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
+          const now = Date.now();
+
+          // 1번 책상등: 클릭 후 4초 동안은 하트비트 상태 덮어쓰기 금지! (깜빡임 완전 방지)
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
-            state1 = d1.state;
             document.getElementById('name-display-1').innerText = d1.name;
-            updatePlugUI(1, state1, d1.power);
+            if (now > lockUntil[1]) {
+              state1 = d1.state;
+              updatePlugUI(1, state1, d1.power);
+            }
           }
+
+          // 2번 3D프린터
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
-            state2 = d2.state;
             document.getElementById('name-display-2').innerText = d2.name;
-            updatePlugUI(2, state2, d2.power);
+            if (now > lockUntil[2]) {
+              state2 = d2.state;
+              updatePlugUI(2, state2, d2.power);
+            }
           }
+
           if (data.blinds) {
             Object.keys(data.blinds).forEach(id => {
               const b = data.blinds[id];
@@ -420,6 +431,10 @@ require_once __DIR__ . '/config.php';
       const targetState = !(num === 1 ? state1 : state2);
       if (num === 1) state1 = targetState; else state2 = targetState;
 
+      // 🔒 클릭 즉시 4초간 하트비트 덮어쓰기 금지 락 설정 (깜빡임 완전 멸균!)
+      lockUntil[num] = Date.now() + 4000;
+
+      // ⚡ 대시보드 UI 즉시 반응 (0.01초 반응속도)
       updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
 
       try {
