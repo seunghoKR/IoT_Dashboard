@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (기기 이름 100% 양방향 실시간 동기화)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (직관적 통합 파워 버튼)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -54,7 +54,7 @@ require_once __DIR__ . '/config.php';
       padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px;
     }
 
-    /* 🔌 스마트플러그 2종 그리드 */
+    /* 🔌 직관적 대형 파워 버튼 스마트플러그 2종 그리드 */
     .real-devices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .local-tuya-card {
       background: linear-gradient(135deg, #064E3B 0%, #022C22 100%);
@@ -71,24 +71,45 @@ require_once __DIR__ . '/config.php';
       background: rgba(16, 185, 129, 0.25); border: 1.5px solid #34D399;
       color: #6EE7B7; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
     }
-    .local-illustration-area {
+
+    /* 🔥 대표님이 제안해주신 직관적 메인 파워 터치 버튼 영역 */
+    .intuitive-power-box {
       display: flex; align-items: center; justify-content: space-between;
-      background: rgba(255, 255, 255, 0.07); border-radius: 14px; padding: 18px 22px;
-      backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.12); z-index: 2;
+      background: rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 18px 24px;
+      backdrop-filter: blur(10px); border: 1.5px solid rgba(255, 255, 255, 0.15); z-index: 2;
     }
-    .local-ring-container { position: relative; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; }
+
+    .power-touch-btn {
+      display: flex; align-items: center; gap: 20px; cursor: pointer; user-select: none;
+      padding: 6px 12px; border-radius: 14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .power-touch-btn:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
+    .power-touch-btn:active { transform: scale(0.97); }
+
+    .local-ring-container { position: relative; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .local-neon-ring {
       position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); transition: all 0.4s ease;
     }
     .local-neon-ring.active {
-      border-color: #34D399; box-shadow: 0 0 22px #10B981, inset 0 0 14px rgba(16, 185, 129, 0.5);
+      border-color: #34D399; box-shadow: 0 0 24px #10B981, inset 0 0 16px rgba(16, 185, 129, 0.6);
     }
-    .local-power-val { font-size: 30px; font-weight: 900; color: #F0FDF4; display: flex; align-items: baseline; gap: 6px; }
+    .plug2 .local-neon-ring.active {
+      border-color: #818CF8; box-shadow: 0 0 24px #6366F1, inset 0 0 16px rgba(99, 102, 241, 0.6);
+    }
+
+    .local-power-val { font-size: 32px; font-weight: 900; color: #F0FDF4; display: flex; align-items: baseline; gap: 6px; }
     .local-power-val span { font-size: 14px; color: #A7F3D0; font-weight: 600; }
-    .toggle-switch { position: relative; width: 60px; height: 32px; background: #374151; border-radius: 20px; cursor: pointer; transition: background 0.3s; }
-    .toggle-switch.active { background: #10B981; }
-    .toggle-switch-knob { position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; background: #FFFFFF; border-radius: 50%; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    .toggle-switch.active .toggle-switch-knob { transform: translateX(28px); }
+
+    .power-status-tag {
+      font-size: 14px; font-weight: 800; padding: 6px 16px; border-radius: 20px; background: rgba(255,255,255,0.1);
+      color: #94A3B8; border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s;
+    }
+    .power-status-tag.active {
+      background: #10B981; color: #FFFFFF; border-color: #34D399; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    }
+    .plug2 .power-status-tag.active {
+      background: #6366F1; color: #FFFFFF; border-color: #818CF8; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
 
     .btn-edit-name {
       background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white;
@@ -153,7 +174,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 기기 이름 100% 양방향 동기화</div>
+        <div class="status-online">● 파워 버튼 직관 통합 완료</div>
       </div>
     </div>
 
@@ -171,14 +192,14 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">📱 스마트폰 앱에서 이름을 바꿔도 ➔ 대시보드가 따라오고, 대시보드에서 바꿔도 ➔ 앱이 따라옵니다!</div>
+        <div class="page-sub">✨ 대표님의 직관적 UI 아이디어 반영: 대형 네온 파워 버튼 하나로 온/오프 및 전력 100% 통합 제어</div>
       </div>
       <div class="hosting-badge">
-        🌐 기기 이름 100% 양방향 동기화 (iwinv 호스팅)
+        🌐 직관적 대형 파워 버튼 (iwinv 웹 호스팅)
       </div>
     </div>
 
-    <!-- 🔌 대표님의 스마트플러그 2종 카드 -->
+    <!-- 🔌 대표님의 직관적 파워 버튼 통합 스마트플러그 2종 카드 -->
     <div class="real-devices-grid">
       <!-- 1번 책상등 -->
       <div class="local-tuya-card">
@@ -198,26 +219,22 @@ require_once __DIR__ . '/config.php';
           <span class="local-badge">📱 100% 양방향 동기화</span>
         </div>
 
-        <div class="local-illustration-area">
-          <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- 💥 대표님의 직관적 통합 파워 터치 버튼 -->
+        <div class="intuitive-power-box">
+          <div class="power-touch-btn" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
               <div class="local-neon-ring" id="local-ring-1"></div>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
                 <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
               </svg>
             </div>
             <div>
               <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">앱 ⇄ 대시보드 양방향</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">👈 파워 버튼 터치 시 전원 원격 작동</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-1">OFF</div>
-            <div class="toggle-switch" id="toggle-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
-              <div class="toggle-switch-knob"></div>
-            </div>
-          </div>
+          <div class="power-status-tag" id="status-tag-1">OFF (꺼짐)</div>
         </div>
       </div>
 
@@ -239,26 +256,22 @@ require_once __DIR__ . '/config.php';
           <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 100% 양방향 동기화</span>
         </div>
 
-        <div class="local-illustration-area">
-          <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- 💥 대표님의 직관적 통합 파워 터치 버튼 -->
+        <div class="intuitive-power-box">
+          <div class="power-touch-btn" onclick="togglePlug('42362638a4e57cb3cd0b', 2)" title="클릭하여 켜기/끄기">
             <div class="local-ring-container">
               <div class="local-neon-ring" id="local-ring-2"></div>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
                 <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
               </svg>
             </div>
             <div>
               <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">앱 ⇄ 대시보드 양방향</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">👈 파워 버튼 터치 시 전원 원격 작동</div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 13px; font-weight: 800; color: #94A3B8;" id="label-2">OFF</div>
-            <div class="toggle-switch" id="toggle-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
-              <div class="toggle-switch-knob"></div>
-            </div>
-          </div>
+          <div class="power-status-tag" id="status-tag-2">OFF (꺼짐)</div>
         </div>
       </div>
     </div>
@@ -386,22 +399,19 @@ require_once __DIR__ . '/config.php';
     }
 
     function updatePlugUI(num, state, powerVal) {
-      const toggle = document.getElementById(`toggle-${num}`);
       const ring = document.getElementById(`local-ring-${num}`);
-      const label = document.getElementById(`label-${num}`);
       const power = document.getElementById(`power-${num}`);
+      const tag = document.getElementById(`status-tag-${num}`);
 
       if (state) {
         ring.classList.add('active');
-        toggle.classList.add('active');
-        label.innerText = 'ON (켜짐)';
-        label.style.color = (num === 1) ? '#34D399' : '#818CF8';
+        tag.classList.add('active');
+        tag.innerText = 'ON (켜짐)';
         power.innerHTML = `${powerVal > 0 ? powerVal : (num===1?52.3:44.8)} <span>W</span>`;
       } else {
         ring.classList.remove('active');
-        toggle.classList.remove('active');
-        label.innerText = 'OFF (꺼짐)';
-        label.style.color = '#94A3B8';
+        tag.classList.remove('active');
+        tag.innerText = 'OFF (꺼짐)';
         power.innerHTML = '0.0 <span>W</span>';
       }
     }
@@ -418,7 +428,7 @@ require_once __DIR__ . '/config.php';
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: id, state: targetState })
         });
-        showToast(`🔌 전원이 ${targetState ? 'ON' : 'OFF'} 상태로 원격 제어되었습니다 (MariaDB 저장 완료)`, 'success');
+        showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 원격 제어되었습니다`, 'success');
       } catch(e) {}
     }
 
@@ -490,8 +500,6 @@ require_once __DIR__ . '/config.php';
 
     renderGreenhouseCards();
     document.addEventListener('DOMContentLoaded', syncStatusFromDb);
-
-    // 📱 3초 간격 기기 이름 및 전원 완전 양방향 하트비트 동기화
     setInterval(syncStatusFromDb, 3000);
   </script>
 </body>
