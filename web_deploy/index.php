@@ -506,8 +506,17 @@ require_once __DIR__ . '/config.php';
       to { transform: rotate(360deg); }
     }
     .fan-spinning {
+      transform-box: fill-box;
       transform-origin: center;
-      animation: fanRotate 0.9s infinite linear;
+      animation: fanRotate 0.5s infinite linear;
+    }
+    @keyframes windFlow {
+      0% { opacity: 0.1; transform: translateY(0); }
+      50% { opacity: 0.85; }
+      100% { opacity: 0.1; transform: translateY(14px); }
+    }
+    .wind-wave {
+      animation: windFlow 0.9s infinite ease-in-out;
     }
 
     /* 🎛️ 우측 1/3: 고감도 원터치 조작 패널 영역 */
@@ -1042,16 +1051,45 @@ require_once __DIR__ . '/config.php';
               <line x1="280" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
               <line x1="520" y1="160" x2="400" y2="90" stroke="#334155" stroke-width="2"/>
 
+              <!-- 💨 3. 하우스 천정 중앙 고성능 순환 송풍기 (유동팬) -->
+              <g id="svg-center-fan-unit" transform="translate(400, 115)">
+                <!-- 천정 고정 마운트 브라켓 -->
+                <line x1="0" y1="-45" x2="0" y2="-25" stroke="#94A3B8" stroke-width="4"/>
+                <!-- 원형 송풍기 하우징 케이스 -->
+                <circle cx="0" cy="0" r="28" fill="#15233C" stroke="#64748B" stroke-width="3"/>
+                <circle cx="0" cy="0" r="25" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="3,3"/>
+                <!-- 4엽 고성능 회전 팬 날개 (작동 시 고속 회전) -->
+                <g id="svg-fan-blades">
+                  <!-- 날개 1 (상) -->
+                  <path d="M 0 0 C -6 -12 -12 -18 0 -22 C 12 -18 6 -12 0 0 Z" fill="#38BDF8"/>
+                  <!-- 날개 2 (우) -->
+                  <path d="M 0 0 C 12 -6 18 -12 22 0 C 18 12 12 6 0 0 Z" fill="#38BDF8"/>
+                  <!-- 날개 3 (하) -->
+                  <path d="M 0 0 C 6 12 12 18 0 22 C -12 18 -6 12 0 0 Z" fill="#38BDF8"/>
+                  <!-- 날개 4 (좌) -->
+                  <path d="M 0 0 C -12 6 -18 12 -22 0 C -18 -12 -12 -6 0 0 Z" fill="#38BDF8"/>
+                  <!-- 중앙 모터 로터 캡 & 작동 LED -->
+                  <circle cx="0" cy="0" r="7" fill="#1E293B" stroke="#06B6D4" stroke-width="2"/>
+                  <circle cx="0" cy="0" r="3.5" fill="#10B981" id="svg-fan-led"/>
+                </g>
+                <!-- 송풍 가동 시 하방 순환 바람결 파동 효과 -->
+                <g id="svg-fan-wind" style="display:none;" opacity="0.75">
+                  <path class="wind-wave" d="M -20 32 Q 0 45, 20 32" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
+                  <path class="wind-wave" d="M -30 46 Q 0 62, 30 46" fill="none" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" style="animation-delay:0.3s;"/>
+                  <path class="wind-wave" d="M -40 60 Q 0 80, 40 60" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" style="animation-delay:0.6s;"/>
+                </g>
+              </g>
+
               <!-- 📡 트러스 상단에 매달린 스마트 온·습도 센서 노드 일러스트 -->
-              <g transform="translate(400, 160)">
-                <line x1="0" y1="0" x2="0" y2="28" stroke="#94A3B8" stroke-width="2"/>
-                <rect x="-14" y="28" width="28" height="42" rx="6" fill="#F8FAFC" stroke="#06B6D4" stroke-width="2"/>
+              <g transform="translate(400, 168)">
+                <line x1="0" y1="0" x2="0" y2="24" stroke="#94A3B8" stroke-width="2"/>
+                <rect x="-14" y="24" width="28" height="40" rx="6" fill="#F8FAFC" stroke="#06B6D4" stroke-width="2"/>
                 <!-- 센서 환기 슬릿 및 LED -->
-                <circle cx="0" cy="40" r="3" fill="#10B981"/>
+                <circle cx="0" cy="34" r="3" fill="#10B981"/>
+                <line x1="-8" y1="46" x2="8" y2="46" stroke="#64748B" stroke-width="2"/>
                 <line x1="-8" y1="52" x2="8" y2="52" stroke="#64748B" stroke-width="2"/>
-                <line x1="-8" y1="58" x2="8" y2="58" stroke="#64748B" stroke-width="2"/>
                 <!-- RF 전파 링 -->
-                <circle cx="0" cy="40" r="16" fill="none" stroke="#38BDF8" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
+                <circle cx="0" cy="34" r="15" fill="none" stroke="#38BDF8" stroke-width="1.5" opacity="0.4" stroke-dasharray="4,3"/>
               </g>
 
               <!-- ☀️ 1. 상부 차광막/보온스크린 레이어 -->
@@ -1066,17 +1104,6 @@ require_once __DIR__ . '/config.php';
               <path id="svg-right-vinyl" d="M 700 380 L 700 240 Q 700 130, 540 110" 
                     fill="none" stroke="url(#vinylGrad)" stroke-width="12" stroke-linecap="round"/>
               <circle id="svg-right-roller" cx="700" cy="380" r="10" fill="#38BDF8" stroke="#FFFFFF" stroke-width="2.5"/>
-
-              <!-- 💨 3. 상부 환풍 유동팬 -->
-              <g id="svg-fan-group" transform="translate(300, 130)">
-                <circle cx="0" cy="0" r="20" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
-                <g id="svg-fan-blades">
-                  <path d="M 0 0 L -10 -10 Q 0 -15 10 -10 Z" fill="#94A3B8"/>
-                  <path d="M 0 0 L 10 10 Q 15 0 10 -10 Z" fill="#94A3B8"/>
-                  <path d="M 0 0 L -10 10 Q 0 15 10 10 Z" fill="#94A3B8"/>
-                </g>
-                <circle cx="0" cy="0" r="5" fill="#10B981"/>
-              </g>
 
               <!-- 🍓 4. 고설 딸기 재배 베드 & 관수 라인 -->
               <line x1="220" y1="380" x2="220" y2="300" stroke="#64748B" stroke-width="5"/>
@@ -1786,11 +1813,20 @@ require_once __DIR__ . '/config.php';
         if (lblPump) lblPump.innerText = '양수기: 대기 중';
       }
 
-      // 4. 환풍팬 회전 애니메이션
+      // 4. 환풍 유동팬 회전 애니메이션 & 순환 바람결 효과
       const fanGroup = document.getElementById('svg-fan-blades');
+      const fanWind = document.getElementById('svg-fan-wind');
+      const fanLed = document.getElementById('svg-fan-led');
       if (fanGroup) {
-        if (isVentFanActive) fanGroup.classList.add('fan-spinning');
-        else fanGroup.classList.remove('fan-spinning');
+        if (isVentFanActive) {
+          fanGroup.classList.add('fan-spinning');
+          if (fanWind) fanWind.style.display = 'block';
+          if (fanLed) fanLed.setAttribute('fill', '#10B981');
+        } else {
+          fanGroup.classList.remove('fan-spinning');
+          if (fanWind) fanWind.style.display = 'none';
+          if (fanLed) fanLed.setAttribute('fill', '#64748B');
+        }
       }
 
       // 5. LED 보광등 빔
