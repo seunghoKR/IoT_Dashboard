@@ -6,7 +6,7 @@ require_once __DIR__ . '/config.php';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 통합 관제 (실시간 라이브 동기화)</title>
+  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (기기 이름 100% 양방향 실시간 동기화)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -153,7 +153,7 @@ require_once __DIR__ . '/config.php';
       <span class="logo-icon">🍓</span>
       <div>
         <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 실시간 앱 조작 상태 하트비트 동기화중</div>
+        <div class="status-online">● 기기 이름 100% 양방향 동기화</div>
       </div>
     </div>
 
@@ -171,10 +171,10 @@ require_once __DIR__ . '/config.php';
     <div class="header-area">
       <div>
         <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">📱 스마트폰 앱으로 켜고 꺼도 3초 자동 하트비트로 대시보드가 100% 라이브 동기화됩니다</div>
+        <div class="page-sub">📱 스마트폰 앱에서 이름을 바꿔도 ➔ 대시보드가 따라오고, 대시보드에서 바꿔도 ➔ 앱이 따라옵니다!</div>
       </div>
       <div class="hosting-badge">
-        🌐 3초 무중단 하트비트 동기화 (iwinv 웹 호스팅)
+        🌐 기기 이름 100% 양방향 동기화 (iwinv 호스팅)
       </div>
     </div>
 
@@ -195,7 +195,7 @@ require_once __DIR__ . '/config.php';
               </div>
             </div>
           </div>
-          <span class="local-badge">📱 라이브 전원 동기화</span>
+          <span class="local-badge">📱 100% 양방향 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -208,7 +208,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">3초 하트비트 추종</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">앱 ⇄ 대시보드 양방향</div>
             </div>
           </div>
 
@@ -236,7 +236,7 @@ require_once __DIR__ . '/config.php';
               </div>
             </div>
           </div>
-          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 라이브 전원 동기화</span>
+          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 100% 양방향 동기화</span>
         </div>
 
         <div class="local-illustration-area">
@@ -249,7 +249,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div>
               <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">3초 하트비트 추종</div>
+              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;">앱 ⇄ 대시보드 양방향</div>
             </div>
           </div>
 
@@ -491,7 +491,7 @@ require_once __DIR__ . '/config.php';
     renderGreenhouseCards();
     document.addEventListener('DOMContentLoaded', syncStatusFromDb);
 
-    // 📱 3초 간격 무중단 하트비트 라이브 전원 동기화
+    // 📱 3초 간격 기기 이름 및 전원 완전 양방향 하트비트 동기화
     setInterval(syncStatusFromDb, 3000);
   </script>
 </body>

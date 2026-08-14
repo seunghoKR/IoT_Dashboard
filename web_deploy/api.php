@@ -1,6 +1,6 @@
 <?php
 /**
- * IoT Dashboard REST API (PHP 8.4 + MariaDB + Tuya Cloud 실시간 하드웨어 상태 동기화)
+ * IoT Dashboard REST API (PHP 8.4 + MariaDB + 완전 양방향 장치 이름 및 전원 동기화)
  */
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Cache-Control: post-check=0, pre-check=0', false);
@@ -62,13 +62,13 @@ function getTuyaAccessToken() {
     return null;
 }
 
-// 📱 스마트폰 앱 조작 전원 상태(ON/OFF) 실시간 쿼리 함수
-function fetchTuyaRealStatus($deviceId) {
+// 📱 스마트폰 앱에서 조작한 실제 기기 상세 정보(실시간 이름 & 전원) 쿼리 함수
+function fetchTuyaRealDeviceInfo($deviceId) {
     $token = getTuyaAccessToken();
     if (!$token) return null;
 
     $t = (string)round(microtime(true) * 1000);
-    $url = "/v1.0/devices/{$deviceId}/status";
+    $url = "/v1.0/devices/{$deviceId}";
     $sign = getTuyaSign(TUYA_CLIENT_ID, TUYA_SECRET, $t, $token, 'GET', $url);
 
     $ch = curl_init(TUYA_ENDPOINT . $url);
@@ -85,11 +85,17 @@ function fetchTuyaRealStatus($deviceId) {
 
     $data = json_decode($res, true);
     if (isset($data['success']) && $data['success'] && is_array($data['result'])) {
-        foreach ($data['result'] as $item) {
-            if (($item['code'] === 'switch_1' || $item['code'] === 'switch') && is_bool($item['value'])) {
-                return (bool)$item['value'];
+        $resObj = $data['result'];
+        $name = $resObj['name'] ?? null;
+        $state = null;
+        if (isset($resObj['status']) && is_array($resObj['status'])) {
+            foreach ($resObj['status'] as $item) {
+                if (($item['code'] === 'switch_1' || $item['code'] === 'switch') && is_bool($item['value'])) {
+                    $state = (bool)$item['value'];
+                }
             }
         }
+        return ['name' => $name, 'state' => $state];
     }
     return null;
 }
@@ -160,19 +166,35 @@ try {
         $devices = [];
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
+            $dbName = $row['device_name'];
             $dbState = (bool)$row['is_active'];
 
-            // 📱 스마트폰 앱에서 조작한 실제 하드웨어 전원 상태(ON/OFF) 쿼리!
-            $realState = fetchTuyaRealStatus($id);
-            if ($realState !== null && $realState !== $dbState) {
-                $dbState = $realState;
-                $powerWatt = $realState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
-                $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
-                $stmtUp->execute([$realState ? 1 : 0, $powerWatt, $id]);
+            // 📱 스마트폰 스마트라이프 앱에서 수정한 기기 실시간 이름 및 전원 상태 쿼리!
+            $realInfo = fetchTuyaRealDeviceInfo($id);
+            if ($realInfo !== null) {
+                $needsUpdate = false;
+
+                // 1. 앱에서 이름을 바꿨을 때 대시보드 & DB로 가져옴!
+                if ($realInfo['name'] !== null && $realInfo['name'] !== '' && $realInfo['name'] !== $dbName) {
+                    $dbName = $realInfo['name'];
+                    $needsUpdate = true;
+                }
+
+                // 2. 앱에서 전원을 바꿨을 때 대시보드 & DB로 가져옴!
+                if ($realInfo['state'] !== null && $realInfo['state'] !== $dbState) {
+                    $dbState = $realInfo['state'];
+                    $needsUpdate = true;
+                }
+
+                if ($needsUpdate) {
+                    $powerWatt = $dbState ? ($id === 'ebb219afdebea03ba3shlz' ? 52.30 : 44.80) : 0.00;
+                    $stmtUp = $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ?, `is_active` = ?, `power_watt` = ? WHERE `id` = ?");
+                    $stmtUp->execute([$dbName, $dbState ? 1 : 0, $powerWatt, $id]);
+                }
             }
 
             $devices[$id] = [
-                'name' => $row['device_name'],
+                'name' => $dbName,
                 'type' => $row['device_type'],
                 'ip' => $row['local_ip'],
                 'mac' => $row['mac_address'],
