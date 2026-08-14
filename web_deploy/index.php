@@ -5,530 +5,685 @@ require_once __DIR__ . '/config.php';
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍓 설향 딸기 스마트팜 & 커피마실 카페 (지능형 딜레이 멸균 파워 제어)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🍓 누리오 스마트팜 (Nurio Smart Farm) - 통합 IoT 관제 시스템</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
-      --bg-base: #F4F7F0;
-      --bg-card: #FFFFFF;
-      --primary: #2D7D46;
-      --primary-hover: #236038;
-      --primary-light: #E8F5EC;
-      --text-primary: #1A2E1A;
-      --text-secondary: #4A6741;
-      --text-muted: #8EA888;
-      --border: #D4E6D0;
-      --warning: #E65100;
-      --danger: #C62828;
-      --success: #388E3C;
+      --bg-base: #0F172A;
+      --bg-card: #1E293B;
+      --bg-card-sub: #162032;
+      --primary: #10B981;
+      --primary-light: rgba(16, 185, 129, 0.15);
+      --primary-border: #059669;
+      --cyan: #06B6D4;
+      --indigo: #6366F1;
+      --amber: #F59E0B;
+      --rose: #F43F5E;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border: rgba(255, 255, 255, 0.1);
+      --border-focus: rgba(16, 185, 129, 0.5);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: "Pretendard", sans-serif; background-color: var(--bg-base); color: var(--text-primary); display: flex; min-height: 100vh; }
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 📱 상단 글로벌 내비게이션 바 (태블릿/모바일 최적화) */
+    header {
+      background: #1E293B;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .btn-hamburger {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: white;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: background 0.2s;
+    }
+    .btn-hamburger:hover { background: rgba(255, 255, 255, 0.16); }
+    .brand-title-box { display: flex; align-items: center; gap: 10px; }
+    .brand-logo { font-size: 26px; }
+    .brand-name { font-size: 18px; font-weight: 800; color: #F8FAFC; letter-spacing: -0.5px; }
+    .brand-sub { font-size: 11px; color: var(--primary); font-weight: 700; }
+
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .status-pill {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid #10B981;
+      color: #6EE7B7;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-action-header {
+      background: #10B981;
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-action-header:hover { background: #059669; }
+    .btn-action-header:active { transform: scale(0.97); }
+
+    /* 📂 서랍형 오버레이 사이드바 (태블릿에서는 닫혀있다가 열림) */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
     aside {
-      width: 260px; background: var(--bg-card); border-right: 1px solid var(--border);
-      padding: 24px 18px; display: flex; flex-direction: column; gap: 24px; position: sticky; top: 0; height: 100vh; flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 280px;
+      background: #162032;
+      border-right: 1px solid var(--border);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 210;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 10px 0 25px rgba(0,0,0,0.5);
     }
-    .logo-area { display: flex; align-items: center; gap: 12px; }
-    .logo-icon { font-size: 34px; }
-    .farm-title { font-size: 16px; font-weight: 800; color: #1E293B; }
-    .status-online { font-size: 11px; color: var(--success); font-weight: 700; display: flex; align-items: center; gap: 4px; }
+    aside.open { transform: translateX(0); }
 
-    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 12px 14px;
-      border-radius: 10px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 14px;
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-radius: 10px; color: var(--text-secondary); font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 14px;
     }
-    .nav-item:hover { background: var(--bg-base); color: var(--text-primary); }
-    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 700; box-shadow: inset 0 0 0 1px var(--primary); }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.06); color: white; }
+    .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 800; border: 1px solid var(--primary-border); }
 
-    main { flex: 1; padding: 28px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; }
-    .header-area { display: flex; justify-content: space-between; align-items: flex-end; }
-    .page-title { font-size: 26px; font-weight: 800; color: #0F172A; }
-    .page-sub { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-
-    .hosting-badge {
-      background: #EFF6FF; border: 1.5px solid #3B82F6; color: #1D4ED8; font-size: 12px; font-weight: 800;
-      padding: 6px 14px; border-radius: 20px; display: flex; align-items: center; gap: 6px;
+    /* 📊 메인 풀스크린 대시보드 뷰 (태블릿PC 100% 장치 집중) */
+    main {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    /* 🔌 직관적 대형 파워 버튼 스마트플러그 2종 그리드 */
-    .real-devices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .local-tuya-card {
-      background: linear-gradient(135deg, #064E3B 0%, #022C22 100%);
-      color: #FFFFFF; border-radius: 18px; padding: 24px;
-      box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.4);
-      display: flex; flex-direction: column; gap: 18px;
-      position: relative; overflow: hidden; border: 1.5px solid #10B981;
+    .section-title-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
     }
-    .local-tuya-card.plug2 {
-      background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%); border-color: #6366F1;
-      box-shadow: 0 10px 25px -5px rgba(49, 46, 129, 0.4);
+    .section-title { font-size: 18px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px; }
+    .section-sub { font-size: 12px; color: var(--text-secondary); }
+
+    /* 🎛️ 실물 투야 하드웨어 그리드 */
+    .physical-devices-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
     }
-    .local-tuya-card.switch4ch {
-      background: linear-gradient(135deg, #0F172A 0%, #1E293B 60%, #083344 100%);
-      border-color: #06B6D4;
-      box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.25);
+    @media (max-width: 1024px) {
+      .physical-devices-grid { grid-template-columns: 1fr; }
+    }
+
+    .hardware-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .hardware-card.switch4ch {
       grid-column: 1 / -1;
-    }
-    .local-card-header { display: flex; justify-content: space-between; align-items: center; z-index: 2; }
-    .local-badge {
-      background: rgba(16, 185, 129, 0.25); border: 1.5px solid #34D399;
-      color: #6EE7B7; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;
+      border-color: rgba(6, 182, 212, 0.4);
+      background: linear-gradient(135deg, #162032 0%, #0F172A 100%);
     }
 
-    /* 🔥 대표님의 직관적 메인 파워 터치 버튼 영역 */
-    .intuitive-power-box {
+    .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
+    .device-title-box { display: flex; align-items: center; gap: 12px; }
+    .device-icon { font-size: 28px; }
+    .device-name-text { font-size: 17px; font-weight: 800; color: #F8FAFC; }
+    .device-id-text { font-size: 11px; color: var(--text-muted); }
+
+    .btn-edit-sm {
+      background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); color: white;
+      border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer;
+    }
+    .btn-edit-sm:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* 4채널 멀티 릴레이 컨트롤 박스 */
+    .multi-ch-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 800px) {
+      .multi-ch-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .ch-unit-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .ch-unit-box:hover { border-color: rgba(6, 182, 212, 0.5); }
+    .ch-unit-header { display: flex; justify-content: space-between; align-items: center; }
+    .ch-badge { background: #0891B2; color: #ECFEFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+    .ch-name { font-size: 12px; font-weight: 700; color: #F1F5F9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .ch-touch-pad {
       display: flex; align-items: center; justify-content: space-between;
-      background: rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 18px 24px;
-      backdrop-filter: blur(10px); border: 1.5px solid rgba(255, 255, 255, 0.15); z-index: 2;
+      background: rgba(255, 255, 255, 0.04); border-radius: 10px; padding: 10px 12px; cursor: pointer; user-select: none;
+      transition: all 0.2s;
     }
+    .ch-touch-pad:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
+    .ch-touch-pad:active { transform: scale(0.96); }
 
-    .power-touch-btn {
-      display: flex; align-items: center; gap: 20px; cursor: pointer; user-select: none;
-      padding: 6px 12px; border-radius: 14px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    .neon-ring-sm {
+      position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
     }
-    .power-touch-btn:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.02); }
-    .power-touch-btn:active { transform: scale(0.97); }
-    .power-touch-btn.disabled { pointer-events: none; opacity: 0.7; }
-
-    .local-ring-container { position: relative; width: 68px; height: 68px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .local-neon-ring {
-      position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); transition: all 0.4s ease;
+    .neon-ring-sm .ring {
+      position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;
     }
-    .local-neon-ring.active {
-      border-color: #34D399; box-shadow: 0 0 24px #10B981, inset 0 0 16px rgba(16, 185, 129, 0.6);
+    .neon-ring-sm.active .ring {
+      border-color: #22D3EE; box-shadow: 0 0 16px #06B6D4, inset 0 0 10px rgba(6, 182, 212, 0.6);
     }
-    .plug2 .local-neon-ring.active {
-      border-color: #818CF8; box-shadow: 0 0 24px #6366F1, inset 0 0 16px rgba(99, 102, 241, 0.6);
+    .ch-status-pill {
+      font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.08);
+      color: #94A3B8; border: 1px solid rgba(255,255,255,0.1);
     }
-    .ch-neon-ring.active {
-      border-color: #22D3EE; box-shadow: 0 0 20px #06B6D4, inset 0 0 12px rgba(6, 182, 212, 0.7);
-    }
-
-    /* 4채널 서브 그리드 스타일 */
-    .channels-4-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; z-index: 2;
-    }
-    @media (max-width: 900px) {
-      .channels-4-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .channel-box {
-      background: rgba(255, 255, 255, 0.05); border: 1.5px solid rgba(255, 255, 255, 0.12);
-      border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 12px;
-      transition: all 0.2s ease;
-    }
-    .channel-box:hover {
-      background: rgba(255, 255, 255, 0.08); border-color: rgba(6, 182, 212, 0.4);
-    }
-    .channel-box-header {
-      display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 8px;
-    }
-    .channel-badge {
-      background: #0891B2; color: #ECFEFF; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px;
-    }
-    .ch-power-touch {
-      display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;
-      background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 10px 12px; transition: all 0.2s;
-    }
-    .ch-power-touch:hover { background: rgba(0, 0, 0, 0.35); transform: scale(1.02); }
-    .ch-power-touch:active { transform: scale(0.96); }
-    .ch-ring-container { position: relative; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .ch-neon-ring {
-      position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid rgba(255, 255, 255, 0.2); transition: all 0.3s ease;
-    }
-    .ch-status-tag {
-      font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 12px; background: rgba(255,255,255,0.1);
-      color: #94A3B8; border: 1px solid rgba(255,255,255,0.15); transition: all 0.2s;
-    }
-    .ch-status-tag.active {
+    .ch-status-pill.active {
       background: #0891B2; color: #FFFFFF; border-color: #22D3EE; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.5);
     }
-    .master-btn-group {
-      display: flex; gap: 8px;
-    }
-    .btn-master {
-      background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); color: white;
-      border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-master:hover { background: rgba(255, 255, 255, 0.22); }
-    .btn-master.on { background: #0891B2; border-color: #22D3EE; }
-    .btn-master.on:hover { background: #0E7490; }
 
-    /* 로딩 중 펄스 애니메이션 */
-    @keyframes pulseGlow {
-      0% { opacity: 0.5; transform: scale(0.98); }
-      50% { opacity: 1; transform: scale(1.04); }
-      100% { opacity: 0.5; transform: scale(0.98); }
+    /* 플러그 카드 파워 터치 박스 */
+    .plug-touch-box {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(0, 0, 0, 0.25); border-radius: 12px; padding: 14px 18px; cursor: pointer; user-select: none;
+      border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.2s;
     }
-    .power-touch-btn.pending .local-ring-container,
-    .ch-power-touch.pending .ch-ring-container {
-      animation: pulseGlow 0.8s infinite ease-in-out;
+    .plug-touch-box:hover { background: rgba(0, 0, 0, 0.4); transform: scale(1.01); }
+    .plug-touch-box:active { transform: scale(0.98); }
+    .neon-ring-lg {
+      position: relative; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
     }
-
-    .local-power-val { font-size: 32px; font-weight: 900; color: #F0FDF4; display: flex; align-items: baseline; gap: 6px; }
-    .local-power-val span { font-size: 14px; color: #A7F3D0; font-weight: 600; }
-
-    .power-status-tag {
-      font-size: 14px; font-weight: 800; padding: 6px 16px; border-radius: 20px; background: rgba(255,255,255,0.1);
-      color: #94A3B8; border: 1px solid rgba(255,255,255,0.2); transition: all 0.3s;
+    .neon-ring-lg .ring {
+      position: absolute; inset: 0; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.2); transition: all 0.3s;
     }
-    .power-status-tag.active {
-      background: #10B981; color: #FFFFFF; border-color: #34D399; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+    .neon-ring-lg.active .ring {
+      border-color: #34D399; box-shadow: 0 0 20px #10B981, inset 0 0 12px rgba(16, 185, 129, 0.6);
     }
-    .plug2 .power-status-tag.active {
-      background: #6366F1; color: #FFFFFF; border-color: #818CF8; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    .plug2 .neon-ring-lg.active .ring {
+      border-color: #818CF8; box-shadow: 0 0 20px #6366F1, inset 0 0 12px rgba(99, 102, 241, 0.6);
     }
 
-    .btn-edit-name {
-      background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white;
-      border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.2s;
-    }
-    .btn-edit-name:hover { background: rgba(255, 255, 255, 0.3); }
+    /* 로딩 애니메이션 */
+    @keyframes pulseGlow { 0% { opacity: 0.5; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.03); } 100% { opacity: 0.5; transform: scale(0.97); } }
+    .pending { animation: pulseGlow 0.8s infinite ease-in-out; }
 
-    /* ☕ 커피마실 이지롤 카드 */
-    .cafe-card {
-      background: #FFFFFF; border: 1.5px solid #004280; border-radius: 18px; padding: 24px;
-      box-shadow: 0 10px 25px -5px rgba(0, 66, 128, 0.12); display: flex; flex-direction: column; gap: 20px;
+    /* 🍓 동적 비닐하우스 스마트 장치 카드 그리드 */
+    .houses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 18px;
     }
-    .cafe-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E6EEF8; padding-bottom: 14px; }
-    .cafe-title { font-size: 18px; font-weight: 800; color: #004280; display: flex; align-items: center; gap: 10px; }
-    .cafe-blinds-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
-    .blinds-triple-box {
-      background: #EAF2FB; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; border: 1px solid #B8D3F2;
-    }
-    .triple-items { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    .blind-unit-box {
-      background: white; border: 2px solid #D0E1F5; border-radius: 12px; padding: 14px;
-      display: flex; flex-direction: column; gap: 10px; cursor: pointer; transition: all 0.2s;
-    }
-    .blind-unit-box.selected { border-color: #004280; box-shadow: 0 0 0 2px #004280; background: #F0F6FC; }
-    .blind-graphic { height: 60px; background: #E2E8F0; border-radius: 6px; position: relative; overflow: hidden; border: 1px solid #CBD5E1; }
-    .blind-shade { position: absolute; top: 0; left: 0; right: 0; height: 100%; background: linear-gradient(180deg, #004280 0%, #002B55 100%); transition: height 0.5s ease; }
-    .easy-controller-panel {
-      background: #F1F5F9; border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; border: 1.5px solid #CBD5E1;
-    }
-    .rocker-btn {
-      background: white; border: 1.5px solid #94A3B8; border-radius: 8px; padding: 12px; font-size: 18px; font-weight: 900; color: #004280;
-      display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;
-    }
-    .rocker-btn:hover { background: #E2E8F0; }
 
-    /* 🍓 딸기 하우스 카드 */
-    .greenhouse-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .house-card {
-      position: relative; background: var(--bg-card); border: 1.5px solid var(--border);
-      border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 14px;
+    .house-container-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
     }
-    .house-card::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px; border-radius: 4px; background: var(--success); }
-    .sensor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .sensor-item { display: flex; flex-direction: column; background: var(--bg-base); padding: 8px 10px; border-radius: 8px; }
+    .house-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .house-title { font-size: 17px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px; }
+    .house-crop-tag {
+      background: rgba(16, 185, 129, 0.2); border: 1px solid #10B981; color: #6EE7B7;
+      font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px;
+    }
+
+    /* 하우스 내부 장치 아이템 리스트 */
+    .house-device-list { display: flex; flex-direction: column; gap: 10px; }
+    .house-device-item {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .hdev-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+    .hdev-icon { font-size: 22px; }
+    .hdev-name { font-size: 13px; font-weight: 700; color: #F1F5F9; }
+    .hdev-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* 개폐기(차광막/비닐막) 컨트롤러 */
+    .curtain-controls { display: flex; align-items: center; gap: 6px; }
+    .btn-curtain-step {
+      background: rgba(255, 255, 255, 0.1); border: 1px solid var(--border); color: white;
+      border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer;
+    }
+    .btn-curtain-step:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* 팝업 모달 스타일 */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(6px);
+      z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-content {
+      background: #1E293B; border: 1.5px solid var(--border); border-radius: 16px;
+      width: 100%; max-width: 520px; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .modal-title { font-size: 17px; font-weight: 800; color: #F8FAFC; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+    .form-input, .form-select {
+      background: #0F172A; border: 1px solid var(--border); color: white; border-radius: 8px;
+      padding: 10px 12px; font-size: 14px; outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--primary); }
+    .modal-btn-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+    .btn-modal-cancel { background: rgba(255, 255, 255, 0.1); border: none; color: white; padding: 10px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+    .btn-modal-save { background: #10B981; border: none; color: white; padding: 10px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; }
 
     /* 토스트 알림 */
-    .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
     .toast {
-      pointer-events: auto; background: #064E3B; color: #FFFFFF; padding: 14px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); display: flex; align-items: center; gap: 12px; border-left: 5px solid #34D399;
-      opacity: 0; transform: translateY(-20px) scale(0.95); transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto; background: #064E3B; color: #FFFFFF; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 10px; border-left: 4px solid #34D399;
+      opacity: 0; transform: translateY(-15px); transition: all 0.3s ease;
     }
-    .toast.show { opacity: 1; transform: translateY(0) scale(1); }
+    .toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
 
   <div class="toast-container" id="toast-container"></div>
 
-  <aside>
-    <div class="logo-area">
-      <span class="logo-icon">🍓</span>
-      <div>
-        <div class="farm-title">설향 딸기 스마트팜</div>
-        <div class="status-online">● 지능형 연타 튕김 방지 완비</div>
+  <!-- 📱 상단 글로벌 헤더 -->
+  <header>
+    <div class="header-left">
+      <button class="btn-hamburger" onclick="toggleSidebar()" title="메뉴 열기/닫기">☰</button>
+      <div class="brand-title-box">
+        <span class="brand-logo">🍓</span>
+        <div>
+          <div class="brand-name">누리오 스마트팜</div>
+          <div class="brand-sub">● 실시간 통합 IoT 관제</div>
+        </div>
       </div>
+    </div>
+
+    <div class="header-right">
+      <div class="status-pill">
+        <span>⚡</span><span id="active-summary">0개 장치 가동 중</span>
+      </div>
+      <button class="btn-action-header" onclick="openHouseModal()">
+        <span>➕</span><span>하우스 추가</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- 📂 서랍형 오버레이 사이드바 -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+  <aside id="sidebar-drawer">
+    <div class="sidebar-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:22px;">🍓</span>
+        <span style="font-weight:800; font-size:16px;">누리오 스마트팜</span>
+      </div>
+      <button class="btn-edit-sm" onclick="toggleSidebar(false)">✕ 닫기</button>
     </div>
 
     <ul class="nav-list">
-      <li class="nav-item active">🏠 메인 관제 대시보드</li>
-      <li class="nav-item">☕ 커피마실 카페 관제</li>
-      <li class="nav-item">📹 CCTV 실시간 스트림</li>
-      <li class="nav-item">⚡ 자동화 제어 규칙</li>
-      <li class="nav-item">🔋 ESS 태양광 전력</li>
-      <li class="nav-item">⚙️ DB 설정 (MariaDB)</li>
+      <li class="nav-item active" onclick="toggleSidebar(false)">🏠 스마트팜 메인 관제</li>
+      <li class="nav-item" onclick="openHouseModal(); toggleSidebar(false);">🏗️ 비닐하우스 관리/추가</li>
+      <li class="nav-item" onclick="openDeviceModal(); toggleSidebar(false);">⚙️ 스마트 농가 장비 설정</li>
+      <li class="nav-item" onclick="showToast('📹 CCTV 실시간 연동 준비 완료', 'success'); toggleSidebar(false);">📹 하우스 CCTV 스트림</li>
+      <li class="nav-item" onclick="showToast('⚡ 자동 관수/환풍 규칙 설정 준비 완료', 'success'); toggleSidebar(false);">⚡ 지능형 환경 자동화</li>
     </ul>
+
+    <div style="margin-top:auto; padding:12px; background:rgba(0,0,0,0.3); border-radius:10px; font-size:11px; color:var(--text-muted);">
+      <div>🌐 iwinv 365일 24시간 호스팅</div>
+      <div style="margin-top:4px;">📱 태블릿PC 터치 최적화 UI</div>
+    </div>
   </aside>
 
+  <!-- 📊 메인 풀스크린 대시보드 (태블릿 100% 장치 중심) -->
   <main>
-    <div class="header-area">
-      <div>
-        <div class="page-title">설향 딸기 스마트팜 & 커피마실 웹 통합 관제</div>
-        <div class="page-sub">⚡ 여러 번 연타해도 명령이 꼬이거나 춤추지 않는 지능형 스케줄러 적용</div>
+
+    <!-- 🎛️ 1. 실물 투야 하드웨어 관제 섹션 -->
+    <div class="section-title-bar">
+      <div class="section-title">
+        <span>🔌</span><span>실물 투야 하드웨어 직접 제어 (스마트 스위치 & 플러그)</span>
       </div>
-      <div class="hosting-badge">
-        🌐 명령 큐 지능형 스케줄러 (iwinv 호스팅)
-      </div>
+      <div class="section-sub">⚡ 인터락(Interlock 1-2, 3-4) 및 스마트폰 앱 양방향 100% 실시간 동기화</div>
     </div>
 
-    <!-- 🔌 대표님의 스마트 기기 제어 카드 그리드 -->
-    <div class="real-devices-grid">
-      <!-- 1번 책상등 -->
-      <div class="local-tuya-card">
-        <div class="local-card-header">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 26px;">💡</span>
+    <div class="physical-devices-grid">
+      <!-- 4채널 멀티 스위치 -->
+      <div class="hardware-card switch4ch">
+        <div class="card-header-flex">
+          <div class="device-title-box">
+            <span class="device-icon">🎛️</span>
             <div>
-              <div style="font-size: 18px; font-weight: 800; color: #F0FDF4; display: flex; align-items: center; gap: 8px;">
-                <span id="name-display-1">Smart Plug #1 [책상등]</span>
-                <button class="btn-edit-name" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️ 이름 수정</button>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="device-name-text" id="name-display-4ch">4채널 멀티 스위치</span>
+                <button class="btn-edit-sm" onclick="promptRename('eb654aa2437462ea40dfjw', '4ch')">✏️ 수정</button>
               </div>
-              <div style="font-size: 12px; color: #A7F3D0; margin-top: 2px;">
-                ID: ebb219afdebea03ba3shlz · IP: 192.168.100.51
-              </div>
+              <div class="device-id-text">ID: eb654aa2437462ea40dfjw · 4채널 스마트 릴레이</div>
             </div>
           </div>
-          <span class="local-badge">📱 100% 양방향 동기화</span>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn-edit-sm" style="background:#0891B2; border-color:#22D3EE;" onclick="toggleAll4Ch(true)">⚡ 전체 ON</button>
+            <button class="btn-edit-sm" onclick="toggleAll4Ch(false)">⛔ 전체 OFF</button>
+          </div>
         </div>
 
-        <div class="intuitive-power-box">
-          <div class="power-touch-btn" id="btn-container-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)" title="클릭하여 켜기/끄기">
-            <div class="local-ring-container">
-              <div class="local-neon-ring" id="local-ring-1"></div>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
-                <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-              </svg>
+        <div class="multi-ch-grid">
+          <!-- CH 1 -->
+          <div class="ch-unit-box" id="ch-box-1">
+            <div class="ch-unit-header">
+              <span class="ch-badge">CH 1</span>
+              <div class="ch-name" id="ch-name-1">1번 채널</div>
+              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(1)">✏️</button>
             </div>
-            <div>
-              <div class="local-power-val" id="power-1">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;" id="sub-msg-1">👈 파워 버튼 터치 시 전원 원격 작동</div>
+            <div class="ch-touch-pad" id="ch-pad-1" onclick="toggle4Ch(1)">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="neon-ring-sm" id="ch-ring-1">
+                  <div class="ring"></div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                </div>
+                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-1">터치 제어</span>
+              </div>
+              <span class="ch-status-pill" id="ch-tag-1">OFF</span>
             </div>
           </div>
 
-          <div class="power-status-tag" id="status-tag-1">OFF (꺼짐)</div>
+          <!-- CH 2 -->
+          <div class="ch-unit-box" id="ch-box-2">
+            <div class="ch-unit-header">
+              <span class="ch-badge">CH 2</span>
+              <div class="ch-name" id="ch-name-2">2번 채널</div>
+              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(2)">✏️</button>
+            </div>
+            <div class="ch-touch-pad" id="ch-pad-2" onclick="toggle4Ch(2)">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="neon-ring-sm" id="ch-ring-2">
+                  <div class="ring"></div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                </div>
+                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-2">터치 제어</span>
+              </div>
+              <span class="ch-status-pill" id="ch-tag-2">OFF</span>
+            </div>
+          </div>
+
+          <!-- CH 3 -->
+          <div class="ch-unit-box" id="ch-box-3">
+            <div class="ch-unit-header">
+              <span class="ch-badge">CH 3</span>
+              <div class="ch-name" id="ch-name-3">3번 채널</div>
+              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(3)">✏️</button>
+            </div>
+            <div class="ch-touch-pad" id="ch-pad-3" onclick="toggle4Ch(3)">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="neon-ring-sm" id="ch-ring-3">
+                  <div class="ring"></div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                </div>
+                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-3">터치 제어</span>
+              </div>
+              <span class="ch-status-pill" id="ch-tag-3">OFF</span>
+            </div>
+          </div>
+
+          <!-- CH 4 -->
+          <div class="ch-unit-box" id="ch-box-4">
+            <div class="ch-unit-header">
+              <span class="ch-badge">CH 4</span>
+              <div class="ch-name" id="ch-name-4">4번 채널</div>
+              <button class="btn-edit-sm" style="padding:2px 4px; font-size:9px;" onclick="promptRenameChannel(4)">✏️</button>
+            </div>
+            <div class="ch-touch-pad" id="ch-pad-4" onclick="toggle4Ch(4)">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="neon-ring-sm" id="ch-ring-4">
+                  <div class="ring"></div>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
+                </div>
+                <span style="font-size:11px; color:#CFFAFE;" id="ch-sub-4">터치 제어</span>
+              </div>
+              <span class="ch-status-pill" id="ch-tag-4">OFF</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 2번 3D프린터 -->
-      <div class="local-tuya-card plug2">
-        <div class="local-card-header">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 26px;">🖨️</span>
+      <!-- 플러그 1 [책상등] -->
+      <div class="hardware-card">
+        <div class="card-header-flex">
+          <div class="device-title-box">
+            <span class="device-icon">💡</span>
             <div>
-              <div style="font-size: 18px; font-weight: 800; color: #F8FAFC; display: flex; align-items: center; gap: 8px;">
-                <span id="name-display-2">Smart Plug #2 [3D 프린터]</span>
-                <button class="btn-edit-name" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️ 이름 수정</button>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="device-name-text" id="name-display-1">책상등</span>
+                <button class="btn-edit-sm" onclick="promptRename('ebb219afdebea03ba3shlz', 1)">✏️</button>
               </div>
-              <div style="font-size: 12px; color: #A5B4FC; margin-top: 2px;">
-                ID: 42362638a4e57cb3cd0b · IP: 192.168.100.63
-              </div>
+              <div class="device-id-text">ID: ebb219afdebea03ba3shlz</div>
             </div>
           </div>
-          <span class="local-badge" style="background:rgba(99,102,241,0.25); border-color:#818CF8; color:#A5B4FC;">📱 100% 양방향 동기화</span>
+          <span style="font-size:12px; color:#34D399; font-weight:800;" id="power-1">0.0 W</span>
         </div>
 
-        <div class="intuitive-power-box">
-          <div class="power-touch-btn" id="btn-container-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)" title="클릭하여 켜기/끄기">
-            <div class="local-ring-container">
-              <div class="local-neon-ring" id="local-ring-2"></div>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8">
-                <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-              </svg>
+        <div class="plug-touch-box" id="btn-container-1" onclick="togglePlug('ebb219afdebea03ba3shlz', 1)">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div class="neon-ring-lg" id="local-ring-1">
+              <div class="ring"></div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
             </div>
             <div>
-              <div class="local-power-val" id="power-2">0.0 <span>W</span></div>
-              <div style="font-size: 12px; color: #ECFDF5; margin-top: 2px;" id="sub-msg-2">👈 파워 버튼 터치 시 전원 원격 작동</div>
+              <div style="font-size:14px; font-weight:800;" id="label-1">전원 터치 작동</div>
+              <div style="font-size:11px; color:var(--text-muted);" id="sub-msg-1">클릭 시 즉시 전환</div>
             </div>
           </div>
-
-          <div class="power-status-tag" id="status-tag-2">OFF (꺼짐)</div>
+          <span class="ch-status-pill" id="status-tag-1">OFF</span>
         </div>
       </div>
 
-      <!-- 🎛️ 3번 4채널 멀티 스위치 신규 카드 -->
-      <div class="local-tuya-card switch4ch">
-        <div class="local-card-header">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 28px;">🎛️</span>
+      <!-- 플러그 2 [3D 프린터] -->
+      <div class="hardware-card plug2">
+        <div class="card-header-flex">
+          <div class="device-title-box">
+            <span class="device-icon">🖨️</span>
             <div>
-              <div style="font-size: 18px; font-weight: 800; color: #F0FDF4; display: flex; align-items: center; gap: 8px;">
-                <span id="name-display-4ch">4채널 멀티 스위치</span>
-                <button class="btn-edit-name" onclick="promptRename('eb654aa2437462ea40dfjw', '4ch')">✏️ 기기명 수정</button>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="device-name-text" id="name-display-2">3D프린터</span>
+                <button class="btn-edit-sm" onclick="promptRename('42362638a4e57cb3cd0b', 2)">✏️</button>
               </div>
-              <div style="font-size: 12px; color: #67E8F9; margin-top: 2px;">
-                ID: eb654aa2437462ea40dfjw · 4채널 스마트 릴레이 모듈
-              </div>
+              <div class="device-id-text">ID: 42362638a4e57cb3cd0b</div>
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span class="local-badge" style="background:rgba(6,182,212,0.25); border-color:#22D3EE; color:#67E8F9;" id="active-ch-count-badge">
-              ⚡ 0 / 4 채널 ON
-            </span>
-            <div class="master-btn-group">
-              <button class="btn-master on" onclick="toggleAll4Ch(true)" title="모든 채널을 동시에 켭니다">⚡ 전체 ON</button>
-              <button class="btn-master" onclick="toggleAll4Ch(false)" title="모든 채널을 동시에 끕니다">⛔ 전체 OFF</button>
-            </div>
-          </div>
+          <span style="font-size:12px; color:#818CF8; font-weight:800;" id="power-2">0.0 W</span>
         </div>
 
-        <!-- 4개 채널 독립 제어 그리드 -->
-        <div class="channels-4-grid">
-          <!-- 채널 1 -->
-          <div class="channel-box" id="ch-box-1">
-            <div class="channel-box-header">
-              <span class="channel-badge">CH 1</span>
-              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span id="ch-name-1">1번 채널</span>
-                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(1)">✏️</button>
-              </div>
+        <div class="plug-touch-box" id="btn-container-2" onclick="togglePlug('42362638a4e57cb3cd0b', 2)">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div class="neon-ring-lg" id="local-ring-2">
+              <div class="ring"></div>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6"><path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>
             </div>
-            <div class="ch-power-touch" id="ch-btn-1" onclick="toggle4Ch(1)" title="1번 채널 켜기/끄기">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="ch-ring-container">
-                  <div class="ch-neon-ring" id="ch-ring-1"></div>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
-                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-                  </svg>
-                </div>
-                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-1">터치 제어</div>
-              </div>
-              <div class="ch-status-tag" id="ch-tag-1">OFF</div>
+            <div>
+              <div style="font-size:14px; font-weight:800;" id="label-2">전원 터치 작동</div>
+              <div style="font-size:11px; color:var(--text-muted);" id="sub-msg-2">클릭 시 즉시 전환</div>
             </div>
           </div>
-
-          <!-- 채널 2 -->
-          <div class="channel-box" id="ch-box-2">
-            <div class="channel-box-header">
-              <span class="channel-badge">CH 2</span>
-              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span id="ch-name-2">2번 채널</span>
-                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(2)">✏️</button>
-              </div>
-            </div>
-            <div class="ch-power-touch" id="ch-btn-2" onclick="toggle4Ch(2)" title="2번 채널 켜기/끄기">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="ch-ring-container">
-                  <div class="ch-neon-ring" id="ch-ring-2"></div>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
-                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-                  </svg>
-                </div>
-                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-2">터치 제어</div>
-              </div>
-              <div class="ch-status-tag" id="ch-tag-2">OFF</div>
-            </div>
-          </div>
-
-          <!-- 채널 3 -->
-          <div class="channel-box" id="ch-box-3">
-            <div class="channel-box-header">
-              <span class="channel-badge">CH 3</span>
-              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span id="ch-name-3">3번 채널</span>
-                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(3)">✏️</button>
-              </div>
-            </div>
-            <div class="ch-power-touch" id="ch-btn-3" onclick="toggle4Ch(3)" title="3번 채널 켜기/끄기">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="ch-ring-container">
-                  <div class="ch-neon-ring" id="ch-ring-3"></div>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
-                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-                  </svg>
-                </div>
-                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-3">터치 제어</div>
-              </div>
-              <div class="ch-status-tag" id="ch-tag-3">OFF</div>
-            </div>
-          </div>
-
-          <!-- 채널 4 -->
-          <div class="channel-box" id="ch-box-4">
-            <div class="channel-box-header">
-              <span class="channel-badge">CH 4</span>
-              <div style="font-size: 13px; font-weight: 700; color: #ECFEFF; display: flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                <span id="ch-name-4">4번 채널</span>
-                <button class="btn-edit-name" style="padding: 2px 5px; font-size: 10px;" onclick="promptRenameChannel(4)">✏️</button>
-              </div>
-            </div>
-            <div class="ch-power-touch" id="ch-btn-4" onclick="toggle4Ch(4)" title="4번 채널 켜기/끄기">
-              <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="ch-ring-container">
-                  <div class="ch-neon-ring" id="ch-ring-4"></div>
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.6">
-                    <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0"/>
-                  </svg>
-                </div>
-                <div style="font-size: 11px; color: #CFFAFE;" id="ch-sub-4">터치 제어</div>
-              </div>
-              <div class="ch-status-tag" id="ch-tag-4">OFF</div>
-            </div>
-          </div>
+          <span class="ch-status-pill" id="status-tag-2">OFF</span>
         </div>
       </div>
     </div>
 
-    <!-- ☕ [커피마실 카페] 이지롤 블라인드 3대 관제 카드 -->
-    <div class="cafe-card">
-      <div class="cafe-header">
-        <div class="cafe-title">
-          <span style="font-size: 26px;">☕</span>
-          <div>
-            <div>[커피마실 카페] 이지롤 EASY-ROLL 스마트 롤블라인드 3대 관제</div>
-            <div style="font-size: 12px; color: #475569; font-weight: 500; margin-top: 2px;">
-              공인 IP: 180.227.195.211 (포트: 8891 / 8892 / 8893 ➔ 내부 48899 TCP/UDP 포트포워딩)
-            </div>
-          </div>
-        </div>
-        <span style="background: #E0F2FE; border: 1.5px solid #0284C7; color: #0369A1; font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 20px;">
-          📡 DB [iot_dash_blinds] 🟢 Online
-        </span>
+    <!-- 🍓 2. 동적 비닐하우스 & 농가 장비 관리 섹션 -->
+    <div class="section-title-bar" style="margin-top:10px;">
+      <div class="section-title">
+        <span>🍓</span><span>누리오 비닐하우스별 스마트 장비 허브 (차단막 · 비닐막 · 양수기 · 양액기)</span>
       </div>
-
-      <div class="cafe-blinds-grid">
-        <div class="blinds-triple-box">
-          <div style="font-size: 14px; font-weight: 800; color: #004280; display: flex; justify-content: space-between;">
-            <span>☕ 커피마실 존 (원격 포트포워드 연동)</span>
-            <span id="selected-target-label" style="color:#004280;">선택: 전체 (1, 2, 3번)</span>
-          </div>
-
-          <div class="triple-items">
-            <div class="blind-unit-box selected" id="b-unit-1" onclick="selectBlindUnit(1)">
-              <div style="font-size: 13px; font-weight: 800; text-align: center;">1번 블라인드</div>
-              <div class="blind-graphic"><div class="blind-shade" id="b-shade-1" style="height: 100%;"></div></div>
-              <div style="font-size: 11px; text-align: center; color: #004280; font-weight: 800;" id="b-txt-1">100% (닫힘)</div>
-              <div style="font-size: 10px; color: #0284C7; text-align: center; font-weight: 700;">8891 ➔ .57</div>
-            </div>
-
-            <div class="blind-unit-box selected" id="b-unit-2" onclick="selectBlindUnit(2)">
-              <div style="font-size: 13px; font-weight: 800; text-align: center;">2번 블라인드</div>
-              <div class="blind-graphic"><div class="blind-shade" id="b-shade-2" style="height: 100%;"></div></div>
-              <div style="font-size: 11px; text-align: center; color: #004280; font-weight: 800;" id="b-txt-2">100% (닫힘)</div>
-              <div style="font-size: 10px; color: #0284C7; text-align: center; font-weight: 700;">8892 ➔ .77</div>
-            </div>
-
-            <div class="blind-unit-box selected" id="b-unit-3" onclick="selectBlindUnit(3)">
-              <div style="font-size: 13px; font-weight: 800; text-align: center;">3번 블라인드</div>
-              <div class="blind-graphic"><div class="blind-shade" id="b-shade-3" style="height: 100%;"></div></div>
-              <div style="font-size: 11px; text-align: center; color: #004280; font-weight: 800;" id="b-txt-3">100% (닫힘)</div>
-              <div style="font-size: 10px; color: #0284C7; text-align: center; font-weight: 700;">8893 ➔ .82</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="easy-controller-panel">
-          <button style="background:#004280; color:white; border:none; padding:10px; border-radius:8px; font-weight:800; font-size:13px; cursor:pointer;" onclick="selectBlindUnit(0)">🌐 전체 선택 (1, 2, 3번)</button>
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <button class="rocker-btn" onclick="moveBlind('UP')">▲ (올리기)</button>
-            <button class="rocker-btn" onclick="moveBlind('STOP')">■ (정지)</button>
-            <button class="rocker-btn" onclick="moveBlind('DOWN')">▼ (내리기)</button>
-          </div>
-        </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-edit-sm" style="background:#10B981; padding:6px 12px;" onclick="openHouseModal()">➕ 하우스 추가</button>
+        <button class="btn-edit-sm" style="background:#0891B2; padding:6px 12px;" onclick="openDeviceModal()">➕ 장비 추가</button>
       </div>
     </div>
 
-    <!-- 🍓 5동 딸기하우스 카드 -->
-    <div class="greenhouse-grid" id="greenhouse-cards-grid"></div>
+    <div class="houses-grid" id="houses-render-grid">
+      <!-- 동적 하우스 렌더링 영역 -->
+    </div>
+
   </main>
+
+  <!-- 🏗️ 1. 하우스 추가/편집 모달 -->
+  <div class="modal-overlay" id="house-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="house-modal-title">🏗️ 비닐하우스 추가 / 편집</div>
+        <button class="btn-edit-sm" onclick="closeModal('house-modal')">✕</button>
+      </div>
+      <input type="hidden" id="h-form-id">
+      <div class="form-group">
+        <label class="form-label">하우스 명칭</label>
+        <input type="text" class="form-input" id="h-form-name" placeholder="예: 🍓 1동 설향 딸기 재배하우스">
+      </div>
+      <div class="form-group">
+        <label class="form-label">재배 작물</label>
+        <input type="text" class="form-input" id="h-form-crop" placeholder="예: 딸기 (설향), 토마토, 엽채류 등">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 / 구역 설명</label>
+        <input type="text" class="form-input" id="h-form-memo" placeholder="예: A라인 스마트 양액 및 차광막 집중 관제">
+      </div>
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('house-modal')">취소</button>
+        <button class="btn-modal-save" onclick="saveHouseSubmit()">저장하기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚙️ 2. 하우스별 스마트 농가 장치 추가/편집 모달 -->
+  <div class="modal-overlay" id="device-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="device-modal-title">⚙️ 스마트 농가 장비 등록 / 편집</div>
+        <button class="btn-edit-sm" onclick="closeModal('device-modal')">✕</button>
+      </div>
+      <input type="hidden" id="d-form-id">
+      <div class="form-group">
+        <label class="form-label">소속 비닐하우스</label>
+        <select class="form-select" id="d-form-house-id"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">장치 종류 (카테고리)</label>
+        <select class="form-select" id="d-form-category" onchange="handleCategoryChange()">
+          <option value="WATER_PUMP">💧 양수기 / 관수 펌프</option>
+          <option value="NUTRIENT_FEEDER">🧪 양액기 / 양액 공급기</option>
+          <option value="CURTAIN">☀️ 차광막 / 차단막 (스크린)</option>
+          <option value="VINYL">🏠 비닐막 / 측창·천창 개폐기</option>
+          <option value="VENT_FAN">💨 환풍기 / 유동팬</option>
+          <option value="HEATER">🔥 열풍기 / 난방기</option>
+          <option value="GROW_LIGHT">💡 LED 보광등</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">장비 명칭</label>
+        <input type="text" class="form-input" id="d-form-name" placeholder="예: 1동 고압 양수기 2호">
+      </div>
+      <div class="form-group">
+        <label class="form-label">실물 투야 릴레이 연동 (선택)</label>
+        <select class="form-select" id="d-form-binding">
+          <option value="">연동 안 함 (독립 소프트웨어 관제)</option>
+          <option value="eb654aa2437462ea40dfjw:1">🎛️ 4채널 스위치 - 1번 채널</option>
+          <option value="eb654aa2437462ea40dfjw:2">🎛️ 4채널 스위치 - 2번 채널</option>
+          <option value="eb654aa2437462ea40dfjw:3">🎛️ 4채널 스위치 - 3번 채널</option>
+          <option value="eb654aa2437462ea40dfjw:4">🎛️ 4채널 스위치 - 4번 채널</option>
+          <option value="ebb219afdebea03ba3shlz:1">💡 스마트 플러그 #1 [책상등]</option>
+          <option value="42362638a4e57cb3cd0b:1">🖨️ 스마트 플러그 #2 [3D프린터]</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">규격 / 메모</label>
+        <input type="text" class="form-input" id="d-form-specs" placeholder="예: 2.0HP 다단 펌프, 24V 롤업 모터 등">
+      </div>
+      <div class="modal-btn-row">
+        <button class="btn-modal-cancel" onclick="closeModal('device-modal')">취소</button>
+        <button class="btn-modal-save" onclick="saveDeviceSubmit()">저장하기</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const DEVICE_ID_4CH = 'eb654aa2437462ea40dfjw';
@@ -537,49 +692,71 @@ require_once __DIR__ . '/config.php';
     let state2 = false;
     const states4ch = { 1: false, 2: false, 3: false, 4: false };
 
-    let selectedUnit = 0;
-    const heights = { 1: 100, 2: 100, 3: 100 };
+    let farmHouses = {};
+    let farmDevices = {};
 
-    // 🔥 진행 중인 비동기 전송 제어 상태 & AbortController (연쇄 연타 튕김 완전 방어)
     const isPending = { 1: false, 2: false };
     const abortControllers = { 1: null, 2: null };
 
     const isPending4ch = { 1: false, 2: false, 3: false, 4: false, 'all': false };
     const abortControllers4ch = { 1: null, 2: null, 3: null, 4: null, 'all': null };
 
+    function toggleSidebar(force) {
+      const drawer = document.getElementById('sidebar-drawer');
+      const overlay = document.getElementById('sidebar-overlay');
+      const isOpen = drawer.classList.contains('open');
+      const target = (typeof force === 'boolean') ? force : !isOpen;
+
+      if (target) {
+        drawer.classList.add('open');
+        overlay.classList.add('active');
+      } else {
+        drawer.classList.remove('open');
+        overlay.classList.remove('active');
+      }
+    }
+
     async function syncStatusFromDb() {
       try {
         const res = await fetch(`api.php?action=get_status&_t=${Date.now()}`);
         const data = await res.json();
         if (data.success) {
-          // 1번 책상등
+          farmHouses = data.houses || {};
+          farmDevices = data.devices || {};
+
+          let totalActiveCount = 0;
+
+          // 1. 책상등 플러그
           if (data.devices['ebb219afdebea03ba3shlz']) {
             const d1 = data.devices['ebb219afdebea03ba3shlz'];
-            document.getElementById('name-display-1').innerText = d1.name;
+            const elName = document.getElementById('name-display-1');
+            if (elName) elName.innerText = d1.name;
             if (!isPending[1]) {
               state1 = d1.state;
               updatePlugUI(1, state1, d1.power);
             }
+            if (d1.state) totalActiveCount++;
           }
 
-          // 2번 3D프린터
+          // 2. 3D프린터 플러그
           if (data.devices['42362638a4e57cb3cd0b']) {
             const d2 = data.devices['42362638a4e57cb3cd0b'];
-            document.getElementById('name-display-2').innerText = d2.name;
+            const elName = document.getElementById('name-display-2');
+            if (elName) elName.innerText = d2.name;
             if (!isPending[2]) {
               state2 = d2.state;
               updatePlugUI(2, state2, d2.power);
             }
+            if (d2.state) totalActiveCount++;
           }
 
-          // 3번 4채널 멀티 스위치
+          // 3. 4채널 멀티 스위치
           if (data.devices[DEVICE_ID_4CH]) {
             const d4 = data.devices[DEVICE_ID_4CH];
             const nameEl = document.getElementById('name-display-4ch');
             if (nameEl) nameEl.innerText = d4.name;
 
             if (d4.channels) {
-              let activeCount = 0;
               for (let c = 1; c <= 4; c++) {
                 if (d4.channels[c]) {
                   const chInfo = d4.channels[c];
@@ -590,37 +767,478 @@ require_once __DIR__ . '/config.php';
                     states4ch[c] = chInfo.state;
                     update4ChUI(c, chInfo.state);
                   }
-                  if (states4ch[c]) activeCount++;
+                  if (states4ch[c]) totalActiveCount++;
                 }
               }
-              const badge = document.getElementById('active-ch-count-badge');
-              if (badge) badge.innerText = `⚡ ${activeCount} / 4 채널 ON`;
             }
           }
 
-          if (data.blinds) {
-            Object.keys(data.blinds).forEach(id => {
-              const b = data.blinds[id];
-              heights[id] = b.position;
-              const shade = document.getElementById(`b-shade-${id}`);
-              const txt = document.getElementById(`b-txt-${id}`);
-              if (shade && txt) {
-                shade.style.height = `${b.position}%`;
-                txt.innerText = `${b.position}% 닫힘`;
-              }
-            });
-          }
+          // 상단 배지 업데이트
+          document.getElementById('active-summary').innerText = `${totalActiveCount}개 장치 가동 중`;
+
+          // 4. 동적 하우스 & 스마트 농가 장비 렌더링
+          renderHousesGrid();
         }
       } catch(e) {}
     }
 
+    function renderHousesGrid() {
+      const container = document.getElementById('houses-render-grid');
+      if (!container) return;
+
+      const houseKeys = Object.keys(farmHouses);
+      if (houseKeys.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1/-1; text-align:center; padding:40px; background:var(--bg-card); border-radius:16px; border:1px solid var(--border);">
+            <div style="font-size:32px;">🌱</div>
+            <div style="font-size:16px; font-weight:800; margin-top:8px;">등록된 비닐하우스가 없습니다</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">상단의 [+ 하우스 추가] 버튼을 눌러 첫 번째 온실/하우스를 등록해 보세요!</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      houseKeys.forEach(hId => {
+        const h = farmHouses[hId];
+        const devices = h.devices || {};
+        const devKeys = Object.keys(devices);
+
+        html += `
+          <div class="house-container-card">
+            <div class="house-header">
+              <div class="house-title">
+                <span>${h.name}</span>
+                <span class="house-crop-tag">${h.crop || '작물 미지정'}</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-edit-sm" onclick="editHouse(${h.id})">✏️ 하우스 수정</button>
+                <button class="btn-edit-sm" style="color:#F43F5E;" onclick="deleteHouse(${h.id})">🗑️ 삭제</button>
+              </div>
+            </div>
+
+            <div style="font-size:12px; color:var(--text-secondary); margin-top:-6px;">
+              ${h.memo ? h.memo : '스마트 농가 환경 관제 구역'}
+            </div>
+
+            <div class="house-device-list">
+        `;
+
+        if (devKeys.length === 0) {
+          html += `
+            <div style="text-align:center; padding:18px; font-size:12px; color:var(--text-muted); border:1px dashed var(--border); border-radius:8px;">
+              등록된 장비가 없습니다. <a href="javascript:openDeviceModal(${h.id})" style="color:var(--primary); font-weight:800;">[+ 장치 등록]</a>
+            </div>
+          `;
+        } else {
+          devKeys.forEach(dId => {
+            const dev = devices[dId];
+            const isCurtainOrVinyl = (dev.category === 'CURTAIN' || dev.category === 'VINYL');
+            const icon = getCategoryIcon(dev.category);
+
+            html += `
+              <div class="house-device-item">
+                <div class="hdev-info">
+                  <span class="hdev-icon">${icon}</span>
+                  <div>
+                    <div class="hdev-name">${dev.name}</div>
+                    <div class="hdev-sub">${dev.specs ? dev.specs : (dev.boundDeviceId ? '🔌 실물 릴레이 연동됨' : '소프트웨어 관제')}</div>
+                  </div>
+                </div>
+
+                ${isCurtainOrVinyl ? `
+                  <div class="curtain-controls">
+                    <span style="font-size:11px; font-weight:800; color:#22D3EE; margin-right:4px;">${dev.position}%</span>
+                    <button class="btn-curtain-step" onclick="controlHouseDevice(${dev.id}, 'POSITION', ${dev.position <= 0 ? 0 : dev.position - 50})">▲ 열기</button>
+                    <button class="btn-curtain-step" onclick="controlHouseDevice(${dev.id}, 'POSITION', ${dev.position >= 100 ? 100 : dev.position + 50})">▼ 닫기</button>
+                    <button class="btn-edit-sm" onclick="editHouseDevice(${dev.id})">✏️</button>
+                  </div>
+                ` : `
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <button class="ch-status-pill ${dev.state ? 'active' : ''}" style="cursor:pointer; padding:6px 14px;" onclick="controlHouseDevice(${dev.id}, 'TOGGLE', ${!dev.state})">
+                      ${dev.state ? 'ON (가동중)' : 'OFF (정지)'}
+                    </button>
+                    <button class="btn-edit-sm" onclick="editHouseDevice(${dev.id})">✏️</button>
+                    <button class="btn-edit-sm" style="color:#F43F5E;" onclick="deleteHouseDevice(${dev.id})">🗑️</button>
+                  </div>
+                `}
+              </div>
+            `;
+          });
+        }
+
+        html += `
+            </div>
+            <button class="btn-edit-sm" style="background:rgba(255,255,255,0.06); padding:8px; border-radius:8px; font-weight:700; color:#CBD5E1; margin-top:2px;" onclick="openDeviceModal(${h.id})">
+              ➕ 이 하우스에 장비(양수기/양액기/차광막 등) 추가하기
+            </button>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function getCategoryIcon(cat) {
+      switch(cat) {
+        case 'WATER_PUMP': return '💧';
+        case 'NUTRIENT_FEEDER': return '🧪';
+        case 'CURTAIN': return '☀️';
+        case 'VINYL': return '🏠';
+        case 'VENT_FAN': return '💨';
+        case 'HEATER': return '🔥';
+        case 'GROW_LIGHT': return '💡';
+        default: return '⚙️';
+      }
+    }
+
+    function updatePlugUI(num, state, powerVal) {
+      const ring = document.getElementById(`local-ring-${num}`);
+      const power = document.getElementById(`power-${num}`);
+      const tag = document.getElementById(`status-tag-${num}`);
+      if (!ring || !tag) return;
+
+      if (state) {
+        ring.classList.add('active');
+        tag.classList.add('active');
+        tag.innerText = 'ON (켜짐)';
+        if (power) power.innerHTML = `${powerVal > 0 ? powerVal : (num===1?52.3:44.8)} W`;
+      } else {
+        ring.classList.remove('active');
+        tag.classList.remove('active');
+        tag.innerText = 'OFF (꺼짐)';
+        if (power) power.innerHTML = '0.0 W';
+      }
+    }
+
+    function update4ChUI(channelNo, state) {
+      const ring = document.getElementById(`ch-ring-${channelNo}`);
+      const tag = document.getElementById(`ch-tag-${channelNo}`);
+      const sub = document.getElementById(`ch-sub-${channelNo}`);
+      if (!ring || !tag) return;
+
+      if (state) {
+        ring.classList.add('active');
+        tag.classList.add('active');
+        tag.innerText = 'ON';
+        if (sub) sub.innerText = '가동 중';
+      } else {
+        ring.classList.remove('active');
+        tag.classList.remove('active');
+        tag.innerText = 'OFF';
+        if (sub) sub.innerText = '터치 제어';
+      }
+    }
+
+    async function togglePlug(id, num) {
+      const btnContainer = document.getElementById(`btn-container-${num}`);
+      const subMsg = document.getElementById(`sub-msg-${num}`);
+
+      if (abortControllers[num]) abortControllers[num].abort();
+      abortControllers[num] = new AbortController();
+
+      const targetState = !(num === 1 ? state1 : state2);
+      if (num === 1) state1 = targetState; else state2 = targetState;
+
+      updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
+      isPending[num] = true;
+      if (btnContainer) btnContainer.classList.add('pending');
+      if (subMsg) subMsg.innerText = '⏳ 전송 중...';
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, state: targetState }),
+          signal: abortControllers[num].signal
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다`, 'success');
+        }
+      } catch(e) {
+      } finally {
+        isPending[num] = false;
+        if (btnContainer) btnContainer.classList.remove('pending');
+        if (subMsg) subMsg.innerText = '클릭 시 즉시 전환';
+      }
+    }
+
+    async function toggle4Ch(channelNo) {
+      const btnContainer = document.getElementById(`ch-pad-${channelNo}`);
+      const subMsg = document.getElementById(`ch-sub-${channelNo}`);
+
+      if (abortControllers4ch[channelNo]) abortControllers4ch[channelNo].abort();
+      abortControllers4ch[channelNo] = new AbortController();
+
+      const targetState = !states4ch[channelNo];
+      states4ch[channelNo] = targetState;
+
+      update4ChUI(channelNo, targetState);
+
+      isPending4ch[channelNo] = true;
+      if (btnContainer) btnContainer.classList.add('pending');
+      if (subMsg) subMsg.innerText = '⏳ 전송 중...';
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, state: targetState }),
+          signal: abortControllers4ch[channelNo].signal
+        });
+        const data = await res.json();
+        if (data.success && data.channels) {
+          for (let c = 1; c <= 4; c++) {
+            if (data.channels[c]) {
+              states4ch[c] = data.channels[c].state;
+              update4ChUI(c, data.channels[c].state);
+            }
+          }
+          showToast(`🎛️ 4채널 스위치 [${channelNo}번 채널] -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
+        }
+      } catch(e) {
+      } finally {
+        isPending4ch[channelNo] = false;
+        if (btnContainer) btnContainer.classList.remove('pending');
+        if (subMsg) subMsg.innerText = states4ch[channelNo] ? '가동 중' : '터치 제어';
+      }
+    }
+
+    async function toggleAll4Ch(targetState) {
+      if (abortControllers4ch['all']) abortControllers4ch['all'].abort();
+      abortControllers4ch['all'] = new AbortController();
+
+      for (let i = 1; i <= 4; i++) {
+        states4ch[i] = targetState;
+        update4ChUI(i, targetState);
+      }
+      isPending4ch['all'] = true;
+
+      try {
+        const res = await fetch('api.php?action=toggle_plug', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: 'all', state: targetState }),
+          signal: abortControllers4ch['all'].signal
+        });
+        const data = await res.json();
+        if (data.success && data.channels) {
+          for (let c = 1; c <= 4; c++) {
+            if (data.channels[c]) {
+              states4ch[c] = data.channels[c].state;
+              update4ChUI(c, data.channels[c].state);
+            }
+          }
+          showToast(`🎛️ 4채널 전체가 ${targetState ? 'ON' : 'OFF'} 상태로 제어되었습니다!`, 'success');
+        }
+      } catch(e) {
+      } finally {
+        isPending4ch['all'] = false;
+      }
+    }
+
+    async function controlHouseDevice(devId, type, val) {
+      try {
+        const body = (type === 'TOGGLE') ? { id: devId, type: 'TOGGLE', state: val } : { id: devId, type: 'POSITION', position: val };
+        const res = await fetch('api.php?action=control_house_device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`⚡ 장치 제어 완료!`, 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    // --- 🏗️ 모달 및 폼 핸들러 ---
+    function openHouseModal(id = 0) {
+      document.getElementById('h-form-id').value = id;
+      if (id > 0 && farmHouses[id]) {
+        const h = farmHouses[id];
+        document.getElementById('house-modal-title').innerText = '🏗️ 비닐하우스 편집';
+        document.getElementById('h-form-name').value = h.name;
+        document.getElementById('h-form-crop').value = h.crop || '';
+        document.getElementById('h-form-memo').value = h.memo || '';
+      } else {
+        document.getElementById('house-modal-title').innerText = '🏗️ 신규 비닐하우스 추가';
+        document.getElementById('h-form-name').value = `🍓 ${Object.keys(farmHouses).length + 1}동 하우스`;
+        document.getElementById('h-form-crop').value = '딸기 (설향)';
+        document.getElementById('h-form-memo').value = '';
+      }
+      document.getElementById('house-modal').classList.add('active');
+    }
+
+    function editHouse(id) { openHouseModal(id); }
+
+    async function deleteHouse(id) {
+      if (!confirm('이 비닐하우스와 소속된 모든 장비 설정을 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch('api.php?action=delete_house', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🗑️ 하우스가 삭제되었습니다.', 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    async function saveHouseSubmit() {
+      const id = parseInt(document.getElementById('h-form-id').value) || 0;
+      const name = document.getElementById('h-form-name').value.trim();
+      const crop = document.getElementById('h-form-crop').value.trim();
+      const memo = document.getElementById('h-form-memo').value.trim();
+
+      if (!name) { alert('하우스 명칭을 입력해 주세요.'); return; }
+
+      try {
+        const res = await fetch('api.php?action=save_house', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, name, crop, memo })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal('house-modal');
+          showToast(`✅ '${name}' 하우스가 저장되었습니다!`, 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    function openDeviceModal(defaultHouseId = 0) {
+      populateHouseSelect(defaultHouseId);
+      document.getElementById('d-form-id').value = '0';
+      document.getElementById('device-modal-title').innerText = '⚙️ 스마트 농가 장비 등록';
+      document.getElementById('d-form-category').value = 'WATER_PUMP';
+      document.getElementById('d-form-name').value = '💧 신규 양수기/관수펌프';
+      document.getElementById('d-form-binding').value = '';
+      document.getElementById('d-form-specs').value = '';
+      document.getElementById('device-modal').classList.add('active');
+    }
+
+    function editHouseDevice(devId) {
+      let targetDev = null;
+      let parentHouseId = 0;
+      Object.keys(farmHouses).forEach(hId => {
+        if (farmHouses[hId].devices && farmHouses[hId].devices[devId]) {
+          targetDev = farmHouses[hId].devices[devId];
+          parentHouseId = hId;
+        }
+      });
+
+      if (!targetDev) return;
+      populateHouseSelect(parentHouseId);
+      document.getElementById('d-form-id').value = devId;
+      document.getElementById('device-modal-title').innerText = '⚙️ 스마트 농가 장비 수정';
+      document.getElementById('d-form-category').value = targetDev.category;
+      document.getElementById('d-form-name').value = targetDev.name;
+      document.getElementById('d-form-specs').value = targetDev.specs || '';
+
+      const bindingVal = targetDev.boundDeviceId ? `${targetDev.boundDeviceId}:${targetDev.boundChannelNo || 1}` : '';
+      document.getElementById('d-form-binding').value = bindingVal;
+
+      document.getElementById('device-modal').classList.add('active');
+    }
+
+    function populateHouseSelect(selectedId = 0) {
+      const select = document.getElementById('d-form-house-id');
+      select.innerHTML = '';
+      Object.keys(farmHouses).forEach(hId => {
+        const h = farmHouses[hId];
+        const opt = document.createElement('option');
+        opt.value = h.id;
+        opt.innerText = h.name;
+        if (parseInt(selectedId) === parseInt(h.id)) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function handleCategoryChange() {
+      const cat = document.getElementById('d-form-category').value;
+      const nameInput = document.getElementById('d-form-name');
+      if (document.getElementById('d-form-id').value === '0') {
+        switch(cat) {
+          case 'WATER_PUMP': nameInput.value = '💧 양수기 (관수펌프)'; break;
+          case 'NUTRIENT_FEEDER': nameInput.value = '🧪 양액기 (양액공급기)'; break;
+          case 'CURTAIN': nameInput.value = '☀️ 차광막 (차단막 스크린)'; break;
+          case 'VINYL': nameInput.value = '🏠 측창 비닐막 개폐기'; break;
+          case 'VENT_FAN': nameInput.value = '💨 환풍 유동팬'; break;
+          case 'HEATER': nameInput.value = '🔥 온풍 난방기'; break;
+          case 'GROW_LIGHT': nameInput.value = '💡 LED 보광등'; break;
+        }
+      }
+    }
+
+    async function saveDeviceSubmit() {
+      const id = parseInt(document.getElementById('d-form-id').value) || 0;
+      const houseId = parseInt(document.getElementById('d-form-house-id').value) || 1;
+      const category = document.getElementById('d-form-category').value;
+      const name = document.getElementById('d-form-name').value.trim();
+      const bindingStr = document.getElementById('d-form-binding').value;
+      const specs = document.getElementById('d-form-specs').value.trim();
+
+      if (!name) { alert('장비 명칭을 입력해 주세요.'); return; }
+
+      let boundDeviceId = null;
+      let boundChannelNo = 1;
+      if (bindingStr) {
+        const parts = bindingStr.split(':');
+        boundDeviceId = parts[0];
+        boundChannelNo = parseInt(parts[1]) || 1;
+      }
+
+      try {
+        const res = await fetch('api.php?action=save_house_device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id, house_id: houseId, category, name, bound_device_id: boundDeviceId, bound_channel_no: boundChannelNo, specs
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal('device-modal');
+          showToast(`✅ '${name}' 장비가 저장되었습니다!`, 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    async function deleteHouseDevice(devId) {
+      if (!confirm('이 장비를 삭제하시겠습니까?')) return;
+      try {
+        const res = await fetch('api.php?action=delete_house_device', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: devId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('🗑️ 장비가 삭제되었습니다.', 'success');
+          syncStatusFromDb();
+        }
+      } catch(e) {}
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
     async function promptRename(id, key) {
       const elId = (key === '4ch') ? 'name-display-4ch' : `name-display-${key}`;
-      const currName = document.getElementById(elId).innerText;
+      const currName = document.getElementById(elId) ? document.getElementById(elId).innerText : '';
       const newName = prompt(`📱 스마트폰 Smart Life 앱 및 대시보드에 적용할 새로운 이름을 입력하세요:`, currName);
 
       if (newName && newName.trim() !== '' && newName !== currName) {
-        document.getElementById(elId).innerText = newName.trim();
+        if (document.getElementById(elId)) document.getElementById(elId).innerText = newName.trim();
         try {
           const res = await fetch('api.php?action=rename_device', {
             method: 'POST',
@@ -636,11 +1254,11 @@ require_once __DIR__ . '/config.php';
     }
 
     async function promptRenameChannel(channelNo) {
-      const currName = document.getElementById(`ch-name-${channelNo}`).innerText;
-      const newName = prompt(`🎛️ ${channelNo}번 채널에 부여할 용도/이름을 입력하세요 (예: 급수 밸브, LED 3구 등):`, currName);
+      const currName = document.getElementById(`ch-name-${channelNo}`) ? document.getElementById(`ch-name-${channelNo}`).innerText : '';
+      const newName = prompt(`🎛️ ${channelNo}번 채널에 부여할 용도/이름을 입력하세요 (예: 1동 주양수기, 양액기 등):`, currName);
 
       if (newName && newName.trim() !== '' && newName !== currName) {
-        document.getElementById(`ch-name-${channelNo}`).innerText = newName.trim();
+        if (document.getElementById(`ch-name-${channelNo}`)) document.getElementById(`ch-name-${channelNo}`).innerText = newName.trim();
         try {
           const res = await fetch('api.php?action=rename_channel', {
             method: 'POST',
@@ -655,246 +1273,11 @@ require_once __DIR__ . '/config.php';
       }
     }
 
-    function updatePlugUI(num, state, powerVal) {
-      const ring = document.getElementById(`local-ring-${num}`);
-      const power = document.getElementById(`power-${num}`);
-      const tag = document.getElementById(`status-tag-${num}`);
-
-      if (state) {
-        ring.classList.add('active');
-        tag.classList.add('active');
-        tag.innerText = 'ON (켜짐)';
-        power.innerHTML = `${powerVal > 0 ? powerVal : (num===1?52.3:44.8)} <span>W</span>`;
-      } else {
-        ring.classList.remove('active');
-        tag.classList.remove('active');
-        tag.innerText = 'OFF (꺼짐)';
-        power.innerHTML = '0.0 <span>W</span>';
-      }
-    }
-
-    function update4ChUI(channelNo, state) {
-      const ring = document.getElementById(`ch-ring-${channelNo}`);
-      const tag = document.getElementById(`ch-tag-${channelNo}`);
-      const sub = document.getElementById(`ch-sub-${channelNo}`);
-
-      if (state) {
-        ring.classList.add('active');
-        tag.classList.add('active');
-        tag.innerText = 'ON';
-        sub.innerText = '가동 중';
-      } else {
-        ring.classList.remove('active');
-        tag.classList.remove('active');
-        tag.innerText = 'OFF';
-        sub.innerText = '터치 제어';
-      }
-    }
-
-    async function togglePlug(id, num) {
-      const btnContainer = document.getElementById(`btn-container-${num}`);
-      const subMsg = document.getElementById(`sub-msg-${num}`);
-
-      if (abortControllers[num]) {
-        abortControllers[num].abort();
-      }
-      abortControllers[num] = new AbortController();
-
-      const targetState = !(num === 1 ? state1 : state2);
-      if (num === 1) state1 = targetState; else state2 = targetState;
-
-      // ⚡ 1. 화면 즉시 변경
-      updatePlugUI(num, targetState, targetState ? (num === 1 ? 52.3 : 44.8) : 0);
-
-      // ⏳ 2. 전송 중 로딩 펄스 적용
-      isPending[num] = true;
-      btnContainer.classList.add('pending');
-      subMsg.innerText = '⏳ 명령 전송 중...';
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: id, state: targetState }),
-          signal: abortControllers[num].signal
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(`🔌 전원이 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다`, 'success');
-        }
-      } catch(e) {
-        if (e.name !== 'AbortError') {}
-      } finally {
-        isPending[num] = false;
-        btnContainer.classList.remove('pending');
-        subMsg.innerText = '👈 파워 버튼 터치 시 전원 원격 작동';
-      }
-    }
-
-    async function toggle4Ch(channelNo) {
-      const btnContainer = document.getElementById(`ch-btn-${channelNo}`);
-      const subMsg = document.getElementById(`ch-sub-${channelNo}`);
-
-      if (abortControllers4ch[channelNo]) {
-        abortControllers4ch[channelNo].abort();
-      }
-      abortControllers4ch[channelNo] = new AbortController();
-
-      const targetState = !states4ch[channelNo];
-      states4ch[channelNo] = targetState;
-
-      // ⚡ 즉시 UI 반영
-      update4ChUI(channelNo, targetState);
-
-      // 전체 활성 개수 배지 가반영
-      let count = 0;
-      for (let i = 1; i <= 4; i++) if (states4ch[i]) count++;
-      document.getElementById('active-ch-count-badge').innerText = `⚡ ${count} / 4 채널 ON`;
-
-      // ⏳ 로딩 펄스
-      isPending4ch[channelNo] = true;
-      btnContainer.classList.add('pending');
-      subMsg.innerText = '⏳ 전송 중...';
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: channelNo, state: targetState }),
-          signal: abortControllers4ch[channelNo].signal
-        });
-        const data = await res.json();
-        if (data.success) {
-          // 🔄 인터락 및 실시간 채널 상태 전체 즉시 동기화
-          if (data.channels) {
-            let realCount = 0;
-            for (let c = 1; c <= 4; c++) {
-              if (data.channels[c]) {
-                states4ch[c] = data.channels[c].state;
-                update4ChUI(c, data.channels[c].state);
-                if (data.channels[c].state) realCount++;
-              }
-            }
-            document.getElementById('active-ch-count-badge').innerText = `⚡ ${realCount} / 4 채널 ON`;
-          }
-          showToast(`🎛️ 4채널 스위치 [${channelNo}번 채널] -> ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'}`, 'success');
-        }
-      } catch(e) {
-        if (e.name !== 'AbortError') {}
-      } finally {
-        isPending4ch[channelNo] = false;
-        btnContainer.classList.remove('pending');
-        subMsg.innerText = states4ch[channelNo] ? '가동 중' : '터치 제어';
-      }
-    }
-
-    async function toggleAll4Ch(targetState) {
-      if (abortControllers4ch['all']) {
-        abortControllers4ch['all'].abort();
-      }
-      abortControllers4ch['all'] = new AbortController();
-
-      for (let i = 1; i <= 4; i++) {
-        states4ch[i] = targetState;
-        update4ChUI(i, targetState);
-        const sub = document.getElementById(`ch-sub-${i}`);
-        if (sub) sub.innerText = '⏳ 전송 중...';
-      }
-      document.getElementById('active-ch-count-badge').innerText = `⚡ ${targetState ? 4 : 0} / 4 채널 ON`;
-
-      isPending4ch['all'] = true;
-
-      try {
-        const res = await fetch('api.php?action=toggle_plug', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: DEVICE_ID_4CH, channel: 'all', state: targetState }),
-          signal: abortControllers4ch['all'].signal
-        });
-        const data = await res.json();
-        if (data.success) {
-          if (data.channels) {
-            let realCount = 0;
-            for (let c = 1; c <= 4; c++) {
-              if (data.channels[c]) {
-                states4ch[c] = data.channels[c].state;
-                update4ChUI(c, data.channels[c].state);
-                if (data.channels[c].state) realCount++;
-              }
-            }
-            document.getElementById('active-ch-count-badge').innerText = `⚡ ${realCount} / 4 채널 ON`;
-          }
-          showToast(`🎛️ 4채널 스위치 전체가 ${targetState ? 'ON (켜짐)' : 'OFF (꺼짐)'} 상태로 제어되었습니다!`, 'success');
-        }
-      } catch(e) {
-        if (e.name !== 'AbortError') {}
-      } finally {
-        isPending4ch['all'] = false;
-        for (let i = 1; i <= 4; i++) {
-          const sub = document.getElementById(`ch-sub-${i}`);
-          if (sub) sub.innerText = states4ch[i] ? '가동 중' : '터치 제어';
-        }
-      }
-    }
-
-    function selectBlindUnit(num) {
-      selectedUnit = num;
-      document.getElementById('selected-target-label').innerText = num === 0 ? '선택: 전체 (1, 2, 3번)' : `선택: ${num}번 블라인드 단독`;
-      for (let i = 1; i <= 3; i++) {
-        const box = document.getElementById(`b-unit-${i}`);
-        if (num === 0 || num === i) box.classList.add('selected');
-        else box.classList.remove('selected');
-      }
-    }
-
-    async function moveBlind(action) {
-      const val = (action === 'UP') ? 0 : (action === 'DOWN') ? 100 : 50;
-      const targets = (selectedUnit === 0) ? [1, 2, 3] : [selectedUnit];
-
-      targets.forEach(u => {
-        heights[u] = val;
-        document.getElementById(`b-shade-${u}`).style.height = `${val}%`;
-        document.getElementById(`b-txt-${u}`).innerText = `${val}% 닫힘`;
-      });
-
-      try {
-        await fetch('api.php?action=move_blind', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ blind_id: selectedUnit, position: val })
-        });
-        showToast(`☕ [커피마실 카페] ${selectedUnit === 0 ? '전체' : selectedUnit + '번'} 블라인드 ${val}% 이동 완료!`, 'success');
-      } catch(e) {}
-    }
-
-    function renderGreenhouseCards() {
-      const container = document.getElementById('greenhouse-cards-grid');
-      let html = '';
-      for (let i = 1; i <= 5; i++) {
-        const isWarning = (i === 2);
-        html += `
-          <div class="house-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div style="font-size:16px; font-weight:800;">🍓 ${i}동 딸기하우스</div>
-              <div style="width:10px; height:10px; border-radius:50%; background:${isWarning ? 'var(--warning)' : 'var(--success)'};"></div>
-            </div>
-            <div class="sensor-grid">
-              <div class="sensor-item"><span style="font-size:11px; color:var(--text-muted);">🌡 온도</span><span style="font-size:16px; font-weight:800; color:${isWarning?'var(--warning)':'inherit'}">${isWarning?'33.2°C':'22.4°C'}</span></div>
-              <div class="sensor-item"><span style="font-size:11px; color:var(--text-muted);">💧 습도</span><span style="font-size:16px; font-weight:800;">65%</span></div>
-              <div class="sensor-item"><span style="font-size:11px; color:var(--text-muted);">🌱 CO₂</span><span style="font-size:16px; font-weight:800;">840ppm</span></div>
-              <div class="sensor-item"><span style="font-size:11px; color:var(--text-muted);">🪴 토양수분</span><span style="font-size:16px; font-weight:800;">68%</span></div>
-            </div>
-          </div>
-        `;
-      }
-      container.innerHTML = html;
-    }
-
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = `toast ${type}`;
-      toast.innerHTML = `<span>📱</span><span>${message}</span>`;
+      toast.innerHTML = `<span>🍓</span><span>${message}</span>`;
       container.appendChild(toast);
       setTimeout(() => toast.classList.add('show'), 10);
       setTimeout(() => {
@@ -903,7 +1286,6 @@ require_once __DIR__ . '/config.php';
       }, 2500);
     }
 
-    renderGreenhouseCards();
     document.addEventListener('DOMContentLoaded', syncStatusFromDb);
     setInterval(syncStatusFromDb, 3000);
   </script>

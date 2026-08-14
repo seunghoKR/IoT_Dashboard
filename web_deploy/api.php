@@ -329,23 +329,61 @@ try {
             // 채널 테이블 무시
         }
 
-        $stmtBlind = $pdo->query("SELECT * FROM `{$prefix}blinds` ORDER BY `blind_id` ASC");
-        $blinds = [];
-        while ($row = $stmtBlind->fetch()) {
-            $blinds[$row['blind_id']] = [
-                'name' => $row['blind_name'],
-                'serial' => $row['serial_no'],
-                'localIp' => $row['local_ip'],
-                'publicPort' => (int)$row['public_port'],
-                'internalPort' => (int)$row['internal_port'],
-                'position' => (int)$row['position_pct']
-            ];
+        // 하우스 및 하우스별 스마트 농가 장비 로드
+        $houses = [];
+        try {
+            $stmtH = $pdo->query("SELECT * FROM `{$prefix}houses` ORDER BY `sort_order` ASC, `id` ASC");
+            while ($hRow = $stmtH->fetch()) {
+                $hId = (int)$hRow['id'];
+                $houses[$hId] = [
+                    'id' => $hId,
+                    'name' => $hRow['house_name'],
+                    'crop' => $hRow['crop_type'],
+                    'memo' => $hRow['memo'],
+                    'sortOrder' => (int)$hRow['sort_order'],
+                    'devices' => []
+                ];
+            }
+
+            $stmtHD = $pdo->query("SELECT * FROM `{$prefix}house_devices` ORDER BY `sort_order` ASC, `id` ASC");
+            while ($dRow = $stmtHD->fetch()) {
+                $hId = (int)$dRow['house_id'];
+                if (isset($houses[$hId])) {
+                    $devId = (int)$dRow['id'];
+                    $boundDevId = $dRow['bound_device_id'];
+                    $boundChNo = (int)$dRow['bound_channel_no'];
+
+                    $isActive = (bool)$dRow['is_active'];
+                    if ($boundDevId && isset($devices[$boundDevId])) {
+                        if (isset($devices[$boundDevId]['channels'][$boundChNo])) {
+                            $isActive = (bool)$devices[$boundDevId]['channels'][$boundChNo]['state'];
+                        } else {
+                            $isActive = (bool)$devices[$boundDevId]['state'];
+                        }
+                    }
+
+                    $houses[$hId]['devices'][$devId] = [
+                        'id' => $devId,
+                        'houseId' => $hId,
+                        'category' => $dRow['device_category'],
+                        'name' => $dRow['device_name'],
+                        'boundDeviceId' => $boundDevId,
+                        'boundChannelNo' => $boundChNo,
+                        'state' => $isActive,
+                        'position' => (int)$dRow['position_pct'],
+                        'specs' => $dRow['specs']
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            // 테이블이 아직 없는 경우 무시
         }
 
         echo json_encode([
             'success' => true,
+            'farmName' => '누리오 스마트팜 (Nurio Smart Farm)',
             'devices' => $devices,
-            'blinds' => $blinds,
+            'houses' => $houses,
             'timestamp' => date('Y-m-d H:i:s')
         ]);
         exit;
@@ -382,9 +420,8 @@ try {
                 }
 
                 $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-                $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] 전체 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+                $stmtLog->execute(["[누리오 스마트팜] 4채널 스위치 [{$id}] 전체 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
 
-                // 최신 채널 상태 취득
                 $stmtCh = $pdo->prepare("SELECT * FROM `{$prefix}channels` WHERE `device_id` = ? ORDER BY `channel_no` ASC");
                 $stmtCh->execute([$id]);
                 $updatedChannels = [];
@@ -425,9 +462,8 @@ try {
                 }
 
                 $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-                $stmtLog->execute(["[iwinv 호스팅] 4채널 스위치 [{$id}] {$cNo}번 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+                $stmtLog->execute(["[누리오 스마트팜] 4채널 스위치 [{$id}] {$cNo}번 채널 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
 
-                // 최신 채널 상태 취득 (인터락으로 꺼진 다른 채널 포함)
                 $stmtCh = $pdo->prepare("SELECT * FROM `{$prefix}channels` WHERE `device_id` = ? ORDER BY `channel_no` ASC");
                 $stmtCh->execute([$id]);
                 $updatedChannels = [];
@@ -466,7 +502,7 @@ try {
             $tuyaSuccess = sendTuyaCommand($id, $state, 1);
 
             $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
-            $stmtLog->execute(["[iwinv 웹호스팅] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
+            $stmtLog->execute(["[누리오 스마트팜] 스마트플러그 [{$id}] 전원 변경 -> " . ($state ? 'ON' : 'OFF')]);
 
             echo json_encode([
                 'success' => true,
@@ -532,25 +568,161 @@ try {
         exit;
     }
 
-    if ($action === 'move_blind') {
-        $input = json_decode(file_get_contents('php://input'), true);
-        $blindId = (int)($input['blind_id'] ?? $_GET['blind_id'] ?? $_POST['blind_id'] ?? 0);
-        $position = (int)($input['position'] ?? $_GET['position'] ?? $_POST['position'] ?? 0);
+    // --- 🍓 누리오 스마트팜 비닐하우스 & 장비 CRUD API ---
 
-        if ($blindId > 0) {
-            $stmtUp = $pdo->prepare("UPDATE `{$prefix}blinds` SET `position_pct` = ? WHERE `blind_id` = ?");
-            $stmtUp->execute([$position, $blindId]);
+    if ($action === 'save_house') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $hId = (int)($input['id'] ?? 0);
+        $name = trim($input['name'] ?? '신규 하우스');
+        $crop = trim($input['crop'] ?? '딸기 (설향)');
+        $memo = trim($input['memo'] ?? '');
+        $sortOrder = (int)($input['sort_order'] ?? 1);
+
+        if ($hId > 0) {
+            $stmt = $pdo->prepare("UPDATE `{$prefix}houses` SET `house_name` = ?, `crop_type` = ?, `memo` = ?, `sort_order` = ? WHERE `id` = ?");
+            $stmt->execute([$name, $crop, $memo, $sortOrder, $hId]);
         } else {
-            $stmtUp = $pdo->prepare("UPDATE `{$prefix}blinds` SET `position_pct` = ?");
-            $stmtUp->execute([$position]);
+            $stmt = $pdo->prepare("INSERT INTO `{$prefix}houses` (`house_name`, `crop_type`, `memo`, `sort_order`) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$name, $crop, $memo, $sortOrder]);
+            $hId = (int)$pdo->lastInsertId();
         }
 
-        echo json_encode([
-            'success' => true,
-            'blindId' => $blindId,
-            'position' => $position
-        ]);
+        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+        $stmtLog->execute(["[하우스 설정] '{$name}' 하우스 정보가 저장되었습니다."]);
+
+        echo json_encode(['success' => true, 'houseId' => $hId]);
         exit;
+    }
+
+    if ($action === 'delete_house') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $hId = (int)($input['id'] ?? $_GET['id'] ?? 0);
+
+        if ($hId > 0) {
+            $stmtDev = $pdo->prepare("DELETE FROM `{$prefix}house_devices` WHERE `house_id` = ?");
+            $stmtDev->execute([$hId]);
+
+            $stmt = $pdo->prepare("DELETE FROM `{$prefix}houses` WHERE `id` = ?");
+            $stmt->execute([$hId]);
+
+            $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('WARN', ?)");
+            $stmtLog->execute(["[하우스 삭제] {$hId}번 하우스 및 하위 장비가 삭제되었습니다."]);
+
+            echo json_encode(['success' => true, 'deletedHouseId' => $hId]);
+            exit;
+        }
+        echo json_encode(['success' => false, 'error' => 'House ID required']);
+        exit;
+    }
+
+    if ($action === 'save_house_device') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $devId = (int)($input['id'] ?? 0);
+        $houseId = (int)($input['house_id'] ?? 1);
+        $category = trim($input['category'] ?? 'WATER_PUMP');
+        $name = trim($input['name'] ?? '신규 농가 장치');
+        $boundDeviceId = !empty($input['bound_device_id']) ? trim($input['bound_device_id']) : null;
+        $boundChannelNo = (int)($input['bound_channel_no'] ?? 1);
+        $specs = trim($input['specs'] ?? '');
+        $position = (int)($input['position_pct'] ?? 0);
+        $sortOrder = (int)($input['sort_order'] ?? 1);
+
+        if ($devId > 0) {
+            $stmt = $pdo->prepare("UPDATE `{$prefix}house_devices` SET `house_id` = ?, `device_category` = ?, `device_name` = ?, `bound_device_id` = ?, `bound_channel_no` = ?, `specs` = ?, `position_pct` = ?, `sort_order` = ? WHERE `id` = ?");
+            $stmt->execute([$houseId, $category, $name, $boundDeviceId, $boundChannelNo, $specs, $position, $sortOrder, $devId]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO `{$prefix}house_devices` (`house_id`, `device_category`, `device_name`, `bound_device_id`, `bound_channel_no`, `specs`, `position_pct`, `sort_order`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$houseId, $category, $name, $boundDeviceId, $boundChannelNo, $specs, $position, $sortOrder]);
+            $devId = (int)$pdo->lastInsertId();
+        }
+
+        $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+        $stmtLog->execute(["[장치 설정] '{$name}' 농가 장치가 저장되었습니다."]);
+
+        echo json_encode(['success' => true, 'deviceId' => $devId]);
+        exit;
+    }
+
+    if ($action === 'delete_house_device') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $devId = (int)($input['id'] ?? $_GET['id'] ?? 0);
+
+        if ($devId > 0) {
+            $stmt = $pdo->prepare("DELETE FROM `{$prefix}house_devices` WHERE `id` = ?");
+            $stmt->execute([$devId]);
+
+            $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('WARN', ?)");
+            $stmtLog->execute(["[장치 삭제] {$devId}번 장치가 삭제되었습니다."]);
+
+            echo json_encode(['success' => true, 'deletedDeviceId' => $devId]);
+            exit;
+        }
+        echo json_encode(['success' => false, 'error' => 'Device ID required']);
+        exit;
+    }
+
+    if ($action === 'control_house_device') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $devId = (int)($input['id'] ?? 0);
+        $type = $input['type'] ?? 'TOGGLE'; // TOGGLE or POSITION
+        $targetState = isset($input['state']) ? (bool)$input['state'] : null;
+        $targetPosition = isset($input['position']) ? (int)$input['position'] : null;
+
+        $stmt = $pdo->prepare("SELECT * FROM `{$prefix}house_devices` WHERE `id` = ?");
+        $stmt->execute([$devId]);
+        $deviceRow = $stmt->fetch();
+
+        if (!$deviceRow) {
+            echo json_encode(['success' => false, 'error' => 'Device not found']);
+            exit;
+        }
+
+        $boundDevId = $deviceRow['bound_device_id'];
+        $boundChNo = (int)$deviceRow['bound_channel_no'];
+        $tuyaDispatched = false;
+
+        if ($type === 'TOGGLE') {
+            if ($targetState === null) {
+                $targetState = !((bool)$deviceRow['is_active']);
+            }
+            $stmtUp = $pdo->prepare("UPDATE `{$prefix}house_devices` SET `is_active` = ? WHERE `id` = ?");
+            $stmtUp->execute([$targetState ? 1 : 0, $devId]);
+
+            // 투야 물리 기기와 바인딩되어 있다면 릴레이 명령 전송
+            if ($boundDevId) {
+                $tuyaDispatched = sendTuyaCommand($boundDevId, $targetState, $boundChNo);
+                usleep(300000);
+                $liveTuya = fetchTuyaMultipleDevicesParallel([$boundDevId]);
+                if (!empty($liveTuya)) {
+                    syncTuyaDevicesToDb($liveTuya, $pdo, $prefix);
+                }
+            }
+
+            $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+            $stmtLog->execute(["[장치 제어] '{$deviceRow['device_name']}' 상태 -> " . ($targetState ? 'ON' : 'OFF')]);
+
+            echo json_encode([
+                'success' => true,
+                'deviceId' => $devId,
+                'targetState' => $targetState,
+                'boundDeviceId' => $boundDevId,
+                'tuyaDispatched' => $tuyaDispatched
+            ]);
+            exit;
+        } elseif ($type === 'POSITION') {
+            $stmtUp = $pdo->prepare("UPDATE `{$prefix}house_devices` SET `position_pct` = ? WHERE `id` = ?");
+            $stmtUp->execute([$targetPosition, $devId]);
+
+            $stmtLog = $pdo->prepare("INSERT INTO `{$prefix}logs` (`log_level`, `message`) VALUES ('INFO', ?)");
+            $stmtLog->execute(["[개폐 제어] '{$deviceRow['device_name']}' 개폐율 -> {$targetPosition}%"]);
+
+            echo json_encode([
+                'success' => true,
+                'deviceId' => $devId,
+                'position' => $targetPosition
+            ]);
+            exit;
+        }
     }
 
     echo json_encode(['success' => false, 'error' => 'Invalid action']);
