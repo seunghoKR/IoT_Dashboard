@@ -380,16 +380,16 @@ try {
         $tuyaDeviceIds = [];
 
         $farmAliases = [
-            'ebb219afdebea03ba3shlz' => '💧 주 양수기',
-            '42362638a4e57cb3cd0b' => '💨 천정 송풍기',
-            'eb654aa2437462ea40dfjw' => '🎛️ 4채널 모터 스위치'
+            'ebb219afdebea03ba3shlz' => '💧 양수기',
+            '42362638a4e57cb3cd0b' => '💨 송풍기',
+            'eb654aa2437462ea40dfjw' => '🎛️ 1동 개폐기 (4-433)'
         ];
 
         while ($row = $stmtDev->fetch()) {
             $id = $row['id'];
             $tuyaDeviceIds[] = $id;
             $dbName = $row['device_name'];
-            if (empty($dbName) || $dbName === '책상등' || $dbName === '3D프린터' || $dbName === '4채널 멀티 스위치') {
+            if (empty($dbName) || $dbName === '책상등' || $dbName === '3D프린터' || $dbName === '4채널 멀티 스위치' || $dbName === '💧 주 양수기' || $dbName === '💨 천정 송풍기' || $dbName === '🎛️ 4채널 모터 스위치') {
                 $dbName = $farmAliases[$id] ?? $dbName;
                 $pdo->prepare("UPDATE `{$prefix}devices` SET `device_name` = ? WHERE `id` = ?")->execute([$dbName, $id]);
             }

@@ -104,16 +104,16 @@ try {
 
     // 실제 설치된 투야 하드웨어 시드 (스마트플러그 2종 + 4채널 멀티 스위치)
     $pdo->exec("INSERT INTO `{$prefix}devices` (`id`, `device_name`, `device_type`, `local_ip`, `mac_address`, `is_active`, `power_watt`) VALUES
-        ('ebb219afdebea03ba3shlz', '책상등', 'SMART_PLUG', '192.168.100.51', '50:8b:b9:00:5c:f5', 0, 0.00),
-        ('42362638a4e57cb3cd0b', '3D프린터', 'SMART_PLUG', '192.168.100.63', 'a4:e5:7c:b3:cd:0b', 0, 0.00),
-        ('eb654aa2437462ea40dfjw', '4채널 멀티 스위치', '4CH_SWITCH', '49.171.41.10', '4c:d7:b7:b0:ea:16', 0, 0.00)
+        ('ebb219afdebea03ba3shlz', '양수기', 'SMART_PLUG', '49.171.41.10', '50:8b:b9:00:5c:f5', 0, 0.00),
+        ('42362638a4e57cb3cd0b', '송풍기', 'SMART_PLUG', '49.171.41.10', 'a4:e5:7c:b3:cd:0b', 0, 0.00),
+        ('eb654aa2437462ea40dfjw', '1동 개폐기', '4CH_SWITCH', '49.171.41.10', '4c:d7:b7:b0:ea:16', 0, 0.00)
         ON DUPLICATE KEY UPDATE `device_name` = VALUES(`device_name`), `updated_at` = CURRENT_TIMESTAMP;");
 
     $pdo->exec("INSERT INTO `{$prefix}channels` (`device_id`, `channel_no`, `channel_code`, `channel_name`, `is_active`) VALUES
-        ('eb654aa2437462ea40dfjw', 1, 'switch_1', '1번 채널 (1동 양수기/관수펌프)', 0),
-        ('eb654aa2437462ea40dfjw', 2, 'switch_2', '2번 채널 (1동 양액기/양액공급)', 0),
-        ('eb654aa2437462ea40dfjw', 3, 'switch_3', '3번 채널 (1동 차광막/환풍팬)', 0),
-        ('eb654aa2437462ea40dfjw', 4, 'switch_4', '4번 채널 (1동 비닐개폐/보광등)', 0)
+        ('eb654aa2437462ea40dfjw', 1, 'switch_1', '1번 채널 (1동 개폐기 열기)', 0),
+        ('eb654aa2437462ea40dfjw', 2, 'switch_2', '2번 채널 (1동 개폐기 닫기)', 0),
+        ('eb654aa2437462ea40dfjw', 3, 'switch_3', '3번 채널 (1동 정밀 양액기)', 0),
+        ('eb654aa2437462ea40dfjw', 4, 'switch_4', '4번 채널 (1동 미세 연무기)', 0)
         ON DUPLICATE KEY UPDATE `channel_name` = VALUES(`channel_name`), `updated_at` = CURRENT_TIMESTAMP;");
 
     // 기본 하우스(1동) 및 필수 장치 초기 설정 (대표님이 자유롭게 편집/추가/삭제 가능)
@@ -125,12 +125,12 @@ try {
         (2, '🌱 2동 육묘 및 보조 온실', '딸기 모종', '육묘 온습도 관리 및 환풍 제어 구역', 2);");
 
     $pdo->exec("INSERT INTO `{$prefix}house_devices` (`house_id`, `device_category`, `device_name`, `bound_device_id`, `bound_channel_no`, `is_active`, `position_pct`, `specs`) VALUES
-        (1, 'WATER_PUMP', '💧 1동 주양수기 (관수펌프)', 'eb654aa2437462ea40dfjw', 1, 0, 0, '2.0 HP 고압 다단 펌프'),
-        (1, 'NUTRIENT_FEEDER', '🧪 1동 정밀 양액기 (양액공급기)', 'eb654aa2437462ea40dfjw', 2, 0, 0, 'EC/pH 자동 비례 제어기'),
-        (1, 'CURTAIN', '☀️ 1동 내부 차광막 (알루미늄 스크린)', 'eb654aa2437462ea40dfjw', 3, 0, 100, '모터 감속기 100W'),
-        (1, 'VINYL', '🏠 1동 측창 비닐막 개폐기', 'eb654aa2437462ea40dfjw', 4, 0, 0, '24V DC 롤업 모터'),
-        (2, 'VENT_FAN', '💨 2동 대형 환풍 유동팬', NULL, 1, 0, 0, '500mm 고효율 환기팬'),
-        (2, 'WATER_PUMP', '💧 2동 보조 관수 밸브', NULL, 1, 0, 0, '솔레노이드 전동 밸브');");
+        (1, 'WATER_PUMP', '💧 1동 주양수기 (관수펌프)', 'ebb219afdebea03ba3shlz', 1, 0, 0, '스마트 플러그 연동 펌프'),
+        (1, 'VENT_FAN', '💨 1동 천정 송풍기 (환풍팬)', '42362638a4e57cb3cd0b', 1, 0, 0, '500mm 고효율 환기팬'),
+        (1, 'VINYL', '🏠 1동 측창 비닐막 개폐기', 'eb654aa2437462ea40dfjw', 1, 0, 0, '4채널 모터 릴레이'),
+        (1, 'NUTRIENT_FEEDER', '🧪 1동 정밀 양액기 (양액공급기)', 'eb654aa2437462ea40dfjw', 3, 0, 0, 'EC/pH 자동 비례 제어기'),
+        (1, 'CURTAIN', '🌫️ 1동 미세 연무기', 'eb654aa2437462ea40dfjw', 4, 0, 0, '초미립자 노즐'),
+        (2, 'VENT_FAN', '💨 2동 보조 환풍기', NULL, 1, 0, 0, '보조 환기팬');");
 
     echo "<h1>✅ 누리오 스마트팜 MariaDB 테이블 설치 & 업데이트 완료!</h1>";
     echo "<p>생성된 테이블 목록 (접두사: <strong>{$prefix}</strong>):</p>";
