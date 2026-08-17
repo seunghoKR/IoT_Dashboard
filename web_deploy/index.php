@@ -541,6 +541,109 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       display: none;
     }
 
+    /* 🏗️ 1중/2중/3중 다중 덮개 선택 탭 */
+    .cover-layer-selector {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 1px 3px;
+    }
+    .cover-layer-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94A3B8;
+      font-size: 9.5px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .cover-layer-btn:hover { color: #FFFFFF; }
+    .cover-layer-btn.active.layer-1 {
+      background: rgba(56, 189, 248, 0.25);
+      color: #38BDF8;
+      border-color: #38BDF8;
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+    }
+    .cover-layer-btn.active.layer-2 {
+      background: rgba(245, 158, 11, 0.25);
+      color: #F59E0B;
+      border-color: #F59E0B;
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.4);
+    }
+    .cover-layer-btn.active.layer-3 {
+      background: rgba(236, 72, 153, 0.25);
+      color: #F472B6;
+      border-color: #EC4899;
+      box-shadow: 0 0 6px rgba(236, 72, 153, 0.4);
+    }
+
+    /* 🎬 권취식 개폐기 (모터와 비닐 100% 일치 클립패스 & 단방향 3.5초 실제 주행) */
+    .curtain-arch-wrap {
+      transition: clip-path 3.5s cubic-bezier(0.2, 0.8, 0.3, 1), -webkit-clip-path 3.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+    /* 닫힘 상태 (바닥 밀폐: 아래 0px 잘림 = 전체 노출) */
+    .curtain-group.curtain-state-closed .curtain-arch-wrap,
+    .curtain-group.curtain-state-closing .curtain-arch-wrap {
+      clip-path: inset(0px 0px 0px 0px) !important;
+      -webkit-clip-path: inset(0px 0px 0px 0px) !important;
+    }
+    /* 열림 상태 (천정 95% 최고 높이: 아래 350px 걷혀 올라감 = Y=110까지만 잔여) */
+    .curtain-group.curtain-state-opened .curtain-arch-wrap,
+    .curtain-group.curtain-state-opening .curtain-arch-wrap {
+      clip-path: inset(0px 0px 350px 0px) !important;
+      -webkit-clip-path: inset(0px 0px 350px 0px) !important;
+    }
+
+    /* 🌀 양쪽 권취 모터 롤러 수직 슬라이딩 (비닐 350px 걷힘과 1:1로 칼같이 동기화) */
+    .roller-y-slider {
+      transition: transform 3.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+    /* 닫힘 상태: 바닥 Y=455 */
+    .curtain-group.curtain-state-closed .roller-y-slider,
+    .curtain-group.curtain-state-closing .roller-y-slider {
+      transform: translate(0px, 455px) !important;
+    }
+    /* 열림 상태: 95% 최고 높이 Y=105 (455px - 350px = 105px 칼일치) */
+    .curtain-group.curtain-state-opened .roller-y-slider,
+    .curtain-group.curtain-state-opening .roller-y-slider {
+      transform: translate(0px, 105px) !important;
+    }
+
+    /* 🔄 모터 휠 자전 회전 애니메이션 (주행 중 동작) */
+    .motor-gear-opening {
+      animation: spinGearUp 0.4s linear infinite;
+    }
+    .motor-gear-closing {
+      animation: spinGearDown 0.4s linear infinite;
+    }
+    @keyframes spinGearUp {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(-360deg); }
+    }
+    @keyframes spinGearDown {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinFan {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes waterDropAnim {
+      0% { transform: translateY(0); opacity: 1; }
+      80% { transform: translateY(12px); opacity: 0.8; }
+      100% { transform: translateY(16px); opacity: 0; }
+    }
+    .water-drop-anim {
+      animation: waterDropAnim 1.2s infinite ease-in;
+    }
+
     /* 캔버스 래퍼 & SVG (하단 바닥선에 0px 완벽 밀착) */
     .greenhouse-svg-wrapper {
       flex: 1;
@@ -1046,7 +1149,16 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
               <span class="crop-pill" id="twin-crop-badge">딸기 (설향)</span>
               <span class="multi-status-pill" id="twin-multi-badge">✨ 다중 선택 모드</span>
             </div>
-            <span style="font-size:10px; color:#38BDF8; font-weight:700;">📡 실시간 투야 센서 연동</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <!-- 🏗️ 1중/2중/3중 덮개 레이어 선택 탭 -->
+              <div class="cover-layer-selector" id="cover-layer-selector" title="하우스 비닐/차양막 덮개 겹수 설정">
+                <span style="font-size:9.5px; color:#94A3B8; font-weight:800; padding:0 2px;">덮개:</span>
+                <button class="cover-layer-btn layer-1 active" id="btn-layer-1" onclick="setHouseCoverLayers(1)">1중</button>
+                <button class="cover-layer-btn layer-2" id="btn-layer-2" onclick="setHouseCoverLayers(2)">2중</button>
+                <button class="cover-layer-btn layer-3" id="btn-layer-3" onclick="setHouseCoverLayers(3)">3중</button>
+              </div>
+              <span style="font-size:10px; color:#38BDF8; font-weight:700;">📡 실시간 투야 센서 연동</span>
+            </div>
           </div>
 
           <!-- SVG 대형 비닐하우스 캔버스 (여백 없이 콤팩트 배치) -->
@@ -1087,6 +1199,16 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
                   <stop offset="0%" stop-color="#334155"/>
                   <stop offset="100%" stop-color="#0F172A"/>
                 </linearGradient>
+                <!-- 🎬 모터와 1:1로 칼같이 연동되는 클립패스 마스크 -->
+                <clipPath id="clip-curtain-1">
+                  <rect class="curtain-clip-rect" x="0" y="0" width="800" height="460"/>
+                </clipPath>
+                <clipPath id="clip-curtain-2">
+                  <rect class="curtain-clip-rect" x="0" y="0" width="800" height="460"/>
+                </clipPath>
+                <clipPath id="clip-curtain-3">
+                  <rect class="curtain-clip-rect" x="0" y="0" width="800" height="460"/>
+                </clipPath>
               </defs>
 
               <rect x="0" y="0" width="800" height="520" rx="10" fill="url(#skyGrad)"/>
@@ -1114,6 +1236,121 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
                     fill="none" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
               <path d="M 85 460 L 85 220 Q 85 55, 400 45 Q 715 55, 715 220 L 715 460" 
                     fill="none" stroke="#475569" stroke-width="4"/>
+
+              <!-- 🎬 1중 / 2중 / 3중 좌우 100% 완벽 대칭 권취식 비닐/차양막 개폐 레이어 -->
+              <!-- 1중 (외측 비닐/차양막 - 스카이블루) -->
+              <g id="svg-layer-group-1" class="curtain-group curtain-state-closed">
+                <!-- 1중 비닐 아치 (CSS clip-path inset으로 모터 높이와 1:1 완벽 일치) -->
+                <g class="curtain-arch-wrap" id="arch-wrap-1">
+                  <path d="M 60 455 L 60 220 Q 60 30, 400 20 Q 740 30, 740 220 L 740 455"
+                        fill="none" stroke="#38BDF8" stroke-width="8.5" stroke-linecap="round" opacity="0.9" filter="drop-shadow(0 0 6px rgba(56, 189, 248, 0.6))"/>
+                  <path d="M 60 455 L 60 220 Q 60 30, 400 20 Q 740 30, 740 220 L 740 455 Z" fill="rgba(56, 189, 248, 0.07)"/>
+                </g>
+
+                <!-- 1중 좌측 권취 모터 롤러 (X=60 고정) -->
+                <g transform="translate(60, 0)">
+                  <g class="roller-y-slider" id="slider-1-left" transform="translate(0, 455)">
+                    <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+                    <g class="motor-gear" id="gear-1-left">
+                      <circle cx="0" cy="0" r="6" fill="#0284C7" stroke="#BAE6FD" stroke-width="1.5"/>
+                      <line x1="-5" y1="0" x2="5" y2="0" stroke="#FFFFFF" stroke-width="1.5"/>
+                      <line x1="0" y1="-5" x2="0" y2="5" stroke="#FFFFFF" stroke-width="1.5"/>
+                    </g>
+                    <rect x="-24" y="-5" width="10" height="10" rx="2" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+                    <circle cx="-19" cy="0" r="1.5" fill="#38BDF8"/>
+                  </g>
+                </g>
+
+                <!-- 1중 우측 권취 모터 롤러 (X=740 고정) -->
+                <g transform="translate(740, 0)">
+                  <g class="roller-y-slider" id="slider-1-right" transform="translate(0, 455)">
+                    <rect x="-14" y="-8" width="28" height="16" rx="4" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/>
+                    <g class="motor-gear" id="gear-1-right">
+                      <circle cx="0" cy="0" r="6" fill="#0284C7" stroke="#BAE6FD" stroke-width="1.5"/>
+                      <line x1="-5" y1="0" x2="5" y2="0" stroke="#FFFFFF" stroke-width="1.5"/>
+                      <line x1="0" y1="-5" x2="0" y2="5" stroke="#FFFFFF" stroke-width="1.5"/>
+                    </g>
+                    <rect x="14" y="-5" width="10" height="10" rx="2" fill="#0F172A" stroke="#38BDF8" stroke-width="1.5"/>
+                    <circle cx="19" cy="0" r="1.5" fill="#38BDF8"/>
+                  </g>
+                </g>
+              </g>
+
+              <!-- 2중 (중간 보온스크린/차광막 - 앰버 골드) -->
+              <g id="svg-layer-group-2" class="curtain-group curtain-state-closed" style="display:none;">
+                <!-- 2중 스크린 아치 (CSS clip-path inset으로 모터 높이와 1:1 완벽 일치) -->
+                <g class="curtain-arch-wrap" id="arch-wrap-2">
+                  <path d="M 85 455 L 85 220 Q 85 55, 400 45 Q 715 55, 715 220 L 715 455"
+                        fill="none" stroke="#F59E0B" stroke-width="7" stroke-linecap="round" opacity="0.9" stroke-dasharray="14,6" filter="drop-shadow(0 0 6px rgba(245, 158, 11, 0.6))"/>
+                  <path d="M 85 455 L 85 220 Q 85 55, 400 45 Q 715 55, 715 220 L 715 455 Z" fill="rgba(245, 158, 11, 0.05)"/>
+                </g>
+
+                <!-- 2중 좌측 권취 모터 롤러 (X=85 고정) -->
+                <g transform="translate(85, 0)">
+                  <g class="roller-y-slider" id="slider-2-left" transform="translate(0, 455)">
+                    <rect x="-13" y="-7" width="26" height="14" rx="3.5" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+                    <g class="motor-gear" id="gear-2-left">
+                      <circle cx="0" cy="0" r="5" fill="#D97706" stroke="#FEF3C7" stroke-width="1.2"/>
+                      <line x1="-4" y1="0" x2="4" y2="0" stroke="#FFFFFF" stroke-width="1.2"/>
+                      <line x1="0" y1="-4" x2="0" y2="4" stroke="#FFFFFF" stroke-width="1.2"/>
+                    </g>
+                    <rect x="-22" y="-4" width="9" height="8" rx="2" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+                    <circle cx="-17" cy="0" r="1.5" fill="#F59E0B"/>
+                  </g>
+                </g>
+
+                <!-- 2중 우측 권취 모터 롤러 (X=715 고정) -->
+                <g transform="translate(715, 0)">
+                  <g class="roller-y-slider" id="slider-2-right" transform="translate(0, 455)">
+                    <rect x="-13" y="-7" width="26" height="14" rx="3.5" fill="#1E293B" stroke="#F59E0B" stroke-width="2"/>
+                    <g class="motor-gear" id="gear-2-right">
+                      <circle cx="0" cy="0" r="5" fill="#D97706" stroke="#FEF3C7" stroke-width="1.2"/>
+                      <line x1="-4" y1="0" x2="4" y2="0" stroke="#FFFFFF" stroke-width="1.2"/>
+                      <line x1="0" y1="-4" x2="0" y2="4" stroke="#FFFFFF" stroke-width="1.2"/>
+                    </g>
+                    <rect x="13" y="-4" width="9" height="8" rx="2" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+                    <circle cx="17" cy="0" r="1.5" fill="#F59E0B"/>
+                  </g>
+                </g>
+              </g>
+
+              <!-- 3중 (내측 다겹보온커튼 - 로즈 핑크) -->
+              <g id="svg-layer-group-3" class="curtain-group curtain-state-closed" style="display:none;">
+                <!-- 3중 커튼 아치 (CSS clip-path inset으로 모터 높이와 1:1 완벽 일치) -->
+                <g class="curtain-arch-wrap" id="arch-wrap-3">
+                  <path d="M 110 455 L 110 230 Q 110 80, 400 70 Q 690 80, 690 230 L 690 455"
+                        fill="none" stroke="#EC4899" stroke-width="6" stroke-linecap="round" opacity="0.92" stroke-dasharray="10,5" filter="drop-shadow(0 0 6px rgba(236, 72, 153, 0.6))"/>
+                  <path d="M 110 455 L 110 230 Q 110 80, 400 70 Q 690 80, 690 230 L 690 455 Z" fill="rgba(236, 72, 153, 0.05)"/>
+                </g>
+
+                <!-- 3중 좌측 권취 모터 롤러 (X=110 고정) -->
+                <g transform="translate(110, 0)">
+                  <g class="roller-y-slider" id="slider-3-left" transform="translate(0, 455)">
+                    <rect x="-12" y="-6" width="24" height="12" rx="3" fill="#1E293B" stroke="#EC4899" stroke-width="1.8"/>
+                    <g class="motor-gear" id="gear-3-left">
+                      <circle cx="0" cy="0" r="4.5" fill="#DB2777" stroke="#FCE7F3" stroke-width="1.2"/>
+                      <line x1="-3.5" y1="0" x2="3.5" y2="0" stroke="#FFFFFF" stroke-width="1.2"/>
+                      <line x1="0" y1="-3.5" x2="0" y2="3.5" stroke="#FFFFFF" stroke-width="1.2"/>
+                    </g>
+                    <rect x="-20" y="-4" width="8" height="8" rx="2" fill="#0F172A" stroke="#EC4899" stroke-width="1.2"/>
+                    <circle cx="-16" cy="0" r="1.2" fill="#EC4899"/>
+                  </g>
+                </g>
+
+                <!-- 3중 우측 권취 모터 롤러 (X=690 고정) -->
+                <g transform="translate(690, 0)">
+                  <g class="roller-y-slider" id="slider-3-right" transform="translate(0, 455)">
+                    <rect x="-12" y="-6" width="24" height="12" rx="3" fill="#1E293B" stroke="#EC4899" stroke-width="1.8"/>
+                    <g class="motor-gear" id="gear-3-right">
+                      <circle cx="0" cy="0" r="4.5" fill="#DB2777" stroke="#FCE7F3" stroke-width="1.2"/>
+                      <line x1="-3.5" y1="0" x2="3.5" y2="0" stroke="#FFFFFF" stroke-width="1.2"/>
+                      <line x1="0" y1="-3.5" x2="0" y2="3.5" stroke="#FFFFFF" stroke-width="1.2"/>
+                    </g>
+                    <rect x="12" y="-4" width="8" height="8" rx="2" fill="#0F172A" stroke="#EC4899" stroke-width="1.2"/>
+                    <circle cx="16" cy="0" r="1.2" fill="#EC4899"/>
+                  </g>
+                </g>
+              </g>
 
               <!-- 보강 가로/세로 트러스 빔 -->
               <line x1="160" y1="160" x2="640" y2="160" stroke="#475569" stroke-width="3" stroke-dasharray="6,5"/>
@@ -1376,6 +1613,14 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
         <label class="form-label">재배 작물</label>
         <input type="text" id="h-form-crop" class="form-input" placeholder="예: 딸기 (설향)">
       </div>
+      <div class="form-group">
+        <label class="form-label">비닐 및 차양막 덮개 구성</label>
+        <select id="h-form-layers" class="form-select">
+          <option value="1">1중 외측 비닐/차양막 (기본 단동형)</option>
+          <option value="2">2중 외측비닐 + 중간 보온스크린</option>
+          <option value="3" selected>3중 외측비닐 + 중간스크린 + 내측 다겹보온커튼 (스마트형)</option>
+        </select>
+      </div>
       <button class="btn-submit" onclick="saveHouseSubmit()">하우스 저장</button>
     </div>
   </div>
@@ -1490,10 +1735,11 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       2: { temp: 23.8, hum: 65.0 }
     };
 
-    // 실시간 상태 관리
+    // 실시간 상태 관리 및 제어 깜빡임 방지 쿨다운 락
     let states4ch = { 1: false, 2: false, 3: false, 4: false };
     let statePump = false; // 양수기 (Smart Plug)
     let stateFan  = false; // 송풍기 (Smart Plug)
+    let lastUserActionTimes = { pump: 0, fan: 0, ch1: 0, ch2: 0, ch3: 0, ch4: 0 };
 
     // --- 🖥️ WUXGA (1920x1200) / WQXGA (2560x1600) 자동 감지 및 16:10 고정 모드 ---
     function detectAndApplyResolutionMode() {
@@ -1785,6 +2031,15 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       updateControlDeckUI();
     }
 
+    // 하우스별 덮개 겹수 설정 (기본값: 1동=3중, 2동=2중 등)
+    let houseCoverLayers = JSON.parse(localStorage.getItem('nurio_house_cover_layers') || '{"1":3, "2":2}');
+
+    function setHouseCoverLayers(layerCount) {
+      houseCoverLayers[currentHouseId] = layerCount;
+      localStorage.setItem('nurio_house_cover_layers', JSON.stringify(houseCoverLayers));
+      updateCurrentHouseVisual();
+    }
+
     function updateCurrentHouseVisual() {
       const h = farmHouses[currentHouseId];
       if (h) {
@@ -1793,23 +2048,101 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
         const sData = houseSensorData[currentHouseId] || { temp: 24.5, hum: 62 };
         document.getElementById('val-twin-temp').innerText = `${sData.temp.toFixed(1)}°C`;
         document.getElementById('val-twin-hum').innerText = `${Math.round(sData.hum)}%`;
+
+        // 덮개 겹수 (1중/2중/3중) 버튼 및 SVG 레이어 표시 제어
+        const count = houseCoverLayers[currentHouseId] || 3;
+        for (let i = 1; i <= 3; i++) {
+          const btn = document.getElementById(`btn-layer-${i}`);
+          const group = document.getElementById(`svg-layer-group-${i}`);
+          if (btn) {
+            btn.classList.toggle('active', i <= count);
+          }
+          if (group) {
+            group.style.display = (i <= count) ? 'inline' : 'none';
+          }
+        }
+
+        // 개폐 상태에 따른 아치 비닐/차양막 & 양쪽 권취 모터 롤러 애니메이션 (좌우 대칭 & 95% 최고높이 리미트)
+        const isOpen = (currentHouseId === 1) ? states4ch[1] : (currentHouseId === 2 ? states4ch[3] : false);
+        const isClose = (currentHouseId === 1) ? states4ch[2] : (currentHouseId === 2 ? states4ch[4] : false);
+
+        for (let i = 1; i <= 3; i++) {
+          const groupEl = document.getElementById(`svg-layer-group-${i}`);
+          const gearLeft = document.getElementById(`gear-${i}-left`);
+          const gearRight = document.getElementById(`gear-${i}-right`);
+
+          if (groupEl) {
+            groupEl.classList.remove('curtain-state-opening', 'curtain-state-closing', 'curtain-state-opened', 'curtain-state-closed');
+            if (gearLeft) gearLeft.classList.remove('motor-gear-opening', 'motor-gear-closing');
+            if (gearRight) gearRight.classList.remove('motor-gear-opening', 'motor-gear-closing');
+
+            if (isOpen) {
+              groupEl.classList.add('curtain-state-opening');
+              if (gearLeft) gearLeft.classList.add('motor-gear-opening');
+              if (gearRight) gearRight.classList.add('motor-gear-opening');
+            } else if (isClose) {
+              groupEl.classList.add('curtain-state-closing');
+              if (gearLeft) gearLeft.classList.add('motor-gear-closing');
+              if (gearRight) gearRight.classList.add('motor-gear-closing');
+            } else {
+              // 정지(STOP) 상태: 목표 도달 위치('opened' 또는 'closed') 유지 & 모터 기어 정지
+              const targetState = houseCurtainTargetStates[currentHouseId] || 'closed';
+              if (targetState === 'opened') {
+                groupEl.classList.add('curtain-state-opened');
+              } else {
+                groupEl.classList.add('curtain-state-closed');
+              }
+            }
+          }
+        }
+
+        // 송풍기(유동팬) 회전 애니메이션 연동
+        const fanUnit = document.getElementById('svg-fan-blades');
+        if (fanUnit) {
+          if (stateFan) {
+            fanUnit.style.animation = 'spinFan 0.6s linear infinite';
+            fanUnit.style.transformOrigin = '0px 0px';
+          } else {
+            fanUnit.style.animation = 'none';
+          }
+        }
+
+        // 양수기 물방울 파티클 연동
+        const waterDrops = document.getElementById('svg-water-drops');
+        if (waterDrops) {
+          waterDrops.style.display = statePump ? 'inline' : 'none';
+        }
       }
     }
 
-    // --- 3. 통합 제어 (Tuya 실제 명령 toggle_plug REST API 전송) ---
+    // 개폐기 목표 위치 추적 변수 (1동/2동/3동 기본값: closed)
+    let houseCurtainTargetStates = { 1: 'closed', 2: 'closed', 3: 'closed' };
+
+    // --- 3. 통합 제어 (Tuya 실제 명령 toggle_plug REST API 전송 & 상태 역류 방지) ---
     async function handleUnifiedControl(actionType) {
       const targetHouses = isMultiSelectMode ? selectedHouseIds : [currentHouseId];
       const houseNames = targetHouses.map(id => farmHouses[id]?.name || `${id}동`).join(', ');
+      const now = Date.now();
 
       console.log(`[통합 제어] ${houseNames} 대상 ${actionType} 실행 (1동:ch1/2, 2동:ch3/4)`);
 
-      // 1) UI 낙관적 즉각 반영
+      // 1) UI 낙관적 즉각 반영 및 폴링 상태 역류 방지 락 (6초 보호)
       targetHouses.forEach(hId => {
+        if (actionType === 'OPEN') {
+          houseCurtainTargetStates[hId] = 'opened';
+        } else if (actionType === 'CLOSE') {
+          houseCurtainTargetStates[hId] = 'closed';
+        }
+
         if (hId === 1) {
+          lastUserActionTimes.ch1 = now + 6000;
+          lastUserActionTimes.ch2 = now + 6000;
           if (actionType === 'OPEN') { states4ch[1] = true; states4ch[2] = false; }
           else if (actionType === 'CLOSE') { states4ch[1] = false; states4ch[2] = true; }
           else if (actionType === 'STOP') { states4ch[1] = false; states4ch[2] = false; }
         } else if (hId === 2) {
+          lastUserActionTimes.ch3 = now + 6000;
+          lastUserActionTimes.ch4 = now + 6000;
           if (actionType === 'OPEN') { states4ch[3] = true; states4ch[4] = false; }
           else if (actionType === 'CLOSE') { states4ch[3] = false; states4ch[4] = true; }
           else if (actionType === 'STOP') { states4ch[3] = false; states4ch[4] = false; }
@@ -1817,13 +2150,27 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       });
 
       if (actionType === 'WATER') {
+        lastUserActionTimes.pump = now + 6000;
         statePump = !statePump; // 양수기 토글 (스마트 플러그: ebb219afdebea03ba3shlz)
       } else if (actionType === 'FAN') {
+        lastUserActionTimes.fan = now + 6000;
         stateFan = !stateFan;   // 송풍기 토글 (스마트 플러그: 42362638a4e57cb3cd0b)
       }
 
       updateControlDeckUI();
       renderThumbnailHouses();
+      updateCurrentHouseVisual();
+
+      // 3) 최고 높이(95%) 도달 또는 바닥(0%) 밀폐 시 리미트 스위치 자동 정지 (Auto-STOP 트리거)
+      if (actionType === 'OPEN' || actionType === 'CLOSE') {
+        clearTimeout(window.curtainLimitAutoStopTimer);
+        window.curtainLimitAutoStopTimer = setTimeout(() => {
+          console.log(`[리미트 스위치 작동] ${actionType} 주행 완료 -> 개폐기 자동 정지(STOP) 실행`);
+          handleUnifiedControl('STOP');
+        }, 3600);
+      } else if (actionType === 'STOP') {
+        clearTimeout(window.curtainLimitAutoStopTimer);
+      }
 
       // 2) Tuya Cloud 실제 REST API 호출 (action=toggle_plug)
       try {
@@ -1980,22 +2327,23 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
             farmHouses = data.houses;
           }
 
+          const now = Date.now();
           if (data.devices) {
             // 양수기 스마트 플러그 (ebb219afdebea03ba3shlz)
-            if (data.devices[DEVICE_ID_PUMP]) {
+            if (data.devices[DEVICE_ID_PUMP] && now > lastUserActionTimes.pump) {
               statePump = !!data.devices[DEVICE_ID_PUMP].state;
             }
             // 송풍기 스마트 플러그 (42362638a4e57cb3cd0b)
-            if (data.devices[DEVICE_ID_FAN]) {
+            if (data.devices[DEVICE_ID_FAN] && now > lastUserActionTimes.fan) {
               stateFan = !!data.devices[DEVICE_ID_FAN].state;
             }
-            // 1동 개폐기 4채널 멀티 스위치 (eb654aa2437462ea40dfjw)
+            // 1동/2동 개폐기 4채널 멀티 스위치 (eb654aa2437462ea40dfjw)
             if (data.devices[DEVICE_ID_4CH] && data.devices[DEVICE_ID_4CH].channels) {
               const chs = data.devices[DEVICE_ID_4CH].channels;
-              states4ch[1] = !!(chs[1]?.state ?? chs[1]);
-              states4ch[2] = !!(chs[2]?.state ?? chs[2]);
-              states4ch[3] = !!(chs[3]?.state ?? chs[3]);
-              states4ch[4] = !!(chs[4]?.state ?? chs[4]);
+              if (now > lastUserActionTimes.ch1) states4ch[1] = !!(chs[1]?.state ?? chs[1]);
+              if (now > lastUserActionTimes.ch2) states4ch[2] = !!(chs[2]?.state ?? chs[2]);
+              if (now > lastUserActionTimes.ch3) states4ch[3] = !!(chs[3]?.state ?? chs[3]);
+              if (now > lastUserActionTimes.ch4) states4ch[4] = !!(chs[4]?.state ?? chs[4]);
             }
           }
 
@@ -2058,15 +2406,35 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       closeModal('slot-modal');
     }
 
+    function openHouseModal(id = 0) {
+      document.getElementById('h-form-id').value = id;
+      if (id > 0 && farmHouses[id]) {
+        document.getElementById('h-form-name').value = farmHouses[id].name || '';
+        document.getElementById('h-form-crop').value = farmHouses[id].crop || '';
+        document.getElementById('h-form-layers').value = houseCoverLayers[id] || 3;
+      } else {
+        document.getElementById('h-form-name').value = '';
+        document.getElementById('h-form-crop').value = '';
+        document.getElementById('h-form-layers').value = 3;
+      }
+      document.getElementById('house-modal').classList.add('active');
+    }
+
     async function saveHouseSubmit() {
+      const id = parseInt(document.getElementById('h-form-id').value) || 0;
       const name = document.getElementById('h-form-name').value.trim();
       const crop = document.getElementById('h-form-crop').value.trim() || '작물';
+      const layers = parseInt(document.getElementById('h-form-layers').value) || 3;
       if (!name) return alert('명칭을 입력하세요');
 
-      const nextId = Object.keys(farmHouses).length + 1;
-      farmHouses[nextId] = { id: nextId, name: name, crop: crop };
-      houseSensorData[nextId] = { temp: 24.0, hum: 60.0 };
+      const targetId = (id > 0) ? id : (Object.keys(farmHouses).length + 1);
+      farmHouses[targetId] = { id: targetId, name: name, crop: crop };
+      houseCoverLayers[targetId] = layers;
+      localStorage.setItem('nurio_house_cover_layers', JSON.stringify(houseCoverLayers));
+      if (!houseSensorData[targetId]) houseSensorData[targetId] = { temp: 24.0, hum: 60.0 };
+
       renderThumbnailHouses();
+      updateCurrentHouseVisual();
       closeModal('house-modal');
     }
 
