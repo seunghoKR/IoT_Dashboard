@@ -3,7 +3,9 @@ import fs from 'fs';
 
 const filesToUpload = [
   { local: 'web_deploy/api.php', remote: '/public_html/IoT_Dashboard/api.php' },
-  { local: 'web_deploy/index.php', remote: '/public_html/IoT_Dashboard/index.php' }
+  { local: 'web_deploy/index.php', remote: '/public_html/IoT_Dashboard/index.php' },
+  { local: 'web_deploy/building.php', remote: '/public_html/IoT_Dashboard/building.php' },
+  { local: 'standalone_preview.html', remote: '/public_html/IoT_Dashboard/standalone_preview.html' }
 ];
 
 async function deploy() {

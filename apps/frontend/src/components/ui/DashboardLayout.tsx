@@ -1,31 +1,61 @@
 /**
- * 대시보드 레이아웃 - 사이드바 + 메인 컨텐츠
+ * 대시보드 레이아웃 - 사이드바 + 메인 컨텐츠 + [스마트팜 ⇄ 스마트빌딩] 듀얼 모드 지원
  */
 
-import { Outlet, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { styled } from '../../lib/stitches.config'
 import { useSmartFarmStore } from '../../stores/smartfarm.store'
-
-const NAV_ITEMS = [
-  { to: '/dashboard',   icon: '🏠', label: '대시보드' },
-  { to: '/automation',  icon: '⚡', label: '자동화 규칙' },
-  { to: '/ess',         icon: '🔋', label: 'ESS 전력' },
-  { to: '/alerts',      icon: '🔔', label: '알림' },
-  { to: '/settings',    icon: '⚙️', label: '설정' },
-]
+import { useBuildingStore } from '../../stores/building.store'
 
 export function DashboardLayout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const isBuildingMode = location.pathname.startsWith('/building')
+
   const { farmName, wsConnected, unreadAlertCount, theme, setTheme } = useSmartFarmStore()
+  const { buildingName } = useBuildingStore()
+
+  const navItems = isBuildingMode
+    ? [
+        { to: '/building', icon: '🏢', label: '빌딩 대시보드' },
+        { to: '/tablet-bms', icon: '📱', label: '태블릿 8-Col 관제' },
+        { to: '/alerts', icon: '🔔', label: '보안/알림' },
+        { to: '/settings', icon: '⚙️', label: '설정' },
+      ]
+    : [
+        { to: '/dashboard', icon: '🏠', label: '농가 대시보드' },
+        { to: '/automation', icon: '⚡', label: '자동화 규칙' },
+        { to: '/ess', icon: '🔋', label: 'ESS 전력' },
+        { to: '/alerts', icon: '🔔', label: '알림' },
+        { to: '/settings', icon: '⚙️', label: '설정' },
+      ]
 
   return (
     <LayoutWrapper>
       {/* 사이드바 */}
       <Sidebar>
+        {/* 모드 스위처 (스마트팜 vs 스마트빌딩) */}
+        <ModeSwitcherWrapper>
+          <ModeToggleBtn
+            active={!isBuildingMode}
+            onClick={() => navigate('/dashboard')}
+          >
+            🌱 농가 모드
+          </ModeToggleBtn>
+          <ModeToggleBtn
+            active={isBuildingMode}
+            onClick={() => navigate('/building')}
+          >
+            🏢 건물 모드
+          </ModeToggleBtn>
+        </ModeSwitcherWrapper>
+
         {/* 로고 */}
         <SidebarHeader>
-          <Logo>🌱</Logo>
+          <Logo>{isBuildingMode ? '🏢' : '🌱'}</Logo>
           <div>
-            <FarmName>{farmName}</FarmName>
+            <FarmName>{isBuildingMode ? buildingName : farmName}</FarmName>
             <ConnectionStatus connected={wsConnected}>
               {wsConnected ? '● 실시간 연결됨' : '● 연결 중...'}
             </ConnectionStatus>
@@ -34,7 +64,7 @@ export function DashboardLayout() {
 
         {/* 네비게이션 */}
         <Nav>
-          {NAV_ITEMS.map((item) => (
+          {navItems.map((item) => (
             <NavItem key={item.to}>
               <StyledNavLink to={item.to}>
                 <NavIcon>{item.icon}</NavIcon>
@@ -95,22 +125,54 @@ const Sidebar = styled('aside', {
   },
 })
 
+const ModeSwitcherWrapper = styled('div', {
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  padding: '$3 $3 $1',
+  gap: '4px',
+  background: '$bgMuted',
+  margin: '$2 $2 0',
+  borderRadius: '$md',
+})
+
+const ModeToggleBtn = styled('button', {
+  border: 'none',
+  padding: '$2 $1',
+  borderRadius: '$sm',
+  fontSize: '11px',
+  fontWeight: '$bold',
+  cursor: 'pointer',
+  background: 'transparent',
+  color: '$textSecondary',
+  transition: 'all $fast',
+
+  variants: {
+    active: {
+      true: {
+        background: '$bgCard',
+        color: '$primary',
+        boxShadow: '$xs',
+      },
+    },
+  },
+})
+
 const SidebarHeader = styled('div', {
   display: 'flex',
   alignItems: 'center',
   gap: '$3',
-  padding: '$5 $4',
+  padding: '$4 $4',
   borderBottom: '1px solid $border',
 })
 
 const Logo = styled('div', {
-  fontSize: '32px',
+  fontSize: '28px',
   lineHeight: 1,
   flexShrink: 0,
 })
 
 const FarmName = styled('div', {
-  fontSize: '$md',
+  fontSize: '$sm',
   fontWeight: '$bold',
   color: '$textPrimary',
 })

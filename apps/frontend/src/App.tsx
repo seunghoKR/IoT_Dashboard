@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useWebSocket } from './hooks/useWebSocket'
 import { DashboardLayout } from './components/ui/DashboardLayout'
 import { DashboardPage } from './pages/DashboardPage'
+import { BuildingDashboardPage } from './pages/BuildingDashboardPage'
+import { StitchTabletBmsDashboard } from './pages/StitchTabletBmsDashboard'
 import { GreenhouseDetailPage } from './pages/GreenhouseDetailPage'
 import { AutomationPage } from './pages/AutomationPage'
 import { EssPage } from './pages/EssPage'
@@ -17,12 +19,17 @@ export default function App() {
       {/* 대시보드 레이아웃 (사이드바 포함) */}
       <Route element={<DashboardLayout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
+        {/* 🌱 스마트팜 모드 */}
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/greenhouses/:houseId" element={<GreenhouseDetailPage />} />
         <Route path="/automation" element={<AutomationPage />} />
         <Route path="/ess" element={<EssPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+
+        {/* 🏢 스마트 빌딩 모드 */}
+        <Route path="/building" element={<BuildingDashboardPage />} />
+        <Route path="/tablet-bms" element={<StitchTabletBmsDashboard />} />
       </Route>
 
       {/* 404 */}

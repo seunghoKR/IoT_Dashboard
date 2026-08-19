@@ -1,10 +1,21 @@
+<?php
+require_once __DIR__ . '/config.php';
+?>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🏢 비전 스마트 센터 (Vision Smart Building BMS) - 프리뷰</title>
+  <title>🏢 비전 스마트 센터 (Vision Smart Building BMS)</title>
   
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#090D16">
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 
   <style>
@@ -47,6 +58,7 @@
       gap: 6px;
     }
 
+    /* 🌟 상단 탑바 */
     .top-nav {
       height: 42px;
       min-height: 42px;
@@ -71,6 +83,21 @@
       font-size: 15px;
     }
     .brand-name { font-size: 14.5px; font-weight: 800; color: #FFF; letter-spacing: -0.3px; }
+
+    .mode-switch-link {
+      text-decoration: none;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #6EE7B7;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .mode-switch-link:hover { background: #10B981; color: #FFF; }
 
     .top-chips { display: flex; align-items: center; gap: 10px; }
     .top-chip {
@@ -122,6 +149,7 @@
       cursor: pointer;
     }
 
+    /* 🌾 메인 2컬럼 레이아웃 */
     main {
       flex: 1;
       width: 100%;
@@ -133,6 +161,7 @@
       overflow: hidden;
     }
 
+    /* 🏛️ 좌측: 3층 단면도 디지털 트윈 일러스트 */
     .left-twin-panel {
       background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -212,6 +241,9 @@
     }
     .mini-status-chip.on { background: rgba(245, 158, 11, 0.3); border-color: var(--amber-gold); color: #FEF08A; }
 
+    /* ========================================================
+       🎛️ 우측: 대표님 스케치 기반 직관적 대형 스위치 패널
+       ======================================================== */
     .right-bento-panel {
       display: grid;
       grid-template-rows: 0.9fr 1.55fr 1.55fr;
@@ -269,6 +301,7 @@
       margin-top: 4px;
     }
 
+    /* 개별 구역/장치 박스 */
     .module-box {
       background: var(--bg-glass-card);
       border: 1.5px solid var(--border-subtle);
@@ -303,6 +336,7 @@
     }
     .btn-toggle-all:hover { color: #FFF; border-color: var(--border-bright); }
 
+    /* 🔲 92px × 84px 초대형 스퀘어 터치 스위치 */
     .huge-switch-btn {
       width: 92px;
       height: 84px;
@@ -338,6 +372,7 @@
     .huge-switch-btn .sw-icon { font-size: 22px; line-height: 1; }
     .huge-switch-btn .sw-txt { font-size: 13px; font-weight: 900; line-height: 1; }
 
+    /* 2구 가로 배열 (목양실, 미팅룸) */
     .sw-row-2 {
       flex: 1;
       display: flex;
@@ -346,6 +381,7 @@
       justify-content: center;
     }
 
+    /* 6구 조명 3열 2행 (3 x 2 그리드) */
     .sw-grid-3x2 {
       flex: 1;
       display: grid;
@@ -356,6 +392,7 @@
       justify-content: center;
     }
 
+    /* ❄️ 2층 시스템 냉난방기 */
     .hvac-sketch-layout {
       flex: 1;
       display: flex;
@@ -386,6 +423,7 @@
     }
     .btn-step-mini:hover { background: rgba(255,255,255,0.15); color: var(--primary); }
 
+    /* 냉난방기 2x2 버튼 매트릭스 */
     .hvac-2x2-matrix {
       display: grid;
       grid-template-columns: repeat(2, 92px);
@@ -428,6 +466,7 @@
       border-color: #FB923C; color: #FFF; box-shadow: 0 0 16px rgba(234, 88, 12, 0.4);
     }
 
+    /* 1층 화장실 (남/여) 2구 대형 스위치 */
     .restroom-sw-col {
       flex: 1;
       display: flex;
@@ -437,6 +476,7 @@
       justify-content: center;
     }
 
+    /* 🚪 메인 현관 도어락 대형 터치 버튼 */
     .door-large-btn {
       width: 110px;
       height: 176px;
@@ -466,12 +506,19 @@
 </head>
 <body>
 
+  <!-- ========================================================
+       🌟 1. 상단 네비게이션 탑바
+       ======================================================== -->
   <header class="top-nav">
     <div class="brand-group">
       <div class="brand-icon">🏢</div>
       <div class="brand-name">비전 스마트 센터</div>
+      <a href="index.php" class="mode-switch-link" title="🍓 누리오 스마트팜 관제 화면으로 이동">
+        <span>🌱</span><span>스마트팜 모드</span>
+      </a>
     </div>
 
+    <!-- 중앙 실시간 지표 -->
     <div class="top-chips">
       <div class="top-chip">
         <span>⚡ 총 부하:</span><strong class="top-chip-val" id="top-val-power">1,420 W</strong>
@@ -484,6 +531,7 @@
       </div>
     </div>
 
+    <!-- 우측 마스터 액션 -->
     <div class="top-actions">
       <button class="btn-master-off" onclick="masterAllOff()">
         <span>🚨</span><span>건물 전체 전등 끄기</span>
@@ -497,8 +545,12 @@
     </div>
   </header>
 
+  <!-- ========================================================
+       🌾 2. 메인 관제 2컬럼 레이아웃
+       ======================================================== -->
   <main>
-    <!-- 좌측 일러스트 -->
+    
+    <!-- 🏛️ 좌측: 3층 단면 디지털 트윈 일러스트 -->
     <section class="left-twin-panel">
       <div class="twin-header">
         <div class="twin-title">
@@ -516,7 +568,7 @@
           <div class="roof-tag">VISION CENTER BMS</div>
         </div>
 
-        <!-- 3층 -->
+        <!-- 3층 단면 슬래브 -->
         <div class="slab-box" id="slab-3f">
           <div class="slab-title-row">
             <span>🟣 3F 목양실 & 미팅룸</span>
@@ -540,7 +592,7 @@
           </div>
         </div>
 
-        <!-- 2층 -->
+        <!-- 2층 단면 슬래브 -->
         <div class="slab-box" id="slab-2f">
           <div class="slab-title-row">
             <span>🔵 2F 대예배실 (Sanctuary)</span>
@@ -561,7 +613,7 @@
           </div>
         </div>
 
-        <!-- 1층 -->
+        <!-- 1층 단면 슬래브 -->
         <div class="slab-box" id="slab-1f">
           <div class="slab-title-row">
             <span>🟢 1F 메인 로비 & 편의시설</span>
@@ -591,6 +643,7 @@
           </div>
         </div>
 
+        <!-- 지상 바닥 -->
         <div style="display:flex; justify-content:space-between; align-items:center; padding:0 6px; height:8px;">
           <div style="width:10px; height:10px; border-radius:50%; background:#15803D;"></div>
           <div style="flex:1; height:3px; background:#22C55E; margin:0 4px; border-radius:2px;"></div>
@@ -599,10 +652,12 @@
       </div>
     </section>
 
-    <!-- 우측 대표님 스케치 패널 -->
+    <!-- ========================================================
+       🎛️ 우측: 대표님 스케치 기반 92px × 84px 직관적 제어 패널
+       ======================================================== -->
     <section class="right-bento-panel">
       
-      <!-- 3F -->
+      <!-- ================= 3F ================= -->
       <div class="floor-row-card" id="card-3f">
         <div class="card-top-bar">
           <div class="f-title-group">
@@ -613,6 +668,7 @@
         </div>
 
         <div class="boxes-horizontal-flow">
+          <!-- 목양실 (2구) -->
           <div class="module-box">
             <div class="mod-head">
               <span>📖 목양실 전등 (2구)</span>
@@ -630,6 +686,7 @@
             </div>
           </div>
 
+          <!-- 미팅룸 (2구) -->
           <div class="module-box">
             <div class="mod-head">
               <span>👥 미팅룸 전등 (2구)</span>
@@ -649,7 +706,7 @@
         </div>
       </div>
 
-      <!-- 2F -->
+      <!-- ================= 2F ================= -->
       <div class="floor-row-card" id="card-2f">
         <div class="card-top-bar">
           <div class="f-title-group">
@@ -660,6 +717,7 @@
         </div>
 
         <div class="boxes-horizontal-flow">
+          <!-- 예배실 메인 조명 (6구 - 3x2 그리드) -->
           <div class="module-box">
             <div class="mod-head">
               <span>💡 예배실 메인 샹들리에 (6구)</span>
@@ -675,11 +733,13 @@
             </div>
           </div>
 
+          <!-- 시스템 냉난방기 -->
           <div class="module-box">
             <div class="mod-head">
               <span>❄️ 시스템 냉난방기</span>
             </div>
             <div class="hvac-sketch-layout">
+              <!-- 온도 및 증감 -->
               <div class="hvac-temp-col">
                 <div class="hvac-giant-temp" id="disp-hvac-temp">22°C</div>
                 <div class="hvac-temp-stepper">
@@ -688,6 +748,7 @@
                 </div>
               </div>
 
+              <!-- 2x2 버튼 매트릭스 -->
               <div class="hvac-2x2-matrix">
                 <button class="hvac-action-btn pwr-on active" id="btn-hvac-on" onclick="setHvacPower(true)">
                   <span style="font-size:18px;">⚡</span><span>ON</span>
@@ -707,7 +768,7 @@
         </div>
       </div>
 
-      <!-- 1F -->
+      <!-- ================= 1F ================= -->
       <div class="floor-row-card" id="card-1f">
         <div class="card-top-bar">
           <div class="f-title-group">
@@ -718,6 +779,7 @@
         </div>
 
         <div class="boxes-horizontal-flow">
+          <!-- 1. 메인 로비 조명 (6구 - 3x2 그리드) -->
           <div class="module-box">
             <div class="mod-head">
               <span>💡 메인 로비 조명 (6구)</span>
@@ -733,6 +795,7 @@
             </div>
           </div>
 
+          <!-- 2. 남성 화장실 (M - 세로 2단 스위치) -->
           <div class="module-box">
             <div class="mod-head">
               <span>🚹 남성 화장실 (M)</span>
@@ -749,6 +812,7 @@
             </div>
           </div>
 
+          <!-- 3. 여성 화장실 (F - 세로 2단 스위치) -->
           <div class="module-box">
             <div class="mod-head">
               <span>🚺 여성 화장실 (F)</span>
@@ -765,6 +829,7 @@
             </div>
           </div>
 
+          <!-- 4. 현관 도어락 (Door) -->
           <div class="module-box">
             <div class="mod-head">
               <span>🚪 메인 현관</span>
@@ -783,6 +848,9 @@
     </section>
   </main>
 
+  <!-- ========================================================
+       ⚡ 3. 고속 인터랙션 엔진
+       ======================================================== -->
   <script>
     const state = {
       pastor: [true, false],
@@ -871,6 +939,7 @@
     }
 
     function syncUI() {
+      // 3층
       const pOn = state.pastor.filter(Boolean).length;
       document.getElementById('rz-pastor').className = 'room-stage-box' + (pOn > 0 ? ' lit' : '');
       document.getElementById('rz-badge-pastor').innerText = `${pOn}/2구`;
@@ -888,6 +957,7 @@
       document.getElementById('sw-m2').className = 'huge-switch-btn' + (state.meeting[1] ? ' active' : '');
       document.getElementById('slab-3f-summary').innerText = `${pOn + mOn}/4구`;
 
+      // 2층 대예배실 6구 (92px x 84px)
       const sOn = state.sanctuary.filter(Boolean).length;
       document.getElementById('rz-sanctuary').className = 'room-stage-box' + (sOn > 0 ? ' lit' : '');
       document.getElementById('rz-badge-sanctuary').innerText = `${sOn}/6구`;
@@ -896,6 +966,7 @@
         document.getElementById(`sw-s${i+1}`).className = 'huge-switch-btn' + (state.sanctuary[i] ? ' active' : '');
       }
 
+      // 2층 HVAC
       document.getElementById('disp-hvac-temp').innerText = `${state.hvac.temp}°C`;
       document.getElementById('slab-2f-hvac-txt').innerText = state.hvac.power ? `❄️ ${state.hvac.temp}°C` : 'OFF';
       document.getElementById('btn-hvac-on').className = 'hvac-action-btn pwr-on' + (state.hvac.power ? ' active' : '');
@@ -903,6 +974,7 @@
       document.getElementById('btn-hvac-cool').className = 'hvac-action-btn mode-cool' + (state.hvac.mode === 'cool' ? ' active' : '');
       document.getElementById('btn-hvac-heat').className = 'hvac-action-btn mode-heat' + (state.hvac.mode === 'heat' ? ' active' : '');
 
+      // 1층 로비 6구 (92px x 84px)
       const lOn = state.lobby.filter(Boolean).length;
       document.getElementById('rz-lobby').className = 'room-stage-box' + (lOn > 0 ? ' lit' : '');
       document.getElementById('rz-badge-lobby').innerText = `${lOn}/6구`;
@@ -912,6 +984,7 @@
       }
       document.getElementById('slab-1f-summary').innerText = `${lOn}/6구`;
 
+      // 1층 남/여 화장실 (92px x 84px 2단 정렬)
       const mrActive = state.menRestroom.light || state.menRestroom.fan;
       document.getElementById('chip-rr-m').className = 'mini-status-chip' + (mrActive ? ' on' : '');
       document.getElementById('txt-rr-m').innerText = mrActive ? 'ON' : 'OFF';
@@ -924,6 +997,7 @@
       document.getElementById('sw-wr-light').className = 'huge-switch-btn' + (state.womenRestroom.light ? ' active' : '');
       document.getElementById('sw-wr-fan').className = 'huge-switch-btn' + (state.womenRestroom.fan ? ' active' : '');
 
+      // 1층 도어락
       const doorChip = document.getElementById('chip-door');
       const doorBtn = document.getElementById('btn-door-act');
       if (state.doorLocked) {
@@ -940,6 +1014,7 @@
         document.getElementById('door-txt').innerText = '현관문 잠그기';
       }
 
+      // 전체 통계
       const totalBulbs = pOn + mOn + sOn + lOn + (state.menRestroom.light ? 1 : 0) + (state.womenRestroom.light ? 1 : 0);
       document.getElementById('top-val-lights').innerText = `${totalBulbs} / 18구`;
       const baseWatts = totalBulbs * 35 + (state.hvac.power ? 850 : 50) + (state.menRestroom.fan ? 30 : 0) + (state.womenRestroom.fan ? 30 : 0) + 100;

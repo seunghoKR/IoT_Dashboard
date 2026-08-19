@@ -986,14 +986,13 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
       box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4), inset 0 1px 2px rgba(255,255,255,0.4);
     }
 
-    /* 💨 송풍기 CSS 360도 회전 애니메이션 (SVG 완벽 지원) */
+    /* 💨 송풍기 CSS 360도 회전 애니메이션 (정중앙 0,0 축 기준 완벽 회전) */
     @keyframes fanSpinAnim {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
     .fan-rotating {
-      transform-box: fill-box;
-      transform-origin: 50% 50%;
+      transform-origin: 0px 0px !important;
       animation: fanSpinAnim 0.45s linear infinite !important;
     }
 
@@ -1072,10 +1071,13 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
   <main>
     <!-- 🌟 [단일 통합 스마트 탑바] 로고 + 해상도인식 + 날씨/예보 + 계정 관리 일체화 (높이 38px) -->
     <div class="dashboard-unified-top-bar">
-      <!-- 좌측: 로고 & 해상도 배지 -->
+      <!-- 좌측: 로고 & 해상도 배지 & 건물 모드 전환 -->
       <div class="top-bar-left">
         <span class="brand-logo">🍓</span>
         <span class="brand-name">누리오 스마트 팜</span>
+        <a href="building.php" style="text-decoration:none; background:linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color:#FFFFFF; font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:3px; border:1px solid #60A5FA; transition:all 0.2s;" title="3층 복합 건물 스마트 IoT 대시보드로 전환">
+          <span>🏢</span><span>건물 모드</span>
+        </a>
         <div class="res-indicator-badge" id="res-mode-badge" title="현재 감지된 고정 해상도 규격">
           <span>🖥️</span><span id="res-mode-text">WUXGA (1920×1200)</span>
         </div>
@@ -2100,10 +2102,9 @@ $initHousesJson = json_encode($initHouses, JSON_UNESCAPED_UNICODE);
         const fanUnit = document.getElementById('svg-fan-blades');
         if (fanUnit) {
           if (stateFan) {
-            fanUnit.style.animation = 'spinFan 0.6s linear infinite';
-            fanUnit.style.transformOrigin = '0px 0px';
+            fanUnit.classList.add('fan-rotating');
           } else {
-            fanUnit.style.animation = 'none';
+            fanUnit.classList.remove('fan-rotating');
           }
         }
 
